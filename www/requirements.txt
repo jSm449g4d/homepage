@@ -1,0 +1,13 @@
+# pip3_package
+wheel==0.43.0
+setuptools==69.5.1
+
+# server
+flask==3.0.3
+waitress==3.0.0
+
+# application
+newsapi-python==0.2.7
+urllib3==2.2.1
+certifi==2024.2.2
+psutil==5.9.8
