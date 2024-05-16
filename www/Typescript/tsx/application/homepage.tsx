@@ -40,7 +40,7 @@ export const AppMain = () => {
                                     <h5>Flask通信</h5>
                                     <div className="d-flex flex-column flex-grow-1">
                                         <img className="img-fluid" src="/static/img/hakka.png" style={{ height: 150, objectFit: "contain" }} />
-                                        2020/09/09~16に開催されたハッカソンの<b>入選</b>作品
+                                        2020/09/09~16に開催されたハッカソンの作品
                                         <ul>
                                             <li>チーム開発</li>
                                             <li>情報可視化で世の中を便利に!</li>
