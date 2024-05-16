@@ -1,0 +1,10 @@
+# Javascript/Typescript
+node_modules/
+package-lock.json
+#src/
+
+# Python
+__pycache__/
+
+# VScode
+.vscode/

@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "sourceMap": true,
+        "noImplicitAny": true,
+        "module": "es2022",
+        "target": "es2022",
+        "jsx": "react",
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+    },
+    "include": [
+        "./**/*",
+    ],
+}

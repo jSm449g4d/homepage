@@ -1,0 +1,128 @@
+
+$zero: 0
+$nine: 9
+
+@for $i from $zero through $nine
+  .fadein-#{$i}
+    animation: fadein #{$i}s ease 0s 1 normal
+@keyframes fadein
+  0%
+    opacity: 0%
+  100%
+    opacity: 100%
+
+@for $i from $zero through $nine
+  .slidein-#{$i}
+    animation: slidein #{$i}s ease 0s 1 normal
+@keyframes slidein
+  0%
+    transform: translateX(400px)
+  100%
+    transform: translateX(0px) translateY(0px) rotate(0deg)
+
+@for $i from $zero through $nine
+  .slidein-#{$i}-reverse
+    animation: slidein-reverse #{$i}s ease 0s 1 normal
+@keyframes slidein-reverse
+  0%
+    transform: translateX(-400px)
+  100%
+    transform: translateX(0px) translateY(0px) rotate(0deg)
+
+@for $i from $zero through $nine
+  .rotxin-#{$i}
+    animation: rotxin #{$i}s ease 0s 1 normal
+@keyframes rotxin
+  0%
+    transform: rotateX(-800deg)
+  100%
+    transform: rotateX(0deg)
+
+.titlelogo
+  font-family: Century
+  color: darkcyan
+  background-color: rgba(140,30,30,0.1)
+  font-weight: bold
+  border-top: solid 1px firebrick
+  border-bottom: solid 1px firebrick
+  text-shadow: 4px 4px 1px rgba(60,60,60,0.3)
+  animation: titlelogo-slidein 2s ease-out 0s 1 normal
+@keyframes titlelogo-slidein
+  0%
+    transform: translateX(600px) translateY(150px) rotate(-30deg)
+  100%
+    transform: translateX(0px) translateY(0px) rotate(0deg)
+
+.blackboard
+  color: #CCFFFF
+  border: 3px double silver
+  background: rgba(0,17,17,1)
+  padding: 2px
+
+.blackboard-transparent
+  color: #CCFFFF
+  border: 3px double silver
+  background: rgba(0,17,17,0.8)
+  padding: 2px
+
+.fa-btn
+  color: saddlebrown
+.fa-btn:hover
+  transition: 0.3s
+  color: midnightblue
+  cursor: pointer
+  animation: fa-btn-rotanime 0.5s ease infinite alternate
+@keyframes fa-btn-rotanime
+  0%
+    transform: rotate(0deg)
+  100%
+    transform: rotate(-30deg)
+.fa-btn-help
+  @extend .fa-btn
+  color: darkorange
+.fa-btn-help:hover
+  color: orangered
+.fa-btn-goldbadge
+  @extend .fa-btn
+  color: gold
+.fa-btn-goldbadge:hover
+  color: goldenrod
+
+.a-nolink
+  color: black
+  text-decoration: none
+.a-nolink:hover
+  color: black
+  text-decoration: none
+
+.btn-push:hover
+  transition: 0.3s
+  transform: translate(2px,2px)
+  cursor: pointer
+  
+.btn-col
+  color: black
+  text-decoration: none
+  border: 1px inset silver
+  border-radius: 5px
+  background: linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.1))
+  margin-bottom: 3px
+  box-shadow: 2px 2px 1px rgba(60,60,60,0.2)
+.btn-col:hover
+  background-color: rgba(30,30,30,0.2)
+  box-shadow: 2px 2px 1px rgba(60,60,60,0)5px
+  @extend .btn-push
+
+.tptef-room
+  @extend .slidein-1
+  border-top: solid 1px darkred
+  border-bottom: solid 1px darkred
+
+.flask-icon
+  transition: 0.3s
+  animation: fa-btn-rotanime 0.5s ease infinite alternate
+@keyframes fa-btn-rotanime
+  0%
+    transform: rotate(15deg)
+  100%
+    transform: rotate(-15deg)

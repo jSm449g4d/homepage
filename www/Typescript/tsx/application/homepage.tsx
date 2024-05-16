@@ -1,0 +1,91 @@
+import React from 'react';
+import "../stylecheets/style.sass";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
+
+const bgImage: any = {
+    //backgroundColor: "lavender",
+    backgroundImage: "url(/static/img/aircraft-2795557_1280.jpg)",
+    backgroundSize: "cover",
+    backgroundAttachment: "fixed",
+}
+
+export const AppMain = () => {
+    // functions
+    // renders
+    const titleLogo = () => {
+        return (
+            <div className="row text-center mt-2">
+                <div className="col-lg-2" />
+                <h1 className="d-none d-md-block col-lg-8 titlelogo" >
+                    VPSdeWP の ホームページ
+                </h1>
+                <h1 className="d-block d-md-none col-12 text-center titlelogo "><div>VPSdeWP</div><div>の</div><div>ホームページ</div>
+                </h1>
+                <div className="col-lg-2" >
+                </div>
+            </div>
+        )
+    }
+    const indexColumns = () => {
+        return (
+            <div className="p-3">
+                <div className="row text-center">
+                    <div className="col-12 slidein-1">
+                        <h4 style={{ backgroundColor: "rgba(225,160,225,0.8)", }}>コンテンツ一覧</h4>
+                    </div>
+                    <div className="col-sm-6 col-md-4 p-1 fadein-3">
+                        <div className="btn-col" style={{ background: "rgba(255,255,255,0.6)" }}>
+                            <a className="a-nolink" href='https://github.com/jSm449g4d/summerhackathon_vol2' >
+                                <div className="d-flex flex-column" style={{ height: "380px" }}>
+                                    <h5>Flask通信</h5>
+                                    <div className="d-flex flex-column flex-grow-1">
+                                        <img className="img-fluid" src="/static/img/hakka.png" style={{ height: 150, objectFit: "contain" }} />
+                                        2020/09/09~16に開催されたハッカソンの<b>入選</b>作品
+                                        <ul>
+                                            <li>チーム開発</li>
+                                            <li>情報可視化で世の中を便利に!</li>
+                                            <li>何時どれだけ、どんな記事?</li>
+                                            <li>キーワード検索</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div className="col-sm-6 col-md-4 p-1 fadein-4">
+                        <div className="btn-col" style={{ background: "rgba(255,255,255,0.6)" }}>
+                            <a className="a-nolink" href='https://github.com/jSm449g4d/hleb' >
+                                <div className="d-flex flex-column" style={{ height: "380px" }}>
+                                    <h5>хлеб (半完全栄養食)</h5>
+                                    <div className="d-flex flex-column flex-grow-1">
+                                        <img className="img-fluid" src="/static/img/hleb.jpg" style={{ height: 150, objectFit: "contain" }} />
+                                        私の日常食
+                                        <ul>
+                                            <li>低カロリー(900[kcal]前後)</li>
+                                            <li>低コスト(500[円]以下)</li>
+                                            <li>高たんぱく(100[g]以上)</li>
+                                            <li>ケト食(糖質20[g]前後)</li>
+                                            <li>人工甘味料(NAS)不使用</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div style={bgImage}><div style={{ background: "rgba(255,255,255,0.5)", }}>
+            <div>{titleLogo()}</div>
+            <div id="homepage_githubColumns">{indexColumns()}</div>
+        </div></div>
+    );
+};
+
+//titleLogo
+export const titleLogo = () => {
+    return (<div style={{ fontFamily: "Impact", color: "black" }}>ホームページ</div>)
+}
