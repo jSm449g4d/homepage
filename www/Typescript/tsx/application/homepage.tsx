@@ -1,6 +1,5 @@
 import React from 'react';
 import "../stylecheets/style.sass";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
 
 const bgImage: any = {
     //backgroundColor: "lavender",
@@ -10,7 +9,6 @@ const bgImage: any = {
 }
 
 export const AppMain = () => {
-    // functions
     // renders
     const titleLogo = () => {
         return (
@@ -78,7 +76,7 @@ export const AppMain = () => {
     }
 
     return (
-        <div style={bgImage}><div style={{ background: "rgba(255,255,255,0.5)", }}>
+        <div style={bgImage} id="appMain"><div style={{ background: "rgba(255,255,255,0.5)", }}>
             <div>{titleLogo()}</div>
             <div id="homepage_githubColumns">{indexColumns()}</div>
         </div></div>
@@ -87,5 +85,5 @@ export const AppMain = () => {
 
 //titleLogo
 export const titleLogo = () => {
-    return (<div style={{ fontFamily: "Impact", color: "black" }}>ホームページ</div>)
+    return (<div id="titlelogo" style={{ fontFamily: "Impact", color: "black" }} >ホームページ</div>)
 }

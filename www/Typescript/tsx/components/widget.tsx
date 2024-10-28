@@ -1,18 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client"
 import { stopf5, Query2Dict } from "./util";
 require.context('../application/', true, /\.ts(x?)$/)
 
+import { Provider } from "react-redux"
+import { store } from "../components/store";
+
+
+
+import { accountInit, accountSetState } from './slice'
+import { useAppSelector, useAppDispatch } from './store'
 
 export const AppWidgetHead = () => {
-    const [user, setUser] = useState("")
     const [tmpUser, setTempUser] = useState("")
-    const [token, setToken] = useState("")
     const [tmpPass, setTempPass] = useState("")
     const [tmpMessage, setTmpMessage] = useState("")
+
+    const user = useAppSelector((state) => state.account.user)
+    const token = useAppSelector((state) => state.account.token)
+    const dispatch = useAppDispatch()
+
     //AccountControl
     const _logoutInit = () => {
-        setTempUser(""); setTempPass(""); setTempUser(""); setTempPass(""); setUser(""); setToken(""); setTmpMessage("");
+        setTempUser(""); setTempPass(""); setTempUser(""); setTempPass(""); setTmpMessage(""); dispatch(accountInit());
     }
     const _login = () => {
         const xhr: XMLHttpRequest = new XMLHttpRequest();
@@ -21,7 +31,10 @@ export const AppWidgetHead = () => {
         xhr.onload = () => {
             if (xhr.readyState === 4 && xhr.status === 200) console.log(xhr.responseText);
             const resp: any = JSON.parse(xhr.responseText)
-            if (resp["message"] == "processed") { setUser(resp["user"]); setToken(resp["token"]); setTmpMessage(resp["message"]); }
+            if (resp["message"] == "processed") {
+                dispatch(accountSetState({ user: resp["user"], token: resp["token"] }));
+                setTmpMessage(resp["message"]);
+            }
             else { setTmpMessage(resp["message"]); }
         };
         xhr.timeout = 5000;
@@ -35,7 +48,10 @@ export const AppWidgetHead = () => {
         xhr.onload = () => {
             if (xhr.readyState === 4 && xhr.status === 200) console.log(xhr.responseText);
             const resp: any = JSON.parse(xhr.responseText)
-            if (resp["message"] == "processed") { setUser(resp["user"]); setToken(resp["token"]); setTmpMessage(resp["message"]); }
+            if (resp["message"] == "processed") {
+                dispatch(accountSetState({ user: resp["user"], token: resp["token"] }));
+                setTmpMessage(resp["message"]);
+            }
             else { setTmpMessage(resp["message"]); }
         };
         xhr.timeout = 5000;
@@ -149,7 +165,9 @@ export const AppWidgetHead = () => {
                         <span className="input-group-text" id="account-addon2">Pass</span>
                         <input type="password" className="form-control" placeholder="pass" aria-label="pass" id="account-from2"
                             aria-labelledby="passwordHelpBlock"
-                            value={tmpPass} onChange={(evt) => { setTempPass(evt.target.value) }} />
+                            value={tmpPass} onChange={(evt) => {
+                                setTempPass(evt.target.value)
+                            }} />
                     </div>
                     {tmpUser == "" || tmpPass == "" ?
                         <button className="btn btn-secondary w-100" type="button" aria-expanded="false" disabled>
@@ -188,10 +206,10 @@ export const AppWidgetHead = () => {
     const _switchApp = (application: string) => {
         if (stopf5.check("_switchapp", 50, true) == false) return; // To prevent high freq access
         import("../application/" + application).then((module) => {
-            ReactDOM.unmountComponentAtNode(document.getElementById("appMain"));
-            ReactDOM.render(<module.AppMain />, document.getElementById("appMain"));
-            ReactDOM.unmountComponentAtNode(document.getElementById("titlelogo_tsx"));
-            ReactDOM.render(<module.titleLogo />, document.getElementById("titlelogo_tsx"));
+            const appMain = createRoot(document.getElementById("appMain"))
+            appMain.render(<Provider store={store}><module.AppMain /></Provider>)
+            const titlelogo = createRoot(document.getElementById("titlelogo"))
+            titlelogo.render(<module.titleLogo />)
         })
     }
     return (
@@ -200,7 +218,7 @@ export const AppWidgetHead = () => {
                 <div className="col-sm-12 col-lg-8 p-1">
                     <h2 className="d-flex justify-content-center justify-content-lg-start">
                         <div className="form-inline">
-                            <div className="rotxin-2" id="titlelogo_tsx">タイトル未設定</div>
+                            <div className="rotxin-2" id="titlelogo">タイトル未設定</div>
                         </div>
                     </h2>
                     <div className="">

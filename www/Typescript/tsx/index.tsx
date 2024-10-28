@@ -1,32 +1,28 @@
 import React from 'react';
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client"
+import { Provider } from "react-redux"
 import { Query2Dict } from "./components/util";
+import { store } from "./components/store";
 import { AppWidgetHead, AppWidgetFoot } from "./components/widget";
 
-// WidgetHead
-document.body.insertAdjacentHTML('beforeend', '<div id="AppWidgetHead">AppWidgetHead loading...<\/div>');
-ReactDOM.render(<AppWidgetHead />, document.getElementById("AppWidgetHead"));
-// App
-document.body.insertAdjacentHTML('beforeend', '<div id="appMain">appMain loading...<\/div>');
 require.context('./application/', true, /\.ts(x?)$/)
-// Alias / homepage
-if ("application" in Query2Dict() == false) {
-    import("./application/homepage").then((module) => {
-        ReactDOM.render(<module.AppMain />, document.getElementById("appMain"));
-        ReactDOM.render(<module.titleLogo />, document.getElementById("titlelogo_tsx"));
-    })
-}
-else {
-    import("./application/" + Query2Dict()["application"]).then((module) => {
-        ReactDOM.render(<module.AppMain />, document.getElementById("appMain"));
-        ReactDOM.render(<module.titleLogo />, document.getElementById("titlelogo_tsx"));
-    })
-}
-
-// WidgetFoot
-    document.body.insertAdjacentHTML('beforeend', '<div id="AppWidgetFoot">AppWidgetFoot loading...<\/div>');
-    ReactDOM.render(<AppWidgetFoot />, document.getElementById("AppWidgetFoot"));
-
-// DefaultLogin
-if ("portfolio" in Query2Dict() == true) {
-}
+// arias
+var _application = "homepage"
+if ("application" in Query2Dict() == true) { _application = Query2Dict()["application"] }
+//render
+import("./application/" + _application).then((module) => {
+    const root = createRoot(document.getElementById("root"))
+    root.render(
+        <React.StrictMode>
+            <Provider store={store}>
+                <AppWidgetHead />
+                <module.AppMain />
+                <AppWidgetFoot />
+            </Provider>
+        </React.StrictMode>);
+    // need delay because the page is not yet fully rendered at this time.
+    setTimeout(() => {
+        const titlelogo = createRoot(document.getElementById("titlelogo"))
+        titlelogo.render(<module.titleLogo />)
+    }, 100);
+})
