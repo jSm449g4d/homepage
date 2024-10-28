@@ -6,5 +6,8 @@ package-lock.json
 # Python
 __pycache__/
 
+# temporary file
+tmp/
+
 # VScode
 .vscode/
