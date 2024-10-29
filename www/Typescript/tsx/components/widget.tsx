@@ -192,13 +192,14 @@ export const AppWidgetHead = () => {
         return (
             <div className="row">
                 {accountDeleteModal()}
-                <div className="col-12 col-md-8 d-flex justify-content-center align-items-center">
-                    <h5 className=""> {"ようこそ  "}   </h5>
-                    <h3 className=""> {user}</h3>
-                    <h5 className=""> {"  さん"}   </h5>
+                <div className="col-12 col-md-6 d-flex justify-content-center align-items-center">
+                    <h5 className=""> {"ようこそ"}   </h5>
+                    <h3 className="mx-2"> {user}</h3>
+                    <h5 className=""> {"さん"}   </h5>
                 </div>
-                <div className="col-12 col-md-4 row">
-                    <div className="btn-group col-12">
+
+                <div className="col-12 col-md-6 d-flex align-items-center">
+                    <div className="btn-group w-100">
                         <button className="btn btn-warning" type="button" aria-expanded="false"
                             onClick={() => { _logout() }}>
                             logout
@@ -206,11 +207,11 @@ export const AppWidgetHead = () => {
                         <button className="btn btn-danger" type="button" aria-expanded="false"
                             data-bs-toggle="modal" data-bs-target="#accountDeleteModal">
                             accountDelete
-                        </button></div>
+                        </button>
+                    </div>
                 </div>
             </div>)
     }
-    // functions
 
     const _switchApp = (application: string) => {
         if (stopf5.check("_switchapp", 50, true) == false) return; // To prevent high freq access
@@ -223,9 +224,9 @@ export const AppWidgetHead = () => {
     }
     return (
         <div style={{ borderBottom: "3px double gray", background: "linear-gradient(rgba(60,60,60,0),rgba(60,60,60,0.1)" }}>
-            <div className="row p-1 px-3">
+            <div className="my-1 mx-2 row">
 
-                <div className="col-12 col-md-3">
+                <div className="col-4 col-md-3">
                     <div className="dropdown d-flex align-items-center">
                         <ul className="dropdown-menu ">
                             <li><a className="dropdown-item w-100" style={{ fontSize: "1.5em" }}
@@ -237,20 +238,19 @@ export const AppWidgetHead = () => {
                                 <i className="far fa-comments mr-1"></i>チャット
                             </a></li>
                         </ul>
-                        <button className="btn btn-primary dropdown-toggle btn-lg"
+                        <button className="btn btn-primary dropdown-toggle"
                             type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             アプリ一覧
                         </button>
                     </div>
                 </div>
-                <h2 className="col-12 col-md-3 d-flex justify-content-center align-items-center">
+                <h2 className="col-8 col-md-3 d-flex justify-content-center align-items-center">
                     <div className="rotxin-2" id="titlelogo">タイトル未設定</div>
                 </h2>
-                <div className="col-12 col-md-6 d-flex align-items-center">
-                    <div>
-                        {accountForm()}
-                    </div>
-                </div></div></div>
+                <div className="col-12 col-md-6">
+                    {accountForm()}
+                </div>
+            </div></div>
     );
 }
 

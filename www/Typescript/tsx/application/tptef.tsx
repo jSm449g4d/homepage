@@ -136,11 +136,11 @@ export const AppMain = () => {
                         <input type="file" className="form-control "
                             placeholder="attachment file" ></input>
                         {tmpText == "" ?
-                            <button className="btn btn-success btn-lg btn-push ">
+                            <button className="btn btn-success btn-lg ">
                                 <i className="far fa-comment-dots mr-1" style={{ pointerEvents: "none" }}></i>送信
                             </button>
                             :
-                            <button className="btn btn-success btn-lg btn-push "
+                            <button className="btn btn-success btn-lg"
                                 onClick={() => { remarkChat(); setTmpText(""); setTmpFile(null); }}>
                                 <i className="far fa-comment-dots mr-1" style={{ pointerEvents: "none" }}></i>送信
                             </button>
@@ -204,25 +204,25 @@ export const AppMain = () => {
         if (tmpRoom == "") {
             return (
                 <div className="btn-group w-100">
-                    <button className="btn btn-primary btn-lg btn-push" type="button" disabled>
+                    <button className="btn btn-primary btn-lg" type="button" disabled>
                         部屋に移動
                     </button>
-                    <button className="btn btn-warning btn-lg btn-push" type="button" disabled>
+                    <button className="btn btn-warning btn-lg" type="button" disabled>
                         部屋を作成
                     </button>
                 </div>)
         }
         return (
             <div className="btn-group w-100">
-                <button className="btn btn-primary btn-lg btn-push" type="button"
+                <button className="btn btn-primary btn-lg" type="button"
                     onClick={() => { fetchChat() }}>
                     部屋に移動
                 </button>
                 {token == "" ?
-                    <button className="btn btn-dark btn-lg btn-push" type="button" disabled>
+                    <button className="btn btn-dark btn-lg" type="button" disabled>
                         ログインが必要
                     </button> :
-                    <button className="btn btn-warning btn-lg btn-push" type="button"
+                    <button className="btn btn-warning btn-lg" type="button"
                         onClick={() => { createRoom() }}>
                         部屋を作成
                     </button>}
@@ -238,7 +238,7 @@ export const AppMain = () => {
                         <div className="row p-1 px-3">
                             <div className="col-12 col-md-8 d-flex justify-content-center align-items-center">
                                 <div className="input-group">
-                                    <button className="btn btn-success btn-lg btn-push w-80" type="button"
+                                    <button className="btn btn-success btn-lg w-80" type="button"
                                         onClick={() => { searchRoom() }}>
                                         検索
                                     </button>
@@ -255,15 +255,15 @@ export const AppMain = () => {
                             </h4>
                             <div className="col-12 col-md-4 d-flex justify-content-center align-items-center">
                                 <div className="btn-group w-100">
-                                    <button className="btn btn-secondary btn-lg btn-push" type="button"
+                                    <button className="btn btn-secondary btn-lg" type="button"
                                         onClick={() => { exitRoom() }}>
                                         部屋を出る
                                     </button>
                                     {roomOwnerFlag == "" ?
-                                        <button className="btn  btn-dark btn-lg btn-push " type="button" disabled>
+                                        <button className="btn  btn-dark btn-lg" type="button" disabled>
                                             部屋を削除
                                         </button> :
-                                        <button className="btn btn-lg btn-danger btn-push" type="button"
+                                        <button className="btn btn-lg btn-danger" type="button"
                                             onClick={() => { destroyRoom() }}>
                                             部屋を削除
                                         </button>}
