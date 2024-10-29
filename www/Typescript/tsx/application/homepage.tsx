@@ -76,10 +76,11 @@ export const AppMain = () => {
     }
 
     return (
-        <div style={bgImage} id="appMain"><div style={{ background: "rgba(255,255,255,0.5)", }}>
-            <div>{titleLogo()}</div>
-            <div id="homepage_githubColumns">{indexColumns()}</div>
-        </div></div>
+        <div>
+            <div style={bgImage}><div style={{ background: "rgba(255,255,255,0.5)", }}>
+                <div>{titleLogo()}</div>
+                <div id="homepage_githubColumns">{indexColumns()}</div>
+            </div></div></div>
     );
 };
 

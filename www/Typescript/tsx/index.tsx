@@ -16,12 +16,16 @@ import("./application/" + _application).then((module) => {
         <React.StrictMode>
             <Provider store={store}>
                 <AppWidgetHead />
-                <module.AppMain />
+                <div id="appMain" />
                 <AppWidgetFoot />
             </Provider>
         </React.StrictMode>);
+
+
     // need delay because the page is not yet fully rendered at this time.
     setTimeout(() => {
+        const appMain = createRoot(document.getElementById("appMain"))
+        appMain.render(<Provider store={store}><module.AppMain /></Provider>)
         const titlelogo = createRoot(document.getElementById("titlelogo"))
         titlelogo.render(<module.titleLogo />)
     }, 100);

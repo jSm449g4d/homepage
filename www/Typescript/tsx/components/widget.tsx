@@ -139,7 +139,7 @@ export const AppWidgetHead = () => {
                 </div>)
         if (token == "") {
             return (
-                <div className="mx-auto p-2">
+                <div className="row">
                     <div className="modal fade" id="exampleModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
                         <div className="modal-dialog">
                             <div className="modal-content">
@@ -156,25 +156,27 @@ export const AppWidgetHead = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="input-group mb-3">
-                        <span className="input-group-text" id="account-addon1">User</span>
-                        <input type="text" className="form-control" placeholder="Username" aria-label="Username" id="account-from1"
-                            value={tmpUser} onChange={(evt) => { setTempUser(evt.target.value) }} />
-                    </div>
-                    <div className="input-group mb-3">
-                        <span className="input-group-text" id="account-addon2">Pass</span>
-                        <input type="password" className="form-control" placeholder="pass" aria-label="pass" id="account-from2"
-                            aria-labelledby="passwordHelpBlock"
-                            value={tmpPass} onChange={(evt) => {
-                                setTempPass(evt.target.value)
-                            }} />
+                    <div className="col-12 col-md-8 row">
+                        <div className="input-group col-12">
+                            <span className="input-group-text" id="account-addon1">User</span>
+                            <input type="text" className="form-control" placeholder="Username" aria-label="Username" id="account-from1"
+                                value={tmpUser} onChange={(evt) => { setTempUser(evt.target.value) }} />
+                        </div>
+                        <div className="input-group col-12">
+                            <span className="input-group-text" id="account-addon2">Pass</span>
+                            <input type="password" className="form-control" placeholder="pass" aria-label="pass" id="account-from2"
+                                aria-labelledby="passwordHelpBlock"
+                                value={tmpPass} onChange={(evt) => {
+                                    setTempPass(evt.target.value)
+                                }} />
+                        </div>
                     </div>
                     {tmpUser == "" || tmpPass == "" ?
-                        <button className="btn btn-secondary w-100" type="button" aria-expanded="false" disabled>
+                        <button className="btn btn-secondary col-12 col-md-4" type="button" aria-expanded="false" disabled>
                             Plz input User and Pass
                         </button>
                         :
-                        <div className="btn-group w-100">
+                        <div className="btn-group col-12 col-md-4">
                             <button className="btn btn-primary" type="button" aria-expanded="false"
                                 onClick={() => { _login(); }}>
                                 login
@@ -188,21 +190,28 @@ export const AppWidgetHead = () => {
                 </div>)
         }
         return (
-            <div className="mx-auto p-2">
+            <div className="row">
                 {accountDeleteModal()}
-                <h4 className="">ようこそ {user} さん</h4>
-                <div className="btn-group w-100">
-                    <button className="btn btn-warning" type="button" aria-expanded="false"
-                        onClick={() => { _logout() }}>
-                        logout
-                    </button>
-                    <button className="btn btn-danger" type="button" aria-expanded="false"
-                        data-bs-toggle="modal" data-bs-target="#accountDeleteModal">
-                        accountDelete
-                    </button></div>
+                <div className="col-12 col-md-8 d-flex justify-content-center align-items-center">
+                    <h5 className=""> {"ようこそ  "}   </h5>
+                    <h3 className=""> {user}</h3>
+                    <h5 className=""> {"  さん"}   </h5>
+                </div>
+                <div className="col-12 col-md-4 row">
+                    <div className="btn-group col-12">
+                        <button className="btn btn-warning" type="button" aria-expanded="false"
+                            onClick={() => { _logout() }}>
+                            logout
+                        </button>
+                        <button className="btn btn-danger" type="button" aria-expanded="false"
+                            data-bs-toggle="modal" data-bs-target="#accountDeleteModal">
+                            accountDelete
+                        </button></div>
+                </div>
             </div>)
     }
     // functions
+
     const _switchApp = (application: string) => {
         if (stopf5.check("_switchapp", 50, true) == false) return; // To prevent high freq access
         import("../application/" + application).then((module) => {
@@ -215,32 +224,29 @@ export const AppWidgetHead = () => {
     return (
         <div style={{ borderBottom: "3px double gray", background: "linear-gradient(rgba(60,60,60,0),rgba(60,60,60,0.1)" }}>
             <div className="row p-1 px-3">
-                <div className="col-sm-12 col-lg-8 p-1">
-                    <h2 className="d-flex justify-content-center justify-content-lg-start">
-                        <div className="form-inline">
-                            <div className="rotxin-2" id="titlelogo">タイトル未設定</div>
-                        </div>
-                    </h2>
-                    <div className="">
-                        <div className="dropdown">
-                            <button className="btn btn-primary dropdown-toggle btn-lg  w-100"
-                                type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                アプリ一覧
-                            </button>
-                            <ul className="dropdown-menu">
-                                <li><a className="dropdown-item" style={{ fontSize: "1.5em" }}
-                                    onClick={() => { _switchApp("homepage") }}>
-                                    <i className="fas fa-home mr-1"></i>ホームページ
-                                </a></li>
-                                <li><a className="dropdown-item" style={{ fontSize: "1.5em" }}
-                                    onClick={() => { _switchApp("tptef") }}>
-                                    <i className="far fa-comments mr-1"></i>チャット
-                                </a></li>
-                            </ul>
-                        </div>
+
+                <div className="col-12 col-md-3">
+                    <div className="dropdown d-flex align-items-center">
+                        <ul className="dropdown-menu ">
+                            <li><a className="dropdown-item w-100" style={{ fontSize: "1.5em" }}
+                                onClick={() => { _switchApp("homepage") }}>
+                                <i className="fas fa-home mr-1"></i>ホームページ
+                            </a></li>
+                            <li><a className="dropdown-item w-100" style={{ fontSize: "1.5em" }}
+                                onClick={() => { _switchApp("tptef") }}>
+                                <i className="far fa-comments mr-1"></i>チャット
+                            </a></li>
+                        </ul>
+                        <button className="btn btn-primary dropdown-toggle btn-lg"
+                            type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            アプリ一覧
+                        </button>
                     </div>
                 </div>
-                <div className="col-sm-12 col-lg-4 p-1">
+                <h2 className="col-12 col-md-3 d-flex justify-content-center align-items-center">
+                    <div className="rotxin-2" id="titlelogo">タイトル未設定</div>
+                </h2>
+                <div className="col-12 col-md-6 d-flex align-items-center">
                     <div>
                         {accountForm()}
                     </div>

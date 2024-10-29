@@ -1,12 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit'
-import {accountSlice} from './slice'
+import { accountSlice,// mainappSlice
+
+ } from './slice'
 
 import { Provider, useSelector, useDispatch } from 'react-redux'
 
 export const store = configureStore({
-  reducer: { 
+  reducer: {
     account: accountSlice.reducer,
-   },
+    //mainapp: mainappSlice.reducer,
+  },
 })
 export type RootState = ReturnType<typeof store.getState>
 export type AppDispatch = typeof store.dispatch
