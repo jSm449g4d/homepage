@@ -32,7 +32,7 @@ export const AppWidgetHead = () => {
             if (xhr.readyState === 4 && xhr.status === 200) console.log(xhr.responseText);
             const resp: any = JSON.parse(xhr.responseText)
             if (resp["message"] == "processed") {
-                dispatch(accountSetState({ user: resp["user"], token: resp["token"] }));
+                dispatch(accountSetState({ user: resp["user"], token: resp["token"], id: resp["id"] }));
                 setTmpMessage(resp["message"]);
             }
             else { setTmpMessage(resp["message"]); }
@@ -49,7 +49,7 @@ export const AppWidgetHead = () => {
             if (xhr.readyState === 4 && xhr.status === 200) console.log(xhr.responseText);
             const resp: any = JSON.parse(xhr.responseText)
             if (resp["message"] == "processed") {
-                dispatch(accountSetState({ user: resp["user"], token: resp["token"] }));
+                dispatch(accountSetState({ user: resp["user"], token: resp["token"], id: resp["id"] }));
                 setTmpMessage(resp["message"]);
             }
             else { setTmpMessage(resp["message"]); }

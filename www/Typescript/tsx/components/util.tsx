@@ -16,7 +16,7 @@ export class stopf5_tsx {
 
 export const jpclock = () => {
     const now: Date = new Date();
-    return now.getFullYear() + "年 " + now.getMonth() +
+    return now.getFullYear() + "年 " + (now.getMonth() + 1) +
         "月 " + now.getDate() + "日 " + ["日 ", "月 ", "火 ", "水 ", "木 ", "金 ", "土 "][now.getDay()] +
         "曜日 " + now.getHours() + ": " + now.getMinutes() + ": " + now.getSeconds();
 }
@@ -45,9 +45,9 @@ export const checkMailAddress = (mailAddress: string) => {
     if (reg.test(mailAddress)) return true;
     return false;
 }
-export const Unixtime2String=(unixtime:number=0)=>{
-    const now: Date = new Date(unixtime);
-    const timestamp = now.getFullYear() + "年 " + String(now.getMonth()+1) +
+export const Unixtime2String = (unixtime: number = 0) => {
+    const now: Date = new Date(unixtime * 1000);
+    const timestamp = now.getFullYear() + "年 " + String(now.getMonth() + 1) +
         "月 " + now.getDate() + "日 " + now.getHours() + ": " + now.getMinutes() + ": " + now.getSeconds();
     return timestamp
 }

@@ -38,7 +38,12 @@ def show(request):
                         algorithm="HS256",
                     )
                     return json.dumps(
-                        {"message": "processed", "user": _data["user"], "token": token},
+                        {
+                            "message": "processed",
+                            "user": _data["user"],
+                            "token": token,
+                            "id": _data["id"],
+                        },
                         ensure_ascii=False,
                     )
             return json.dumps({"message": "rejected"})
@@ -68,7 +73,12 @@ def show(request):
                     algorithm="HS256",
                 )
             return json.dumps(
-                {"message": "processed", "user": _data["user"], "token": token},
+                {
+                    "message": "processed",
+                    "user": _data["user"],
+                    "token": token,
+                    "id": _data["id"],
+                },
                 ensure_ascii=False,
             )
 
