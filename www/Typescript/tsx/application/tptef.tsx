@@ -340,6 +340,10 @@ export const AppMain = () => {
 
     const roomTable = (_search = "") => {
         const _tmpRecord = [];
+        // if contents dont have enough element for example contents hold chat_data ,table need break
+        if(0<contents.length)
+            if(!("room" in contents[0]))
+                return (<div className="row m-1">loading</div>)
         for (var i = 0; i < contents.length; i++) {
             if (contents[i]["room"].indexOf(_search) == -1) continue
             const _tmpData = [];
