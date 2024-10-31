@@ -1,6 +1,5 @@
 import React from 'react';
 import "../stylecheets/style.sass";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
 
 const bgImage: any = {
     //backgroundColor: "lavender",
@@ -10,7 +9,6 @@ const bgImage: any = {
 }
 
 export const AppMain = () => {
-    // functions
     // renders
     const titleLogo = () => {
         return (
@@ -59,7 +57,7 @@ export const AppMain = () => {
                                     <h5>хлеб (半完全栄養食)</h5>
                                     <div className="d-flex flex-column flex-grow-1">
                                         <img className="img-fluid" src="/static/img/hleb.jpg" style={{ height: 150, objectFit: "contain" }} />
-                                        私の日常食
+                                        汎用食
                                         <ul>
                                             <li>低カロリー(900[kcal]前後)</li>
                                             <li>低コスト(500[円]以下)</li>
@@ -78,14 +76,15 @@ export const AppMain = () => {
     }
 
     return (
-        <div style={bgImage}><div style={{ background: "rgba(255,255,255,0.5)", }}>
-            <div>{titleLogo()}</div>
-            <div id="homepage_githubColumns">{indexColumns()}</div>
-        </div></div>
+        <div>
+            <div style={bgImage}><div style={{ background: "rgba(255,255,255,0.5)", }}>
+                <div>{titleLogo()}</div>
+                <div id="homepage_githubColumns">{indexColumns()}</div>
+            </div></div></div>
     );
 };
 
 //titleLogo
 export const titleLogo = () => {
-    return (<div style={{ fontFamily: "Impact", color: "black" }}>ホームページ</div>)
+    return (<div id="titlelogo" style={{ fontFamily: "Impact", color: "black" }} >ホームページ</div>)
 }

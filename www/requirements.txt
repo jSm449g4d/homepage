@@ -11,3 +11,4 @@ newsapi-python==0.2.7
 urllib3==2.2.1
 certifi==2024.2.2
 psutil==5.9.8
+PyJWT==2.9.0
