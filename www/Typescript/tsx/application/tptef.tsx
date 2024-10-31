@@ -10,18 +10,22 @@ export const AppMain = () => {
     const token = useAppSelector((state) => state.account.token)
 
 
-    const [room, setRoom] = useState({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0 })
+    const [room, setRoom] = useState({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "pass": "" })
     const [tmpRoom, setTmpRoom] = useState("")
     const [tmpText, setTmpText] = useState("")
     const [contents, setContents] = useState([])
-    const [tmpFile, setTmpFile] = useState("")
+    const [tmpAttachment, setTmpAttachment] = useState(null)
     const [tmpMessage, setTmpMessage] = useState("")
+
+    const xhrTimeout = 3000
+    useEffect(() => { searchRoom() }, [token])
+    useEffect(() => { searchRoom() }, [])
 
     const roadModalRender = () => {
         return (
-            <div className="modal" id="roadModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div className="modal opacity-25" id="roadModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                 <div className="modal-dialog modal-dialog-centered">
-                    <div className="modal-content d-flex justify-content-center align-items-center">
+                    <div className="modal-content d-flex justify-content-center align-items-center opacity-100">
                         <div className="modal-header">
                             <h5 className="modal-title">通信中</h5>
                         </div>
@@ -33,29 +37,31 @@ export const AppMain = () => {
             </div>)
     }
     const roadModalAndDelay = (_callback = () => { }, _delay = 100) => {
-        $('#roadModal').modal('show');
+        if (200 < _delay) $('#roadModal').modal('show');
         setTimeout(() => {
             _callback();
             $('#roadModal').modal('hide');
         }, _delay);
     }
 
-    const stringForSend = (order: string, _additionalDict: {} = {}) => {
+    const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
-                "order": order, "token": token, "text": tmpText, "user": user, "room": room["room"],
+                "token": token, "text": tmpText, "user": user, "room": room["room"],
             }, _additionalDict)
+
         return (JSON.stringify(_sendDict))
     }
-    const enterRoom = () => {
-        setTmpRoom(""); setTmpText(""); setContents([]); setTmpFile("");
+    // setContents([]) causes flickering
+    const enterRoom = (_setContentsInitialze = true) => {
+        if (_setContentsInitialze) setContents([])
+        setTmpRoom(""); setTmpText("");; setTmpAttachment(null);
     }
-    const exitRoom = () => {
-        setRoom({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0 }); setTmpRoom("");
-        setTmpText(""); setContents([]); setTmpFile("");
+    const exitRoom = (_setContentsInitialze = true) => {
+        if (_setContentsInitialze) setContents([])
+        setRoom({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "pass": "" }); setTmpRoom("");
+        setTmpText(""); setTmpAttachment(null);
     }
-    useEffect(() => { searchRoom() }, [token])
-    useEffect(() => { searchRoom() }, [])
 
     const sortSetContents = (_contents: any = []) => {
         const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
@@ -71,122 +77,186 @@ export const AppMain = () => {
 
     // functions
     const remarkChat = () => {
-        const xhr: XMLHttpRequest = new XMLHttpRequest();
-        xhr.open("POST", "/tptef.py", true);
-        xhr.ontimeout = () => console.error("The request timed out.");
-        xhr.onload = () => {
-            if (xhr.readyState === 4 && xhr.status === 200) console.log(xhr.responseText);
-            const resp: any = JSON.parse(xhr.responseText)
-            if (resp["message"] == "processed") {
-                setTmpMessage(resp["message"]);
-            }
-            else { setTmpMessage(resp["message"]); }
-        };
-        xhr.timeout = 5000;
-        xhr.send(stringForSend("remark"));
+        if (tmpText != "") {
+            const headers = new Headers();
+            const formData = new FormData();
+            formData.append("info", stringForSend())
+            formData.append("remark", JSON.stringify({}))
+            const request = new Request("/tptef.py", {
+                method: 'POST',
+                headers: headers,
+                body: formData,
+                signal: AbortSignal.timeout(xhrTimeout)
+            });
+            fetch(request)
+                .then(response => { roadModalAndDelay(fetchChat) })
+                .catch(error => console.error(error.message));
+        }
+        if (tmpAttachment != null) {
+            const headers = new Headers();
+            const formData = new FormData();
+            formData.append("info", stringForSend())
+            formData.append("upload", tmpAttachment, tmpAttachment.name)
+            const request = new Request("/tptef.py", {
+                method: 'POST',
+                headers: headers,
+                body: formData,
+                signal: AbortSignal.timeout(xhrTimeout)
+            });
+            fetch(request)
+                .then(response => { roadModalAndDelay(fetchChat) })
+                .catch(error => console.error(error.message));
+        }
     }
     const deleteChat = (_id: number) => {
-        const xhr: XMLHttpRequest = new XMLHttpRequest();
-        xhr.open("POST", "/tptef.py", true);
-        xhr.ontimeout = () => console.error("The request timed out.");
-        xhr.onload = () => {
-            if (xhr.readyState === 4 && xhr.status === 200) console.log(xhr.responseText);
-            const resp: any = JSON.parse(xhr.responseText)
-            if (resp["message"] == "processed") {
-                setTmpMessage(resp["message"]);
-            }
-            else { setTmpMessage(resp["message"]); }
-        };
-        xhr.timeout = 5000;
-        xhr.send(stringForSend("delete", { "chatid": _id }));
-        roadModalAndDelay(fetchChat, 1000);
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("delete", JSON.stringify({ "chatid": _id }))
+        const request = new Request("/tptef.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => { roadModalAndDelay(fetchChat) })
+            .catch(error => console.error(error.message));
+    }
+    const downloadChat = (_id: number) => {
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("download", JSON.stringify({ "chatid": _id }))
+        const request = new Request("/tptef.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.blob())
+            .then(blob => {
+                var a = document.createElement("a");
+                a.href = window.URL.createObjectURL(blob);
+                document.body.appendChild(a);
+                a.setAttribute("style", "display: none");
+                a.setAttribute("download", "");
+                a.click();
+                roadModalAndDelay(fetchChat)
+            })
+            .catch(error => console.error(error.message));
     }
     const fetchChat = (_roomid = room["id"]) => {
-        enterRoom()
-        const xhr: XMLHttpRequest = new XMLHttpRequest();
-        xhr.open("POST", "/tptef.py", true);
-        xhr.ontimeout = () => console.error("The request timed out.");
-        xhr.onload = () => {
-            if (xhr.readyState === 4 && xhr.status === 200) console.log(xhr.responseText);
-            const resp: any = JSON.parse(xhr.responseText)
-            if (resp["message"] == "processed") {
-                setRoom(resp["room"]);
-                sortSetContents(resp["chats"])
-                setTmpMessage(resp["message"]);
-            }
-            else { setTmpMessage(resp["message"]); }
-        };
-        xhr.timeout = 5000;
-        xhr.send(stringForSend("fetch", { "roomid": _roomid }));
+        enterRoom(false)
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("fetch", JSON.stringify({ "roomid": _roomid }))
+        const request = new Request("/tptef.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                if (resJ["message"] == "processed") {
+                    setRoom(resJ["room"]);
+                    sortSetContents(resJ["chats"])
+                }
+                setTmpMessage(resJ["message"])
+            })
+            .catch(error => console.error(error.message));
     }
     // renders
     const chatTable = () => {
         const _tmpRecord = [];
         for (var i = 0; i < contents.length; i++) {
             const _tmpData = [];
-            _tmpData.push(
-                <div className="col-12 border d-flex"
-                    style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.15))" }}>
-                    <h5 className="me-auto">
-                        <i className="far fa-user mr-1"></i>{contents[i]["user"]}
-                    </h5>
-                    {contents[i]["userid"] == userId ?
-                        <button className="btn btn-outline-danger rounded-pill"
-                            onClick={(evt: any) => {
-                                deleteChat(evt.target.name);
-                            }} name={contents[i]["id"]}>
-                            <i className="far fa-trash-alt mr-1" style={{ pointerEvents: "none" }}></i>Delete
-                        </button> : <div></div>
-                    }
-                </div>)
-            _tmpData.push(
-                <div className="col-12 col-md-2 border"><div className="text-center">
-                    {Unixtime2String(Number(contents[i]["timestamp"]))}
-                </div></div>)
-            _tmpData.push(
-                <div className="col-12 col-md-10 border"><div className="text-center">
-                    {contents[i]["text"]}
-                </div></div>)
-            //attachment download button
-            /*
-            if (dbTptef[tsuids[i]]["attachment"] != "")
-                tmpDatum.push(
-                    <button key={1} className="flex-fill btn btn-primary btn-push m-1"
-                        onClick={(evt: any) => {
-                            dispatchTptef({
-                                type: "download",
-                                fileName: evt.target.name,
-                                func: (_url: any) => window.open(_url, '_blank')
-                            })
-                        }}
-                        name={dbTptef[tsuids[i]]["attachment"]}>
-                        <i className="fas fa-paperclip mr-1" style={{ pointerEvents: "none" }}></i>
-                        {dbTptef[tsuids[i]]["attachment"].split("/").pop().slice(0, 16)}
-                    </button>)
-            //delete button
-            const _tmpDatum = [];
-            if (contents[i]["userid"] == userId)
-                _tmpDatum.push(
-                    <button key={2} className="flex-fill btn btn-outline-danger rounded-pill m-1"
-                        onClick={(evt: any) => { setTargetId(evt.target.name); deleteChat() }} name={contents[i]["id"]}>
-                        <i className="far fa-trash-alt mr-1" style={{ pointerEvents: "none" }}></i>Delete
-                    </button>)
-            if (_tmpDatum.length > 0)
+            // text
+            if (contents[i]["mode"] == "text") {
                 _tmpData.push(
-                    <div className="col-sm-12 col-md-2 p-1 border">
-                        <div className="d-flex flex-column">
-                            {_tmpDatum}
-                        </div>
-                    </div>)*/
-
+                    <div className="col-12 border d-flex"
+                        style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.15))" }}>
+                        <h5 className="me-auto">
+                            <i className="far fa-user mr-1"></i>{contents[i]["user"]}
+                        </h5>
+                        {Unixtime2String(Number(contents[i]["timestamp"]))}
+                    </div>)
+                _tmpData.push(
+                    <div className="col-12 col-md-9 border"><div className="text-center">
+                        {contents[i]["text"]}
+                    </div></div>)
+                _tmpData.push(
+                    <div className="col-12 col-md-3 border"><div className="text-center">
+                        {
+                            contents[i]["userid"] == userId ?
+                                <button className="btn btn-outline-danger rounded-pill"
+                                    onClick={(evt: any) => {
+                                        deleteChat(evt.target.name);
+                                    }} name={contents[i]["id"]}>
+                                    <i className="far fa-trash-alt mr-1" style={{ pointerEvents: "none" }}></i>Delete
+                                </button> : <div></div>}
+                    </div></div>)
+            }
+            // file
+            if (contents[i]["mode"] == "attachment") {
+                _tmpData.push(
+                    <div className="col-12 border d-flex"
+                        style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.15))" }}>
+                        <h5 className="me-auto">
+                            <i className="far fa-user mr-1"></i>{contents[i]["user"]}
+                        </h5>
+                        {Unixtime2String(Number(contents[i]["timestamp"]))}
+                    </div>)
+                _tmpData.push(
+                    <div className="col-12 col-md-9 border"><div className="text-center">
+                        {contents[i]["text"]}
+                    </div></div>)
+                _tmpData.push(
+                    <div className="col-12 col-md-3 border"><div className="text-center">
+                        <button className="btn btn-outline-primary rounded-pill"
+                            onClick={(evt: any) => {
+                                downloadChat(evt.target.name);
+                            }} name={contents[i]["id"]}>
+                            <i className="fa-solid fa-download mr-1" style={{ pointerEvents: "none" }}></i>Download
+                        </button>
+                        {
+                            contents[i]["userid"] == userId ?
+                                <button className="btn btn-outline-danger rounded-pill"
+                                    onClick={(evt: any) => {
+                                        deleteChat(evt.target.name);
+                                    }} name={contents[i]["id"]}>
+                                    <i className="far fa-trash-alt mr-1" style={{ pointerEvents: "none" }}></i>Delete
+                                </button> : <div></div>
+                        }
+                    </div></div>)
+            }
             _tmpRecord.push(
                 <div style={{
                     border: "1px inset silver", borderRadius: "5px", marginBottom: "3px", boxShadow: "2px 2px 1px rgba(60,60,60,0.2)"
-                }}><div className="p-1 row">{_tmpData}</div></div>)
+                }}><div className="m-1 row">{_tmpData}</div></div>)
         }
-        return (<div className="m-1">{_tmpRecord}</div>)
+        return (<div className="">{_tmpRecord}</div>)
     }
     const inputConsole = () => {
+        const remarkButton = () => {
+            if (tmpAttachment == null && tmpText == "")
+                return (
+                    <button className="btn btn-dark " disabled>
+                        <i className="far fa-comment-dots mr-1" style={{ pointerEvents: "none" }}></i>要入力
+                    </button>
+                )
+            return (
+                <button className="btn btn-success"
+                    onClick={() => { remarkChat(); roadModalAndDelay(fetchChat, 1000) }}>
+                    <i className="far fa-comment-dots mr-1" style={{ pointerEvents: "none" }}></i>
+                    送信
+                </button>
+            )
+        }
         if (token == "") return (<div className="m-1"></div>)
         return (
             <div className="m-1 p-2 row w-100"
@@ -198,21 +268,9 @@ export const AppMain = () => {
                     onChange={(evt) => { setTmpText(evt.target.value) }}></textarea>
                 <div className="col-12 row my-1">
                     <div className="input-group">
-                        <input type="file" className="form-control "
-                            placeholder="attachment file" ></input>
-                        {tmpText == "" ?
-                            <button className="btn btn-dark " >
-                                <i className="far fa-comment-dots mr-1" style={{ pointerEvents: "none" }}></i>要発言
-                            </button>
-                            :
-                            <button className="btn btn-success"
-                                onClick={() => {
-                                    remarkChat(); setTmpText(""); setTmpFile(null);
-                                    roadModalAndDelay(fetchChat, 1000)
-                                }}>
-                                <i className="far fa-comment-dots mr-1" style={{ pointerEvents: "none" }}></i>送信
-                            </button>
-                        }
+                        <input type="file" className="form-control " placeholder="attachment file"
+                            onChange={(evt) => { setTmpAttachment(evt.target.files[0]) }} />
+                        {remarkButton()}
                     </div>
                 </div>
             </div>
@@ -220,55 +278,64 @@ export const AppMain = () => {
     }
 
     const searchRoom = () => {
-        exitRoom()
-        const xhr: XMLHttpRequest = new XMLHttpRequest();
-        xhr.open("POST", "/tptef.py", true);
-        xhr.ontimeout = () => console.error("The request timed out.");
-        xhr.onload = () => {
-            if (xhr.readyState === 4 && xhr.status === 200) console.log(xhr.responseText);
-            const resp: any = JSON.parse(xhr.responseText)
-            if (resp["message"] == "processed") {
-                sortSetContents(resp["rooms"])
-                setTmpMessage(resp["message"]);
-            }
-            else { setTmpMessage(resp["message"]); }
-        };
-        xhr.timeout = 5000;
-        xhr.send(stringForSend("search"));
+        exitRoom(false)
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("search", JSON.stringify({}))
+        const request = new Request("/tptef.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                if (resJ["message"] == "processed") {
+                    sortSetContents(resJ["rooms"])
+                }
+                setTmpMessage(resJ["message"])
+            })
+            .catch(error => console.error(error.message));
     }
     const createRoom = () => {
-        enterRoom()
-        const xhr: XMLHttpRequest = new XMLHttpRequest();
-        xhr.open("POST", "/tptef.py", true);
-        xhr.ontimeout = () => console.error("The request timed out.");
-        xhr.onload = () => {
-            if (xhr.readyState === 4 && xhr.status === 200) console.log(xhr.responseText);
-            const resp: any = JSON.parse(xhr.responseText)
-            if (resp["message"] == "processed") {
-                setRoom(resp["room"]); setTmpRoom("");
-                setTmpMessage(resp["message"]);
-            }
-            else { setTmpMessage(resp["message"]); }
-        };
-        xhr.timeout = 5000;
-        xhr.send(stringForSend("create", { "room": tmpRoom }));
+        exitRoom()
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("create", JSON.stringify({ "room": tmpRoom }))
+        const request = new Request("/tptef.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                setRoom(resJ["room"])
+                if (resJ["message"] == "processed") {
+                    roadModalAndDelay(fetchChat)
+                }
+                setTmpMessage(resJ["message"])
+            })
+            .catch(error => console.error(error.message));
     }
     const destroyRoom = (_roomid = room["id"]) => {
-        const xhr: XMLHttpRequest = new XMLHttpRequest();
-        xhr.open("POST", "/tptef.py", true);
-        xhr.ontimeout = () => console.error("The request timed out.");
-        xhr.onload = () => {
-            if (xhr.readyState === 4 && xhr.status === 200) console.log(xhr.responseText);
-            const resp: any = JSON.parse(xhr.responseText)
-            if (resp["message"] == "processed") {
-                exitRoom()
-                setTmpMessage(resp["message"]);
-            }
-            else { setTmpMessage(resp["message"]); }
-        };
-        xhr.timeout = 5000;
-        xhr.send(stringForSend("destroy", { "roomid": _roomid }));
-        roadModalAndDelay(searchRoom, 1000)
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("destroy", JSON.stringify({ "roomid": _roomid }))
+        const request = new Request("/tptef.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => { roadModalAndDelay(searchRoom) })
+            .catch(error => console.error(error.message));
     }
 
     const roomTable = (_search = "") => {
@@ -286,12 +353,12 @@ export const AppMain = () => {
                         onClick={(evt: any) => {
                             fetchChat(evt.target.name)
                         }} name={contents[i]["id"]}>
-                        <i className="fa-solid fa-right-to-bracket mr-1"></i>Enter
+                        <i className="fa-solid fa-right-to-bracket mr-1" style={{ pointerEvents: "none" }}></i>Enter
                     </button>
                     {contents[i]["userid"] == userId ?
                         <button className="btn btn-outline-danger rounded-pill"
                             onClick={(evt: any) => { destroyRoom(evt.target.name); }} name={contents[i]["id"]}>
-                            <i className="far fa-trash-alt mr-1"></i>Delete
+                            <i className="far fa-trash-alt mr-1" style={{ pointerEvents: "none" }}></i>Delete
                         </button> : <div></div>
                     }
                 </div>)

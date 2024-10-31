@@ -57,7 +57,7 @@ export const AppMain = () => {
                                     <h5>хлеб (半完全栄養食)</h5>
                                     <div className="d-flex flex-column flex-grow-1">
                                         <img className="img-fluid" src="/static/img/hleb.jpg" style={{ height: 150, objectFit: "contain" }} />
-                                        私の日常食
+                                        汎用食
                                         <ul>
                                             <li>低カロリー(900[kcal]前後)</li>
                                             <li>低コスト(500[円]以下)</li>

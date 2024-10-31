@@ -19,9 +19,9 @@ with closing(sqlite3.connect(dbname)) as conn:
 
 def show(request):
     if request.method == "POST":
-        _dataDict = json.loads(request.get_data())
 
-        if _dataDict["order"] == "login":
+        if "login" in request.form:
+            _dataDict = json.loads(request.form["login"])
             user = _dataDict["user"]
             passhash = hashlib.sha256(_dataDict["pass"].encode()).hexdigest()
             with closing(sqlite3.connect(dbname)) as conn:
@@ -48,7 +48,8 @@ def show(request):
                     )
             return json.dumps({"message": "rejected"})
 
-        if _dataDict["order"] == "signin":
+        if "signin" in request.form:
+            _dataDict = json.loads(request.form["signin"])
             user = _dataDict["user"]
             passhash = hashlib.sha256(_dataDict["pass"].encode()).hexdigest()
             with closing(sqlite3.connect(dbname)) as conn:
@@ -82,10 +83,11 @@ def show(request):
                 ensure_ascii=False,
             )
 
-        if _dataDict["order"] == "signout":
+        if "signout" in request.form:
             return json.dumps({"message": "processed"}, ensure_ascii=False)
 
-        if _dataDict["order"] == "account_delete":
+        if "account_delete" in request.form:
+            _dataDict = json.loads(request.form["account_delete"])
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             with closing(sqlite3.connect(dbname)) as conn:
                 conn.row_factory = sqlite3.Row

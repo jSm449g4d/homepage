@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { createRoot } from "react-dom/client"
 import { stopf5, Query2Dict } from "./util";
 require.context('../application/', true, /\.ts(x?)$/)
-
 import { Provider } from "react-redux"
 import { store } from "../components/store";
-
-
-
 import { accountInit, accountSetState } from './slice'
 import { useAppSelector, useAppDispatch } from './store'
+
+const xhrTimeout = 3000
 
 export const AppWidgetHead = () => {
     const [tmpUser, setTempUser] = useState("")
@@ -25,53 +23,68 @@ export const AppWidgetHead = () => {
         setTempUser(""); setTempPass(""); setTempUser(""); setTempPass(""); setTmpMessage(""); dispatch(accountInit());
     }
     const _login = () => {
-        const xhr: XMLHttpRequest = new XMLHttpRequest();
-        xhr.open("POST", "/login.py", true);
-        xhr.ontimeout = () => console.error("The request timed out.");
-        xhr.onload = () => {
-            if (xhr.readyState === 4 && xhr.status === 200) console.log(xhr.responseText);
-            const resp: any = JSON.parse(xhr.responseText)
-            if (resp["message"] == "processed") {
-                dispatch(accountSetState({ user: resp["user"], token: resp["token"], id: resp["id"] }));
-                setTmpMessage(resp["message"]);
-            }
-            else { setTmpMessage(resp["message"]); }
-        };
-        xhr.timeout = 5000;
-        xhr.send(JSON.stringify({ "order": "login", "user": tmpUser, "pass": tmpPass }));
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("login", JSON.stringify({ "user": tmpUser, "pass": tmpPass }))
+        const request = new Request("/login.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                if (resJ["message"] == "processed") {
+                    dispatch(accountSetState({ user: resJ["user"], token: resJ["token"], id: resJ["id"] }));
+                }
+                setTmpMessage(resJ["message"]);
+            })
+            .catch(error => console.error(error.message));
         setTempUser(""); setTempPass("");
     }
     const _signin = () => {
-        const xhr: XMLHttpRequest = new XMLHttpRequest();
-        xhr.open("POST", "/login.py", true);
-        xhr.ontimeout = () => console.error("The request timed out.");
-        xhr.onload = () => {
-            if (xhr.readyState === 4 && xhr.status === 200) console.log(xhr.responseText);
-            const resp: any = JSON.parse(xhr.responseText)
-            if (resp["message"] == "processed") {
-                dispatch(accountSetState({ user: resp["user"], token: resp["token"], id: resp["id"] }));
-                setTmpMessage(resp["message"]);
-            }
-            else { setTmpMessage(resp["message"]); }
-        };
-        xhr.timeout = 5000;
-        xhr.send(JSON.stringify({ "order": "signin", "user": tmpUser, "pass": tmpPass }));
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("signin", JSON.stringify({ "user": tmpUser, "pass": tmpPass }))
+        const request = new Request("/login.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                if (resJ["message"] == "processed") {
+                    dispatch(accountSetState({ user: resJ["user"], token: resJ["token"], id: resJ["id"] }));
+                }
+                setTmpMessage(resJ["message"]);
+            })
+            .catch(error => console.error(error.message));
         setTempUser(""); setTempPass("");
     }
     const _logout = () => { _logoutInit() }
     const _accountDelete = () => {
-        // access to backend
-        const xhr: XMLHttpRequest = new XMLHttpRequest();
-        xhr.open("POST", "/login.py", true);
-        xhr.ontimeout = () => console.error("The request timed out.");
-        xhr.onload = () => {
-            if (xhr.readyState === 4 && xhr.status === 200) console.log(xhr.responseText);
-            const resp: any = JSON.parse(xhr.responseText)
-            setTmpMessage(resp["message"]);
-        };
-        xhr.timeout = 5000;
-        xhr.send(JSON.stringify({ "order": "account_delete", "user": tmpUser, "token": token }));
-        _logoutInit()
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("account_delete", JSON.stringify({ "user": tmpUser, "token": token }))
+        const request = new Request("/login.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                if (resJ["message"] == "processed") {
+                    _logoutInit()
+                }
+                setTmpMessage(resJ["message"]);
+            })
+            .catch(error => console.error(error.message));
+        setTempUser(""); setTempPass("");
     }
     const accountDeleteModal = () => {
         return (
@@ -139,7 +152,7 @@ export const AppWidgetHead = () => {
                 </div>)
         if (token == "") {
             return (
-                <div className="row">
+                <div className="">
                     <div className="modal fade" id="exampleModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
                         <div className="modal-dialog">
                             <div className="modal-content">
@@ -156,37 +169,37 @@ export const AppWidgetHead = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="col-12 col-md-8 row">
+                    <div className="row">
                         <div className="input-group col-12">
                             <span className="input-group-text" id="account-addon1">User</span>
                             <input type="text" className="form-control" placeholder="Username" aria-label="Username" id="account-from1"
                                 value={tmpUser} onChange={(evt) => { setTempUser(evt.target.value) }} />
+                            {tmpUser != "" && tmpPass != "" ?
+                                <button className="btn btn-outline-success" type="button"
+                                    aria-expanded="false" onClick={() => { _login(); }}>
+                                    <i className="fa-solid fa-arrow-right-to-bracket mr-1"></i>logIn&nbsp;
+                                </button> :
+                                <button className="btn btn-outline-success" type="button" aria-expanded="false" disabled>
+                                    <i className="fa-solid fa-arrow-right-to-bracket mr-1"></i>logIn&nbsp;
+                                </button>
+                            }
                         </div>
                         <div className="input-group col-12">
                             <span className="input-group-text" id="account-addon2">Pass</span>
                             <input type="password" className="form-control" placeholder="pass" aria-label="pass" id="account-from2"
                                 aria-labelledby="passwordHelpBlock"
-                                value={tmpPass} onChange={(evt) => {
-                                    setTempPass(evt.target.value)
-                                }} />
+                                value={tmpPass} onChange={(evt) => { setTempPass(evt.target.value) }} />
+                            {tmpUser != "" && tmpPass != "" ?
+                                <button className="btn btn-outline-primary" type="button" aria-expanded="false"
+                                    onClick={() => { _signin(); }}>
+                                    <i className="fa-solid fa-pen mr-1"></i>signIn
+                                </button> :
+                                <button className="btn btn-outline-primary" type="button" aria-expanded="false" disabled>
+                                    <i className="fa-solid fa-pen mr-1"></i>signIn
+                                </button>
+                            }
                         </div>
                     </div>
-                    {tmpUser == "" || tmpPass == "" ?
-                        <button className="btn btn-secondary col-12 col-md-4" type="button" aria-expanded="false" disabled>
-                            Plz input User and Pass
-                        </button>
-                        :
-                        <div className="btn-group col-12 col-md-4">
-                            <button className="btn btn-primary" type="button" aria-expanded="false"
-                                onClick={() => { _login(); }}>
-                                login
-                            </button>
-                            <button className="btn btn-success" type="button" aria-expanded="false"
-                                onClick={() => { _signin(); }}>
-                                signIn
-                            </button>
-                        </div>
-                    }
                 </div>)
         }
         return (
@@ -200,11 +213,11 @@ export const AppWidgetHead = () => {
 
                 <div className="col-12 col-md-6 d-flex align-items-center">
                     <div className="btn-group w-100">
-                        <button className="btn btn-warning" type="button" aria-expanded="false"
+                        <button className="btn btn-outline-dark" type="button" aria-expanded="false"
                             onClick={() => { _logout() }}>
                             logout
                         </button>
-                        <button className="btn btn-danger" type="button" aria-expanded="false"
+                        <button className="btn btn-outline-danger" type="button" aria-expanded="false"
                             data-bs-toggle="modal" data-bs-target="#accountDeleteModal">
                             accountDelete
                         </button>
@@ -229,18 +242,18 @@ export const AppWidgetHead = () => {
                 <div className="col-4 col-md-3">
                     <div className="dropdown d-flex align-items-center">
                         <ul className="dropdown-menu ">
-                            <li><a className="dropdown-item w-100" style={{ fontSize: "1.5em" }}
+                            <li><a className="dropdown-item btn-col" style={{ fontSize: "1.5em" }}
                                 onClick={() => { _switchApp("homepage") }}>
                                 <i className="fas fa-home mr-1"></i>ホームページ
                             </a></li>
-                            <li><a className="dropdown-item w-100" style={{ fontSize: "1.5em" }}
+                            <li><a className="dropdown-item btn-col" style={{ fontSize: "1.5em" }}
                                 onClick={() => { _switchApp("tptef") }}>
                                 <i className="far fa-comments mr-1"></i>チャット
                             </a></li>
                         </ul>
                         <button className="btn btn-primary dropdown-toggle"
                             type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            アプリ一覧
+                            <i className="fa-solid fa-bars mr-1" />アプリ一覧
                         </button>
                     </div>
                 </div>
