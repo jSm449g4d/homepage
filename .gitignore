@@ -2,7 +2,7 @@
 node_modules/
 package-lock.json
 #src/
-scr/
+src/
 
 # Python
 __pycache__/
