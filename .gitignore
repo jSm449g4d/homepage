@@ -1,14 +1,15 @@
 # Javascript/Typescript
 node_modules/
 package-lock.json
+
 #src/
-src/
+src/.
 
 # Python
 __pycache__/
 
 # temporary file
-tmp/
+www/tmp/*
 
 # VScode
 .vscode/

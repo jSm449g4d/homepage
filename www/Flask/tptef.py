@@ -8,9 +8,11 @@ from contextlib import closing
 import time
 
 
-dbname = "tmp/login.db"
+with open('keys/keys.json') as f:
+    keys = json.load(f)
+dbname = keys["db"]
+pyJWT_pass = keys["pyJWT_pass"]
 filedir = "tmp/tptef"
-pyJWT_pass = "test73pass"
 
 os.makedirs(filedir, exist_ok=True)
 with closing(sqlite3.connect(dbname)) as conn:

@@ -43,7 +43,8 @@ homepage/
 ┃┃┃┗index.tsx (main.htmlから呼び出される基幹)  
 ┃┃┣tsconfig.json (Typescript設定)  
 ┃┃┗webpack.config.js (Webpack設定)  
-┃┣Flask/ (バックエンドAPI置き場)  
+┃┣tmp/ (揮発性ファイル置き場)  
+┃┣keys/ (鍵置き場)  
 ┃┣requirements.txt (必要なライブラリ一覧)  
 ┃┣Dockerfile (環境構築方法の記述,CaaSへのデプロイ用)  
 ┃┗wsgi.py (Flask鯖本体/ルーティング等の処理実装箇所)  
@@ -56,14 +57,15 @@ homepage/
 
 ### どういう経緯で作られたの
 元々就活の為に作ったアプリで、
-就活再開とオンプレ環境で動くようにしたかったため再整備しているものです
+就活再開とオンプレ環境で動くようにしたかったため再整備しているものです  
 旧レポジトリ
 https://github.com/jSm449g4d/PF_apps
 
 
 ## Q.どうして↑の様なディレクトリ構成になったの?
 #### A. 単に迷走しているだけです
-Flask(Python)を**wsgi+Apache2.4+ubuntu**のサーバー上で運用する用途で開発された  
+Flask(Python)を**wsgi+Apache2.4+ubuntu**のVPS上で運用し、  
+同VPSにてリソースを**Apache2.4+wordpress**と共存させる仕様で開発された  
 ↓<br>
 フロントエンドが弱いと指摘を受けてReact(Typescript)を導入  
 ↓<br>
