@@ -43,7 +43,7 @@ export const AppMain = () => {
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
-                "token": token, "text": tmpText, "user": user, "room": room["room"], roomKey: roomKey
+                "token": token, "text": tmpText, "user": user, roomid: room["id"], roomKey: roomKey
             }, _additionalDict)
         return (JSON.stringify(_sendDict))
     }
@@ -194,12 +194,12 @@ export const AppMain = () => {
             })
             .catch(error => console.error(error.message));
     }
-    const createRoom = () => {
+    const createRoom = (_roomKey = roomKey) => {
         exitRoom()
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("create", JSON.stringify({ "room": tmpRoom }))
+        formData.append("create", JSON.stringify({ "room": tmpRoom, "roomKey": _roomKey }))
         const request = new Request("/tptef.py", {
             method: 'POST',
             headers: headers,
@@ -209,9 +209,9 @@ export const AppMain = () => {
         fetch(request)
             .then(response => response.json())
             .then(resJ => {
-                if (resJ["message"] == "alreadyExisted") { 
+                if (resJ["message"] == "alreadyExisted") {
                     $('#roomCreateRejectedAlreadyRoomExists').modal('show')
-                } else { } 
+                } else { }
                 // setState update cannot be set
                 roadModalAndDelay(searchRoom)
                 setTmpMessage(resJ["message"])
@@ -297,8 +297,9 @@ export const AppMain = () => {
                                         </button> :
                                         <button type="button" className="btn btn-outline-warning" data-bs-dismiss="modal"
                                             onClick={() => {
+                                                // roomKey cannot be updated in time
                                                 dispatch(accountSetRoomKey(tmpText))
-                                                createRoom()
+                                                createRoom(tmpText)
                                             }}>
                                             <i className="fa-solid fa-key mr-1" />Create
                                         </button>
