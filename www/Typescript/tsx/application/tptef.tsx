@@ -445,7 +445,6 @@ export const AppMain = () => {
                                 </button>
                                 {tmpText != "" ?
                                     <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
-                                        value={-1}
                                         onClick={
                                             () => {
                                                 // roomKey cannot be updated in time
