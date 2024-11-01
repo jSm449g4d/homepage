@@ -58,6 +58,7 @@ export const AppMain = () => {
         setTmpRoom(""); setTmpText("");; setTmpAttachment(null);
     }
     const exitRoom = (_setContentsInitialze = true) => {
+
         if (_setContentsInitialze) setContents([])
         setRoom({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "pass": "" }); setTmpRoom("");
         setTmpText(""); setTmpAttachment(null);
@@ -66,6 +67,11 @@ export const AppMain = () => {
     const sortSetContents = (_contents: any = []) => {
         const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
         setContents(_contents.sort(_sortContents))
+    }
+    const compareKeys = (_targetDict: {}, _keys: any[]) => {
+        if (Object.keys(_targetDict).sort().join() == _keys.sort().toString())
+            return (true)
+        return false
     }
 
     // jpclock (decoration)
@@ -172,6 +178,10 @@ export const AppMain = () => {
     }
     // renders
     const chatTable = () => {
+        // if contents dont have enough element for example contents hold chat_data ,table need break
+        if (0 < contents.length)
+            if (!compareKeys(contents[0],["id", "user", "userid", "roomid", "text", "mode", "timestamp"]))
+                return (<div className="row m-1">loading</div>)
         const _tmpRecord = [];
         for (var i = 0; i < contents.length; i++) {
             const _tmpData = [];
@@ -341,8 +351,8 @@ export const AppMain = () => {
     const roomTable = (_search = "") => {
         const _tmpRecord = [];
         // if contents dont have enough element for example contents hold chat_data ,table need break
-        if(0<contents.length)
-            if(!("room" in contents[0]))
+        if (0 < contents.length)
+            if (!compareKeys(contents[0],["id", "user", "userid", "room", "timestamp", "pass"]))
                 return (<div className="row m-1">loading</div>)
         for (var i = 0; i < contents.length; i++) {
             if (contents[i]["room"].indexOf(_search) == -1) continue

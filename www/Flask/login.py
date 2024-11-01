@@ -6,8 +6,11 @@ from contextlib import closing
 import time
 
 
-dbname = "tmp/login.db"
-pyJWT_pass = "test73pass"
+with open('keys/keys.json') as f:
+    keys = json.load(f)
+dbname = keys["db"]
+pyJWT_pass = keys["pyJWT_pass"]
+
 with closing(sqlite3.connect(dbname)) as conn:
     cur = conn.cursor()
     cur.execute(
