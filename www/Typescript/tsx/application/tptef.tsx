@@ -209,8 +209,10 @@ export const AppMain = () => {
         fetch(request)
             .then(response => response.json())
             .then(resJ => {
-                setRoom(resJ["room"])
-                if (resJ["message"] == "processed") { } else { } // setState update cannot be set
+                if (resJ["message"] == "alreadyExisted") { 
+                    $('#roomCreateRejectedAlreadyRoomExists').modal('show')
+                } else { } 
+                // setState update cannot be set
                 roadModalAndDelay(searchRoom)
                 setTmpMessage(resJ["message"])
             })
@@ -239,6 +241,29 @@ export const AppMain = () => {
     }
     // ConsoleRender
     const roomsTopFormRender = () => {
+        const roomCreateRejectedAlreadyRoomExists = () => {
+            return (
+                <div className="modal fade" id="roomCreateRejectedAlreadyRoomExists" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h1 className="modal-title fs-5">
+                                    <i className="fa-solid fa-ban mr-1" />Room create rejected because already room exists
+                                </h1>
+                                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" className="btn btn-success" data-bs-dismiss="modal"
+                                    onClick={() => $('#roomCreateModal').modal('show')}>
+                                    continue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
         const roomCreateModal = () => {
             return (
                 <div className="modal fade" id="roomCreateModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -307,6 +332,7 @@ export const AppMain = () => {
         return (
             <div className="input-group d-flex justify-content-center align-items-center y-1">
                 {roomCreateModal()}
+                {roomCreateRejectedAlreadyRoomExists()}
                 <button className="btn btn-outline-success btn-lg" type="button"
                     data-bs-toggle="tooltip" data-bs-placement="bottom" title="reload"
                     onClick={() => { searchRoom() }}>
@@ -444,15 +470,16 @@ export const AppMain = () => {
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h1 className="modal-title fs-5">
-                                    <i className="fa-solid fa-lock mr-1" />Password Wrong!
+                                    <i className="fa-solid fa-ban mr-1" />Password Wrong!
                                 </h1>
                                 <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-success" data-bs-dismiss="modal"
-                                    onClick={() => $('#roomInterModal').modal('show')}
-                                >continue</button>
                                 <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" className="btn btn-success" data-bs-dismiss="modal"
+                                    onClick={() => $('#roomInterModal').modal('show')}>
+                                    continue
+                                </button>
                             </div>
                         </div>
                     </div>
