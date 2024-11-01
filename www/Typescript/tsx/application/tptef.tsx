@@ -43,7 +43,7 @@ export const AppMain = () => {
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
-                "token": token, "text": tmpText, "user": user, "room": room["room"],
+                "token": token, "text": tmpText, "user": user, roomid: room["id"], roomKey: roomKey
             }, _additionalDict)
         return (JSON.stringify(_sendDict))
     }
@@ -57,21 +57,21 @@ export const AppMain = () => {
         setRoom({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" }); setTmpRoom("");
         setTmpText(""); setTmpAttachment(null);
     }
-    const sortSetContents = (_contents: any = []) => {
-        const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
-        setContents(_contents.sort(_sortContents))
-    }
     const compareDictKeys = (_targetDict: {}, _keys: any[]) => {
         if (Object.keys(_targetDict).sort().join() == _keys.sort().toString())
             return (true)
         return false
     }
-    const fetchChat = (_roomid = room["id"]) => {
+    const fetchChat = (_roomid = room["id"], _roomKey = roomKey) => {
+        const sortSetContents = (_contents: any = []) => {
+            const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
+            setContents(_contents.sort(_sortContents))
+        }
         enterRoom(false)
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("fetch", JSON.stringify({ "roomid": _roomid }))
+        formData.append("fetch", JSON.stringify({ "roomid": _roomid, "roomKey": _roomKey }))
         const request = new Request("/tptef.py", {
             method: 'POST',
             headers: headers,
@@ -84,7 +84,12 @@ export const AppMain = () => {
                 if (resJ["message"] == "processed") {
                     setRoom(resJ["room"]);
                     sortSetContents(resJ["chats"])
-                } else { searchRoom() }
+                }
+                else if (resJ["message"] == "wrongPass") {
+                    $('#roomPassWrongModal').modal('show')
+                    searchRoom()
+                }
+                else { searchRoom() }
                 setTmpMessage(resJ["message"])
             })
             .catch(error => {
@@ -164,6 +169,10 @@ export const AppMain = () => {
             .catch(error => console.error(error.message));
     }
     const searchRoom = () => {
+        const sortSetContentsRev = (_contents: any = []) => {
+            const _sortContentsRev = (a: any, b: any) => { return b["timestamp"] - a["timestamp"] }
+            setContents(_contents.sort(_sortContentsRev))
+        }
         exitRoom(false)
         const headers = new Headers();
         const formData = new FormData();
@@ -179,18 +188,18 @@ export const AppMain = () => {
             .then(response => response.json())
             .then(resJ => {
                 if (resJ["message"] == "processed") {
-                    sortSetContents(resJ["rooms"])
+                    sortSetContentsRev(resJ["rooms"])
                 } else { searchRoom() }
                 setTmpMessage(resJ["message"])
             })
             .catch(error => console.error(error.message));
     }
-    const createRoom = () => {
+    const createRoom = (_roomKey = roomKey) => {
         exitRoom()
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("create", JSON.stringify({ "room": tmpRoom }))
+        formData.append("create", JSON.stringify({ "room": tmpRoom, "roomKey": _roomKey }))
         const request = new Request("/tptef.py", {
             method: 'POST',
             headers: headers,
@@ -200,10 +209,11 @@ export const AppMain = () => {
         fetch(request)
             .then(response => response.json())
             .then(resJ => {
-                setRoom(resJ["room"])
-                if (resJ["message"] == "processed") {
-                    roadModalAndDelay(fetchChat)
-                } else { searchRoom() }
+                if (resJ["message"] == "alreadyExisted") {
+                    $('#roomCreateRejectedAlreadyRoomExists').modal('show')
+                } else { }
+                // setState update cannot be set
+                roadModalAndDelay(searchRoom)
                 setTmpMessage(resJ["message"])
             })
             .catch(error => {
@@ -231,6 +241,29 @@ export const AppMain = () => {
     }
     // ConsoleRender
     const roomsTopFormRender = () => {
+        const roomCreateRejectedAlreadyRoomExists = () => {
+            return (
+                <div className="modal fade" id="roomCreateRejectedAlreadyRoomExists" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h1 className="modal-title fs-5">
+                                    <i className="fa-solid fa-ban mr-1" />Room create rejected because already room exists
+                                </h1>
+                                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" className="btn btn-success" data-bs-dismiss="modal"
+                                    onClick={() => $('#roomCreateModal').modal('show')}>
+                                    continue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
         const roomCreateModal = () => {
             return (
                 <div className="modal fade" id="roomCreateModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -245,12 +278,12 @@ export const AppMain = () => {
                             <div className="modal-body row">
                                 <div className="input-group m-1 col-12">
                                     <span className="input-group-text" id="room-addon1">Room</span>
-                                    <input type="text" className="form-control" placeholder="Username" aria-label="user" id="room-from1"
+                                    <input type="text" className="form-control" placeholder="Username" aria-label="user"
                                         value={tmpRoom} onChange={(evt) => { setTmpRoom(evt.target.value) }} />
                                 </div>
                                 <div className="input-group m-1 col-12">
                                     <span className="input-group-text" id="room-addon2">Pass</span>
-                                    <input type="text" className="form-control" placeholder="Password" aria-label="pass" id="room-from2"
+                                    <input type="text" className="form-control" placeholder="Password" aria-label="pass"
                                         value={tmpText} onChange={(evt) => { setTmpText(evt.target.value) }} />
                                 </div>
                             </div>
@@ -264,8 +297,9 @@ export const AppMain = () => {
                                         </button> :
                                         <button type="button" className="btn btn-outline-warning" data-bs-dismiss="modal"
                                             onClick={() => {
+                                                // roomKey cannot be updated in time
                                                 dispatch(accountSetRoomKey(tmpText))
-                                                createRoom()
+                                                createRoom(tmpText)
                                             }}>
                                             <i className="fa-solid fa-key mr-1" />Create
                                         </button>
@@ -299,6 +333,7 @@ export const AppMain = () => {
         return (
             <div className="input-group d-flex justify-content-center align-items-center y-1">
                 {roomCreateModal()}
+                {roomCreateRejectedAlreadyRoomExists()}
                 <button className="btn btn-outline-success btn-lg" type="button"
                     data-bs-toggle="tooltip" data-bs-placement="bottom" title="reload"
                     onClick={() => { searchRoom() }}>
@@ -391,30 +426,60 @@ export const AppMain = () => {
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h1 className="modal-title fs-5" id="exampleModalLabel">
+                                <h1 className="modal-title fs-5">
                                     <i className="fa-solid fa-lock mr-1" />Need Password
                                 </h1>
                                 <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div className="modal-body row">
                                 <div className="input-group m-1 col-12">
-                                    <span className="input-group-text" id="room-addon2">Pass</span>
-                                    <input type="text" className="form-control" placeholder="Password" aria-label="pass" id="room-from1"
+                                    <span className="input-group-text">Pass</span>
+                                    <input type="text" className="form-control" placeholder="Password" aria-label="pass"
                                         value={tmpText} onChange={(evt) => { setTmpText(evt.target.value) }} />
                                 </div>
                             </div>
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" value={-1} id="roomInterModalButton"
+                                    className="btn btn-secondary" data-bs-dismiss="modal">
+                                    Close
+                                </button>
                                 {tmpText != "" ?
                                     <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
-                                        name={"-1"} id="roomInterModalButton"
-                                        onClick={(evt: any) => fetchChat(evt.target.name)}>
+                                        onClick={
+                                            () => {
+                                                // roomKey cannot be updated in time
+                                                dispatch(accountSetRoomKey(tmpText))
+                                                fetchChat(Number($('#roomInterModal').attr("value")), tmpText)
+                                            }}>
                                         <i className="fa-solid fa-right-to-bracket mr-1" />Inter
                                     </button> :
                                     <button type="button" className="btn btn-outline-primary" disabled>
                                         <i className="fa-solid fa-right-to-bracket mr-1" />Inter
                                     </button>
                                 }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+        const roomPassWrongModal = () => {
+            return (
+                <div className="modal fade" id="roomPassWrongModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h1 className="modal-title fs-5">
+                                    <i className="fa-solid fa-ban mr-1" />Password Wrong!
+                                </h1>
+                                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" className="btn btn-success" data-bs-dismiss="modal"
+                                    onClick={() => $('#roomInterModal').modal('show')}>
+                                    continue
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -432,6 +497,8 @@ export const AppMain = () => {
             _tmpData.push(
                 <div className="col-12 border d-flex"
                     style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.15))" }}>
+                    {roomPassWrongModal()}
+                    {roomInterModal()}
                     <h5 className="me-auto">
                         <i className="far fa-user mr-1"></i>{contents[i]["user"]}
                     </h5>
@@ -442,15 +509,15 @@ export const AppMain = () => {
                         </button> :
                         <button className="btn btn-outline-dark rounded-pill"
                             onClick={(evt: any) => {
-                                $('#roomInterModalButton').attr("download", contents[i]["id"]);
+                                $('#roomInterModal').attr("value", evt.target.value);
                                 $('#roomInterModal').modal('show');
-                            }} name={contents[i]["id"]}>
+                            }} value={contents[i]["id"]}>
                             <i className="fa-solid fa-lock mr-1" style={{ pointerEvents: "none" }}></i>Enter
                         </button>
                     }
                     {contents[i]["userid"] == userId ?
                         <button className="btn btn-outline-danger rounded-pill"
-                            onClick={(evt: any) => { destroyRoom(evt.target.name); }} name={contents[i]["id"]}>
+                            onClick={(evt: any) => { destroyRoom(evt.target.value); }} value={contents[i]["id"]}>
                             <i className="far fa-trash-alt mr-1" style={{ pointerEvents: "none" }}></i>Delete
                         </button> : <div></div>
                     }
