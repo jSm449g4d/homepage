@@ -10,9 +10,9 @@ require.context('./application/', true, /\.ts(x?)$/)
 var _application = "homepage"
 if ("application" in Query2Dict() == true) { _application = Query2Dict()["application"] }
 //render
-import("./application/" + _application).then((module) => {
+import("./application/" + _application).then(async (module) => {
     const root = createRoot(document.getElementById("root"))
-    root.render(
+    await root.render(
         <React.StrictMode>
             <Provider store={store}>
                 <AppWidgetHead />

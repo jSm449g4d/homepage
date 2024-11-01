@@ -37,6 +37,7 @@ def show(request):
 
         if "fetch" in request.form:
             _dataDict.update(json.loads(request.form["fetch"]))
+            _roompasshash = hashlib.sha256(_dataDict["roomKey"].encode()).hexdigest()
             with closing(sqlite3.connect(dbname)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -44,6 +45,8 @@ def show(request):
                 _room = cur.fetchone()
                 if _room == None:
                     return json.dumps({"message": "notExist"}, ensure_ascii=False)
+                if _room["passhash"]!="" and _room["passhash"] != _roompasshash:
+                    return json.dumps({"message": "wrongPass"})
                 _userid = _room["userid"]
                 _roomid = _room["id"]
                 cur.execute("SELECT * FROM chat WHERE roomid = ?;", [_roomid])
