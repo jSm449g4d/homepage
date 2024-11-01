@@ -71,6 +71,6 @@ Flask(Python)を**wsgi+Apache2.4+ubuntu**のVPS上で運用し、
 ↓<br>
 デプロイの手間を省きたかったのでCloudBuild+CloudRunを導入  
 ↓<br>
-各機能をFaaS(CloudRun)などに突っ込んで外部化しても個別に動くように、アイソレーションな仕組みにしよう(迷走)  
+各機能をFaaS(CloudFunction)などに突っ込んで外部化しても個別に動くように、アイソレーションな仕組みにしよう(迷走)  
 ↓<br>
 Firebase(BaaS)の導入⇒使い勝手が良くなかったので脱BaaS化  

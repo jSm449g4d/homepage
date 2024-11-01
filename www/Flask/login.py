@@ -6,7 +6,7 @@ from contextlib import closing
 import time
 
 
-with open('keys/keys.json') as f:
+with open("keys/keys.json") as f:
     keys = json.load(f)
 dbname = keys["db"]
 pyJWT_pass = keys["pyJWT_pass"]
@@ -15,7 +15,7 @@ with closing(sqlite3.connect(dbname)) as conn:
     cur = conn.cursor()
     cur.execute(
         "CREATE TABLE IF NOT EXISTS account(id INTEGER PRIMARY KEY AUTOINCREMENT, user STRING UNIQUE NOT NULL"
-        ",passhash INTEGER,timestamp INTEGER)"
+        ",passhash STRING,timestamp INTEGER)"
     )
     conn.commit()
 

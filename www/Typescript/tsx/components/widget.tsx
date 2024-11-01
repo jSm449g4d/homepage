@@ -18,7 +18,7 @@ export const AppWidgetHead = () => {
     const token = useAppSelector((state) => state.account.token)
     const dispatch = useAppDispatch()
 
-    //AccountControl
+    // accountControl
     const _logoutInit = () => {
         setTempUser(""); setTempPass(""); setTempUser(""); setTempPass(""); setTmpMessage(""); dispatch(accountInit());
     }
@@ -86,37 +86,37 @@ export const AppWidgetHead = () => {
             .catch(error => console.error(error.message));
         setTempUser(""); setTempPass("");
     }
-    const accountDeleteModal = () => {
-        return (
-            <div className="modal fade" id="accountDeleteModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div className="modal-dialog">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h1 className="modal-title fs-5" id="exampleModalLabel">Are you sure to delete account?</h1>
-                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="input-group mb-3">
-                                <span className="input-group-text" id="account-addon1">User</span>
-                                <input type="text" className="form-control" placeholder="Username" aria-label="Username" id="account-from1"
-                                    value={tmpUser} onChange={(evt) => { setTempUser(evt.target.value) }} />
+    const accountForm = () => {
+        const accountDeleteModal = () => {
+            return (
+                <div className="modal fade" id="accountDeleteModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h1 className="modal-title fs-5" id="exampleModalLabel">Are you sure to delete account?</h1>
+                                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            {user == tmpUser ?
-                                <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
-                                    onClick={() => _accountDelete()}>Delete</button>
-                                :
-                                <button type="button" className="btn btn-danger" disabled>Delete</button>
-                            }
+                            <div className="modal-body">
+                                <div className="input-group mb-3">
+                                    <span className="input-group-text" id="account-addon1">User</span>
+                                    <input type="text" className="form-control" placeholder="Username" aria-label="Username" id="account-from1"
+                                        value={tmpUser} onChange={(evt) => { setTempUser(evt.target.value) }} />
+                                </div>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                {user == tmpUser ?
+                                    <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
+                                        onClick={() => _accountDelete()}>Delete</button>
+                                    :
+                                    <button type="button" className="btn btn-danger" disabled>Delete</button>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        )
-    }
-    const accountForm = () => {
+            )
+        }
         if (tmpMessage == "notexist")
             return (
                 <div className="mx-auto p-2">
@@ -215,17 +215,17 @@ export const AppWidgetHead = () => {
                     <div className="btn-group w-100">
                         <button className="btn btn-outline-dark" type="button" aria-expanded="false"
                             onClick={() => { _logout() }}>
-                            logout
+                            <i className="fa-solid fa-right-from-bracket mr-1" style={{ pointerEvents: "none" }}></i>logout
                         </button>
                         <button className="btn btn-outline-danger" type="button" aria-expanded="false"
                             data-bs-toggle="modal" data-bs-target="#accountDeleteModal">
-                            accountDelete
+                            <i className="fa-solid fa-trash mr-1" style={{ pointerEvents: "none" }}></i>accountDelete
                         </button>
                     </div>
                 </div>
             </div>)
     }
-
+    // mainAppRender
     const _switchApp = (application: string) => {
         if (stopf5.check("_switchapp", 50, true) == false) return; // To prevent high freq access
         import("../application/" + application).then((module) => {
