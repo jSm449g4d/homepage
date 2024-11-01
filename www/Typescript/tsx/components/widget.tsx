@@ -257,7 +257,7 @@ export const AppWidgetHead = () => {
                         </button>
                     </div>
                 </div>
-                <h2 className="col-8 col-md-3 d-flex justify-content-center align-items-center">
+                <h2 className="col-8 col-md-3 d-flex align-items-center">
                     <div className="rotxin-2" id="titlelogo">タイトル未設定</div>
                 </h2>
                 <div className="col-12 col-md-6">
@@ -273,8 +273,6 @@ export const AppWidgetFoot = () => {
             style={{ color: "goldenrod", backgroundColor: "royalblue", border: "3px double silver" }}>
             <div>
                 <b style={{ fontSize: "1.5em" }}>Links: </b>
-                <i className="fab fa-wordpress fa-2x fa-btn-goldbadge mr-1"
-                    onClick={() => window.location.href = "https://huxiin.ga/wordpress"}></i>
                 <i className="fab fa-github fa-2x fa-btn-goldbadge mr-1"
                     onClick={() => window.location.href = "https://github.com/jSm449g4d/"}></i>
             </div>

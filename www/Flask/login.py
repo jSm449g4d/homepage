@@ -15,7 +15,7 @@ with closing(sqlite3.connect(dbname)) as conn:
     cur = conn.cursor()
     cur.execute(
         "CREATE TABLE IF NOT EXISTS account(id INTEGER PRIMARY KEY AUTOINCREMENT, user STRING UNIQUE NOT NULL"
-        ",passhash STRING,timestamp INTEGER)"
+        ",passhash STRING,mail STRING,timestamp INTEGER)"
     )
     conn.commit()
 
@@ -82,6 +82,7 @@ def show(request):
                     "user": _data["user"],
                     "token": token,
                     "id": _data["id"],
+                    "mail": "",
                 },
                 ensure_ascii=False,
             )
