@@ -8,7 +8,7 @@ from contextlib import closing
 import time
 
 
-with open('keys/keys.json') as f:
+with open("keys/keys.json") as f:
     keys = json.load(f)
 dbname = keys["db"]
 pyJWT_pass = keys["pyJWT_pass"]
@@ -24,7 +24,7 @@ with closing(sqlite3.connect(dbname)) as conn:
     )
     cur.execute(
         "CREATE TABLE IF NOT EXISTS room(id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "user STRING,userid INTEGER,room STRING UNIQUE NOT NULL,pass STRING,timestamp INTEGER)"
+        "user STRING,userid INTEGER,room STRING UNIQUE NOT NULL,passhash STRING,timestamp INTEGER)"
     )
     conn.commit()
 
@@ -190,6 +190,9 @@ def show(request):
         if "create" in request.form:
             _dataDict.update(json.loads(request.form["create"]))
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
+            _roompasshash = hashlib.sha256(_dataDict["text"].encode()).hexdigest()
+            if _dataDict["text"] == "":
+                _roompasshash = ""
             with closing(sqlite3.connect(dbname)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -199,11 +202,12 @@ def show(request):
                 if _room != None:
                     return json.dumps({"message": "alreadyExisted"}, ensure_ascii=False)
                 cur.execute(
-                    "INSERT INTO room(user,userid,room,timestamp) values(?,?,?,?)",
+                    "INSERT INTO room(user,userid,room,passhash,timestamp) values(?,?,?,?,?)",
                     [
                         _dataDict["user"],
                         token["id"],
                         _dataDict["room"],
+                        _roompasshash,
                         int(time.time()),
                     ],
                 )
@@ -241,5 +245,18 @@ def show(request):
                 conn.commit()
                 return json.dumps({"message": "processed"}, ensure_ascii=False)
             return json.dumps({"message": "rejected"})
+
+        if "roomKey" in request.form:
+            _dataDict.update(json.loads(request.form["destroy"]))
+            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
+            token["roomKey"] = _dataDict["roomKey"]
+            token = jwt.encode(
+                token,
+                pyJWT_pass,
+                algorithm="HS256",
+            )
+            return json.dumps(
+                {"message": "processed", "token": token}, ensure_ascii=False
+            )
 
     return "404: nof found → main.html", 404
