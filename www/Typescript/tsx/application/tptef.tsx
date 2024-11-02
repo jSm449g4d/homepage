@@ -89,30 +89,25 @@ export const AppMain = () => {
                         sortSetContents(resJ["chats"])
                     } break;
                     case "wrongPass": {
-                        $('#cautionInfoModal').modal('show');
-                        $('#cautionInfoModalTitle').text("部屋のパスワードが違います")
+                        CIModal("部屋のパスワードが違います")
                         searchRoom(); break;
                     }
                     case "notExist": {
-                        $('#cautionInfoModal').modal('show');
-                        $('#cautionInfoModalTitle').text("部屋が存在しません")
+                        CIModal("部屋が存在しません")
                         searchRoom(); break;
                     }
                     case "tokenNothing": {
-                        $('#cautionInfoModal').modal('show');
-                        $('#cautionInfoModalTitle').text("JWTトークン未提出です")
+                        CIModal("JWTトークン未提出です")
                         searchRoom(); break;
                     }
                     default: {
-                        $('#cautionInfoModal').modal('show');
-                        $('#cautionInfoModalTitle').text("その他のエラー")
+                        CIModal("その他のエラー")
                         searchRoom(); break;
                     }
                 }
             })
             .catch(error => {
-                $('#cautionInfoModal').modal('show');
-                $('#cautionInfoModalTitle').text("通信エラー")
+                CIModal("通信エラー")
                 console.error(error.message)
             });
     }
@@ -134,30 +129,25 @@ export const AppMain = () => {
                     switch (resJ["message"]) {
                         case "processed": roadModalAndDelay(fetchChat); break;
                         case "wrongPass": {
-                            $('#cautionInfoModal').modal('show');
-                            $('#cautionInfoModalTitle').text("部屋のパスワードが違います")
+                            CIModal("部屋のパスワードが違います")
                             searchRoom(); break;
                         }
                         case "notExist": {
-                            $('#cautionInfoModal').modal('show');
-                            $('#cautionInfoModalTitle').text("部屋が存在しません")
+                            CIModal("部屋が存在しません")
                             searchRoom(); break;
                         }
                         case "tokenNothing": {
-                            $('#cautionInfoModal').modal('show');
-                            $('#cautionInfoModalTitle').text("JWTトークン未提出です")
+                            CIModal("JWTトークン未提出です")
                             searchRoom(); break;
                         }
                         default: {
-                            $('#cautionInfoModal').modal('show');
-                            $('#cautionInfoModalTitle').text("その他のエラー")
+                            CIModal("その他のエラー")
                             searchRoom(); break;
                         }
                     }
                 })
                 .catch(error => {
-                    $('#cautionInfoModal').modal('show');
-                    $('#cautionInfoModalTitle').text("通信エラー")
+                    CIModal("通信エラー")
                     console.error(error.message)
                 });
         }
@@ -228,30 +218,25 @@ export const AppMain = () => {
                 switch (resJ["message"]) {
                     case "processed": roadModalAndDelay(fetchChat); break;
                     case "wrongPass": {
-                        $('#cautionInfoModal').modal('show');
-                        $('#cautionInfoModalTitle').text("部屋のパスワードが違います")
+                        CIModal("部屋のパスワードが違います")
                         searchRoom(); break;
                     }
                     case "notExist": {
-                        $('#cautionInfoModal').modal('show');
-                        $('#cautionInfoModalTitle').text("部屋が存在しません")
+                        CIModal("部屋が存在しません")
                         searchRoom(); break;
                     }
                     case "tokenNothing": {
-                        $('#cautionInfoModal').modal('show');
-                        $('#cautionInfoModalTitle').text("JWTトークン未提出です")
+                        CIModal("JWTトークン未提出です")
                         searchRoom(); break;
                     }
                     default: {
-                        $('#cautionInfoModal').modal('show');
-                        $('#cautionInfoModalTitle').text("その他のエラー")
+                        CIModal("その他のエラー")
                         searchRoom(); break;
                     }
                 }
             })
             .catch(error => {
-                $('#cautionInfoModal').modal('show');
-                $('#cautionInfoModalTitle').text("通信エラー")
+                CIModal("通信エラー")
                 console.error(error.message)
             });
     }
@@ -278,8 +263,7 @@ export const AppMain = () => {
                 roadModalAndDelay(fetchChat)
             })
             .catch(error => {
-                $('#cautionInfoModal').modal('show');
-                $('#cautionInfoModalTitle').text("通信エラー")
+                CIModal("通信エラー")
                 console.error(error.message)
             });
     }
@@ -305,15 +289,13 @@ export const AppMain = () => {
                 switch (resJ["message"]) {
                     case "processed": sortSetContentsRev(resJ["rooms"]); break;
                     default: {
-                        $('#cautionInfoModal').modal('show');
-                        $('#cautionInfoModalTitle').text("その他のエラー")
+                        CIModal("その他のエラー")
                         break;
                     }
                 }
             })
             .catch(error => {
-                $('#cautionInfoModal').modal('show');
-                $('#cautionInfoModalTitle').text("通信エラー")
+                CIModal("通信エラー")
                 console.error(error.message)
             });
     }
@@ -335,25 +317,21 @@ export const AppMain = () => {
                 switch (resJ["message"]) {
                     case "processed": roadModalAndDelay(searchRoom); break;
                     case "alreadyExisted": {
-                        $('#cautionInfoModal').modal('show');
-                        $('#cautionInfoModalTitle').text("既にその名前の部屋が存在します")
+                        CIModal("既にその名前の部屋が存在します")
                         searchRoom(); break;
                     }
                     case "tokenNothing": {
-                        $('#cautionInfoModal').modal('show');
-                        $('#cautionInfoModalTitle').text("JWTトークン未提出です")
+                        CIModal("JWTトークン未提出です")
                         searchRoom(); break;
                     }
                     default: {
-                        $('#cautionInfoModal').modal('show');
-                        $('#cautionInfoModalTitle').text("その他のエラー")
+                        CIModal("その他のエラー")
                         searchRoom(); break;
                     }
                 }
             })
             .catch(error => {
-                $('#cautionInfoModal').modal('show');
-                $('#cautionInfoModalTitle').text("通信エラー")
+                CIModal("通信エラー")
                 console.error(error.message)
             });
     }
@@ -375,29 +353,25 @@ export const AppMain = () => {
                     case "processed": roadModalAndDelay(searchRoom); break;
                     case "notExist": {
                         $('#cautionInfoModal').modal('show');
-                        $('#cautionInfoModalTitle').text("部屋が存在しません")
+                        CIModal("部屋が存在しません")
                         searchRoom(); break;
                     }
                     case "tokenNothing": {
-                        $('#cautionInfoModal').modal('show');
-                        $('#cautionInfoModalTitle').text("JWTトークン未提出です")
+                        CIModal("JWTトークン未提出です")
                         searchRoom(); break;
                     }
                     case "youerntOwner": {
-                        $('#cautionInfoModal').modal('show');
-                        $('#cautionInfoModalTitle').text("部屋の所有権がありません")
+                        CIModal("部屋の所有権がありません")
                         searchRoom(); break;
                     }
                     default: {
-                        $('#cautionInfoModal').modal('show');
-                        $('#cautionInfoModalTitle').text("その他のエラー")
+                        CIModal("その他のエラー")
                         searchRoom(); break;
                     }
                 }
             })
             .catch(error => {
-                $('#cautionInfoModal').modal('show');
-                $('#cautionInfoModalTitle').text("通信エラー")
+                CIModal("通信エラー")
                 console.error(error.message)
             });
     }
@@ -467,10 +441,7 @@ export const AppMain = () => {
                 {token == "" ?
                     <button className="btn btn-outline-info btn-lg" type="button"
                         data-bs-toggle="tooltip" data-bs-placement="bottom" bs-title="Need login"
-                        onClick={() => {
-                            $('#helpInfoModal').modal('show');
-                            $('#helpInfoModalTitle').text("部屋作成にはログインが必要です")
-                        }}>
+                        onClick={() => { HIModal("部屋作成にはログインが必要です") }}>
                         <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
                         部屋作成
                     </button> :
@@ -525,28 +496,6 @@ export const AppMain = () => {
                 </div>
             )
         }
-        const roomPassWrongModal = () => {
-            return (
-                <div className="modal fade" id="roomPassWrongModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h1 className="modal-title fs-5">
-                                    <i className="fa-solid fa-ban mx-1" />Password Wrong!
-                                </h1>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" className="btn btn-success" data-bs-dismiss="modal"
-                                    onClick={() => $('#roomInterModal').modal('show')}>
-                                    continue
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )
-        }
         const roomTableDestroyRoomConfirmationModal = () => {
             return (
                 <div className="modal fade" id="roomTableDestroyRoomConfirmationModal"
@@ -581,7 +530,6 @@ export const AppMain = () => {
             _tmpData.push(
                 <div className="col-12 border d-flex"
                     style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.15))" }}>
-                    {roomPassWrongModal()}
                     {roomInterModal()}
                     {roomTableDestroyRoomConfirmationModal()}
                     <h5 className="me-auto">
@@ -678,10 +626,7 @@ export const AppMain = () => {
                     </button> :
                     <button className="btn btn-outline-info btn-lg" type="button"
                         data-bs-toggle="tooltip" data-bs-placement="bottom" title="Destroy room"
-                        onClick={() => {
-                            $('#helpInfoModal').modal('show');
-                            $('#helpInfoModalTitle').text("部屋削除は部屋作成者にしかできません")
-                        }}>
+                        onClick={() => { HIModal("部屋削除は部屋作成者にしかできません") }}>
                         <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />部屋削除
                     </button>
                 }
@@ -782,7 +727,23 @@ export const AppMain = () => {
                 </button>
             )
         }
-        if (token == "") return (<div className="m-1"></div>)
+        if (token == "") return (
+            <div className="m-1 p-2 row w-100"
+                style={{ color: "#CCFFFF", border: "3px double silver", background: "#001111" }}>
+                <div className="col-12 d-flex justify-content-center">
+                    <h5><i className="far fa-clock "></i>{jpclockNow}</h5>
+                </div>
+                <div className="col-12 my-1">
+                    <div className="input-group">
+                        <input type="file" className="form-control" placeholder="attachment file"
+                            disabled />
+                        <button className="btn btn-outline-info"
+                            onClick={() => { HIModal("発言機能にはログインが必要です"); }}>
+                            <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} ></i>送信
+                        </button>
+                    </div>
+                </div>
+            </div>)
         return (
             <div className="m-1 p-2 row w-100"
                 style={{ color: "#CCFFFF", border: "3px double silver", background: "#001111" }}>
@@ -791,7 +752,7 @@ export const AppMain = () => {
                 </div>
                 <textarea className="form-control col-12 w-80" id="tptef_content" rows={4} value={tmpText}
                     onChange={(evt) => { setTmpText(evt.target.value) }}></textarea>
-                <div className="col-12 row my-1">
+                <div className="col-12 my-1">
                     <div className="input-group">
                         <input type="file" className="form-control" placeholder="attachment file"
                             id="inputConsoleAttachment"
@@ -803,48 +764,6 @@ export const AppMain = () => {
         )
     }
     // applicationRender
-    const helpInfoModal = () => {
-        return (
-            <div className="modal fade" id="helpInfoModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div className="modal-dialog">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h4 className="modal-title">
-                                <i className="fa-solid fa-circle-info mx-1" />
-                            </h4>
-                            <h4 className="modal-title" id="helpInfoModalTitle">
-                                help
-                            </h4>
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-    const cautionInfoModal = () => {
-        return (
-            <div className="modal fade" id="cautionInfoModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div className="modal-dialog">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h4 className="modal-title">
-                                <i className="fa-solid fa-circle-exclamation mx-1" />Caution⇒
-                            </h4>
-                            <h4 className="modal-title" id="cautionInfoModalTitle">
-                                notitle
-                            </h4>
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )
-    }
     const roadModalRender = () => {
         return (
             <div className="modal opacity-25" id="roadModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="staticBackdropLabel" aria-hidden="true">

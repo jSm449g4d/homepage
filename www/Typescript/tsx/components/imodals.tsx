@@ -1,8 +1,8 @@
 import React from 'react';
 
 export const HIModal = (_title = "", _text = "") => {
-    $('#helInfoModal').modal('show');
-    $('#helInfoModalTitle').text(String(_title))
+    $('#helpInfoModal').modal('show');
+    $('#helpInfoModalTitle').text(String(_title))
     $('#helpInfoModalText').text(String(_text))
 }
 
