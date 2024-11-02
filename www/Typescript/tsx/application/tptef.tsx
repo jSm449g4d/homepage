@@ -249,7 +249,7 @@ export const AppMain = () => {
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h1 className="modal-title fs-5">
-                                    <i className="fa-solid fa-ban mr-1" />Room create rejected because already room exists
+                                    <i className="fa-solid fa-ban mx-1" />Room create rejected because already room exists
                                 </h1>
                             </div>
                             <div className="modal-footer">
@@ -271,7 +271,7 @@ export const AppMain = () => {
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h1 className="modal-title fs-5" id="exampleModalLabel">
-                                    <i className="fa-solid fa-hammer mr-1" />Create Room
+                                    <i className="fa-solid fa-hammer mx-1" />Create Room
                                 </h1>
                             </div>
                             <div className="modal-body row">
@@ -292,7 +292,7 @@ export const AppMain = () => {
                                     {tmpText == "" ?
                                         <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
                                             onClick={() => createRoom()}>
-                                            <i className="fa-solid fa-hammer mr-1" />Create
+                                            <i className="fa-solid fa-hammer mx-1" />Create
                                         </button> :
                                         <button type="button" className="btn btn-outline-warning" data-bs-dismiss="modal"
                                             onClick={() => {
@@ -300,11 +300,11 @@ export const AppMain = () => {
                                                 dispatch(accountSetRoomKey(tmpText))
                                                 createRoom(tmpText)
                                             }}>
-                                            <i className="fa-solid fa-key mr-1" />Create
+                                            <i className="fa-solid fa-key mx-1" />Create
                                         </button>
                                     }</div> :
                                     <button type="button" className="btn btn-outline-primary" disabled>
-                                        <i className="fa-solid fa-hammer mr-1" />Create
+                                        <i className="fa-solid fa-hammer mx-1" />Create
                                     </button>
                                 }
                             </div>
@@ -320,7 +320,7 @@ export const AppMain = () => {
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h1 className="modal-title fs-5">
-                                    <i className="fa-solid fa-circle-info mr-1" />部屋作成にはログインが必要です
+                                    <i className="fa-solid fa-circle-info mx-1" />部屋作成にはログインが必要です
                                 </h1>
                             </div>
                             <div className="modal-footer">
@@ -339,7 +339,7 @@ export const AppMain = () => {
                 <button className="btn btn-outline-success btn-lg" type="button"
                     data-bs-toggle="tooltip" data-bs-placement="bottom" title="reload"
                     onClick={() => { searchRoom() }}>
-                    <i className="fa-solid fa-rotate-right mr-1" />
+                    <i className="fa-solid fa-rotate-right mx-1" />
                 </button>
                 <input className="flex-fill form-control form-control-lg" type="text" placeholder="部屋名検索" value={tmpRoom}
                     onChange={(evt: any) => { setTmpRoom(evt.target.value) }} />
@@ -347,13 +347,13 @@ export const AppMain = () => {
                     <button className="btn btn-outline-info btn-lg" type="button"
                         data-bs-toggle="tooltip" data-bs-placement="bottom" bs-title="Need login"
                         onClick={() => { $('#roomCreateNeedLoginInfoModal').modal('show'); }}>
-                        <i className="fa-solid fa-circle-info mr-1" style={{ pointerEvents: "none" }}/>
+                        <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }}/>
                         部屋作成
                     </button> :
                     <button className="btn btn-outline-primary btn-lg" type="button"
                         data-bs-toggle="tooltip" data-bs-placement="bottom" title="Create room"
                         onClick={() => { $('#roomCreateModal').modal('show'); }}>
-                        <i className="fa-solid fa-hammer mr-1" style={{ pointerEvents: "none" }}/>
+                        <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }}/>
                         部屋作成
                     </button>}
             </div>)
@@ -373,7 +373,7 @@ export const AppMain = () => {
                     <div className="col-12 border d-flex"
                         style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.15))" }}>
                         <h5 className="me-auto">
-                            <i className="far fa-user mr-1"></i>{contents[i]["user"]}
+                            <i className="far fa-user mx-1"></i>{contents[i]["user"]}
                         </h5>
                         {Unixtime2String(Number(contents[i]["timestamp"]))}
                     </div>)
@@ -389,7 +389,7 @@ export const AppMain = () => {
                                     onClick={(evt: any) => {
                                         deleteChat(evt.target.name);
                                     }} name={contents[i]["id"]}>
-                                    <i className="far fa-trash-alt mr-1" style={{ pointerEvents: "none" }}></i>Delete
+                                    <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>Delete
                                 </button> : <div></div>}
                     </div></div>)
             }
@@ -399,7 +399,7 @@ export const AppMain = () => {
                     <div className="col-12 border d-flex"
                         style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.15))" }}>
                         <h5 className="me-auto">
-                            <i className="far fa-user mr-1"></i>{contents[i]["user"]}
+                            <i className="far fa-user mx-1"></i>{contents[i]["user"]}
                         </h5>
                         {Unixtime2String(Number(contents[i]["timestamp"]))}
                     </div>)
@@ -413,7 +413,7 @@ export const AppMain = () => {
                             onClick={(evt: any) => {
                                 downloadChat(evt.target.value, evt.target.name);
                             }} value={contents[i]["id"]} name={contents[i]["text"]}>
-                            <i className="fa-solid fa-download mr-1" style={{ pointerEvents: "none" }}></i>Download
+                            <i className="fa-solid fa-download mx-1" style={{ pointerEvents: "none" }}></i>Download
                         </button>
                         {
                             contents[i]["userid"] == userId ?
@@ -421,7 +421,7 @@ export const AppMain = () => {
                                     onClick={(evt: any) => {
                                         deleteChat(evt.target.name);
                                     }} name={contents[i]["id"]}>
-                                    <i className="far fa-trash-alt mr-1" style={{ pointerEvents: "none" }}></i>Delete
+                                    <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>Delete
                                 </button> : <div></div>
                         }
                     </div></div>)
@@ -441,7 +441,7 @@ export const AppMain = () => {
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h1 className="modal-title fs-5">
-                                    <i className="fa-solid fa-lock mr-1" />Need Password
+                                    <i className="fa-solid fa-lock mx-1" />Need Password
                                 </h1>
                             </div>
                             <div className="modal-body row">
@@ -464,10 +464,10 @@ export const AppMain = () => {
                                                 dispatch(accountSetRoomKey(tmpText))
                                                 fetchChat(Number($('#roomInterModalButton').attr("value")), tmpText)
                                             }}>
-                                        <i className="fa-solid fa-right-to-bracket mr-1" style={{ pointerEvents: "none" }} />Inter
+                                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />Inter
                                     </button> :
                                     <button type="button" className="btn btn-outline-primary" disabled>
-                                        <i className="fa-solid fa-right-to-bracket mr-1" style={{ pointerEvents: "none" }} />Inter
+                                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />Inter
                                     </button>
                                 }
                             </div>
@@ -483,7 +483,7 @@ export const AppMain = () => {
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h1 className="modal-title fs-5">
-                                    <i className="fa-solid fa-ban mr-1" />Password Wrong!
+                                    <i className="fa-solid fa-ban mx-1" />Password Wrong!
                                 </h1>
                             </div>
                             <div className="modal-footer">
@@ -512,25 +512,25 @@ export const AppMain = () => {
                     {roomPassWrongModal()}
                     {roomInterModal()}
                     <h5 className="me-auto">
-                        <i className="far fa-user mr-1"></i>{contents[i]["user"]}
+                        <i className="far fa-user mx-1"></i>{contents[i]["user"]}
                     </h5>
                     {contents[i]["passhash"] == "" ?
                         <button className="btn btn-outline-primary rounded-pill"
                             onClick={(evt: any) => { fetchChat(evt.target.value) }} value={contents[i]["id"]}>
-                            <i className="fa-solid fa-right-to-bracket mr-1" style={{ pointerEvents: "none" }}></i>Enter
+                            <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>Enter
                         </button> :
                         <button className="btn btn-outline-dark rounded-pill"
                             onClick={(evt: any) => {
                                 $('#roomInterModalButton').attr("value", evt.target.value);
                                 $('#roomInterModal').modal('show');
                             }} value={contents[i]["id"]}>
-                            <i className="fa-solid fa-lock mr-1" style={{ pointerEvents: "none" }}></i>Enter
+                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>Enter
                         </button>
                     }
                     {contents[i]["userid"] == userId ?
                         <button className="btn btn-outline-danger rounded-pill"
                             onClick={(evt: any) => { destroyRoom(evt.target.value); }} value={contents[i]["id"]}>
-                            <i className="far fa-trash-alt mr-1" style={{ pointerEvents: "none" }}></i>Delete
+                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>Delete
                         </button> : <div></div>
                     }
                 </div>)
@@ -559,13 +559,13 @@ export const AppMain = () => {
             if (tmpAttachment == null && tmpText == "")
                 return (
                     <button className="btn btn-dark " disabled>
-                        <i className="far fa-comment-dots mr-1" style={{ pointerEvents: "none" }}></i>要入力
+                        <i className="far fa-comment-dots mx-1" style={{ pointerEvents: "none" }}></i>要入力
                     </button>
                 )
             return (
                 <button className="btn btn-success"
                     onClick={() => { remarkChat(); }}>
-                    <i className="far fa-comment-dots mr-1" style={{ pointerEvents: "none" }}></i>送信
+                    <i className="far fa-comment-dots mx-1" style={{ pointerEvents: "none" }}></i>送信
                 </button>
             )
         }
@@ -599,7 +599,7 @@ export const AppMain = () => {
                             <h5 className="modal-title">通信中</h5>
                         </div>
                         <div className="modal-body">
-                            <i className="spinner-border text-success mr-1" role="status" />通信中
+                            <i className="spinner-border text-success mx-1" role="status" />通信中
                         </div>
                     </div>
                 </div>
@@ -620,7 +620,7 @@ export const AppMain = () => {
                             <button className="btn btn-outline-success btn-lg" type="button"
                                 data-bs-toggle="tooltip" data-bs-placement="bottom" title="reload"
                                 onClick={() => { fetchChat() }}>
-                                <i className="fa-solid fa-rotate-right mr-1" />
+                                <i className="fa-solid fa-rotate-right mx-1" />
                             </button>
                             <input className="flex-fill form-control form-control-lg" type="text" value={room["room"]}
                                 disabled>
@@ -629,20 +629,20 @@ export const AppMain = () => {
                                 <button className="btn btn-outline-danger btn-lg" type="button"
                                     data-bs-toggle="tooltip" data-bs-placement="bottom" title="Destroy room"
                                     onClick={() => { destroyRoom() }}>
-                                    <i className="far fa-trash-alt mr-1"></i>
+                                    <i className="far fa-trash-alt mx-1"></i>
                                     部屋を削除
                                 </button>
                                 :
                                 <button className="btn btn-outline-dark btn-lg" type="button"
                                     data-bs-toggle="tooltip" data-bs-placement="bottom" title="You are not own this room"
                                     disabled>
-                                    <i className="far fa-user mr-1"></i>{room["user"]}
+                                    <i className="far fa-user mx-1"></i>{room["user"]}
                                 </button>
                             }
                             <button className="btn btn-outline-dark btn-lg" type="button"
                                 data-bs-toggle="tooltip" data-bs-placement="bottom" title="Exit room"
                                 onClick={() => { searchRoom() }}>
-                                <i className="fa-solid fa-right-from-bracket mr-1"></i>
+                                <i className="fa-solid fa-right-from-bracket mx-1"></i>
                                 部屋を出る
                             </button>
                         </div>

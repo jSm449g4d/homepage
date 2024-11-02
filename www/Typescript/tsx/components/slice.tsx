@@ -8,21 +8,22 @@ require.context('../application/', true, /\.ts(x?)$/)
 
 
 interface accountInterface {
-  user: string, token: string, id: number, roomKey: string
+  user: string, token: string, id: number, roomKey: string, mail: string
 }
 export const accountSlice = createSlice({
   name: 'account',
   initialState: {
-    token: "", user: "", id: -1, roomKey: ""
+    token: "", user: "", id: -1, roomKey: "", mail: ""
   },
   reducers: {
     accountInit: (state) => {
-      state.token = ""; state.user = ""; state.id = -1; state.roomKey = ""
+      state.token = ""; state.user = ""; state.id = -1; state.roomKey = "", state.mail = ""
     },
     accountSetState: (state, action: { payload: any }) => {
       state.token = action.payload.token
       state.user = action.payload.user
       state.id = action.payload.id
+      state.mail = action.payload.mail
       state.roomKey = ""
     },
     accountSetRoomKey: (state, action: { payload: string }) => {

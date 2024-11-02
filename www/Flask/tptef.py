@@ -39,7 +39,9 @@ def show(request):
             _dataDict.update(json.loads(request.form["fetch"]))
             _roompasshash = ""
             if _dataDict["roomKey"] != "":
-                _roompasshash = hashlib.sha256(_dataDict["roomKey"].encode()).hexdigest()
+                _roompasshash = hashlib.sha256(
+                    _dataDict["roomKey"].encode()
+                ).hexdigest()
             with closing(sqlite3.connect(dbname)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -71,10 +73,14 @@ def show(request):
 
         if "remark" in request.form:
             _dataDict.update(json.loads(request.form["remark"]))
+            if _dataDict["token"] == "":
+                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
+            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             _roompasshash = ""
             if _dataDict["roomKey"] != "":
-                _roompasshash = hashlib.sha256(_dataDict["roomKey"].encode()).hexdigest()
-            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
+                _roompasshash = hashlib.sha256(
+                    _dataDict["roomKey"].encode()
+                ).hexdigest()
             with closing(sqlite3.connect(dbname)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -102,10 +108,14 @@ def show(request):
             return json.dumps({"message": "rejected"})
 
         if "upload" in request.files:
+            if _dataDict["token"] == "":
+                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             _roompasshash = ""
             if _dataDict["roomKey"] != "":
-                _roompasshash = hashlib.sha256(_dataDict["roomKey"].encode()).hexdigest()
+                _roompasshash = hashlib.sha256(
+                    _dataDict["roomKey"].encode()
+                ).hexdigest()
             with closing(sqlite3.connect(dbname)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -148,7 +158,9 @@ def show(request):
             _dataDict.update(json.loads(request.form["download"]))
             _roompasshash = ""
             if _dataDict["roomKey"] != "":
-                _roompasshash = hashlib.sha256(_dataDict["roomKey"].encode()).hexdigest()
+                _roompasshash = hashlib.sha256(
+                    _dataDict["roomKey"].encode()
+                ).hexdigest()
             with closing(sqlite3.connect(dbname)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -179,10 +191,14 @@ def show(request):
 
         if "delete" in request.form:
             _dataDict.update(json.loads(request.form["delete"]))
+            if _dataDict["token"] == "":
+                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             _roompasshash = ""
             if _dataDict["roomKey"] != "":
-                _roompasshash = hashlib.sha256(_dataDict["roomKey"].encode()).hexdigest()
+                _roompasshash = hashlib.sha256(
+                    _dataDict["roomKey"].encode()
+                ).hexdigest()
             with closing(sqlite3.connect(dbname)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -222,10 +238,12 @@ def show(request):
 
         if "create" in request.form:
             _dataDict.update(json.loads(request.form["create"]))
+            if _dataDict["token"] == "":
+                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
-            _roompasshash = hashlib.sha256(_dataDict["text"].encode()).hexdigest()
-            if _dataDict["text"] == "":
-                _roompasshash = ""
+            _roompasshash = ""
+            if _dataDict["text"] != "":
+                _roompasshash = hashlib.sha256(_dataDict["text"].encode()).hexdigest()
             with closing(sqlite3.connect(dbname)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -256,6 +274,8 @@ def show(request):
 
         if "destroy" in request.form:
             _dataDict.update(json.loads(request.form["destroy"]))
+            if _dataDict["token"] == "":
+                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             with closing(sqlite3.connect(dbname)) as conn:
                 conn.row_factory = sqlite3.Row
@@ -273,11 +293,13 @@ def show(request):
                 )
                 cur.execute(
                     "SELECT * FROM chat WHERE roomid = ? AND mode=? ;",
-                    [_room["id"],"attachment"]
+                    [_room["id"], "attachment"],
                 )
                 _chats = cur.fetchall()
                 for _chat in _chats:
-                    _remove_file = os.path.normpath(os.path.join(filedir, str(_chat["id"])))
+                    _remove_file = os.path.normpath(
+                        os.path.join(filedir, str(_chat["id"]))
+                    )
                     if os.path.exists(_remove_file):
                         os.remove(_remove_file)
                 cur.execute(
