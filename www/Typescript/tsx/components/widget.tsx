@@ -14,6 +14,7 @@ export const AppWidgetHead = () => {
     const [tmpUser, setTmpUser] = useState("")
     const [tmpPass, setTmpPass] = useState("")
     const [tmpMail, setTmpMail] = useState("")
+    const [tmpButtonFlag, setTmpButtonFlag] = useState(false)
 
     const user = useAppSelector((state) => state.account.user)
     const token = useAppSelector((state) => state.account.token)
@@ -22,10 +23,10 @@ export const AppWidgetHead = () => {
 
     // accountControl
     const _logoutInit = () => {
-        setTmpUser(""); setTmpPass(""); setTmpMail(""); dispatch(accountInit());
+        setTmpUser(""); setTmpPass(""); setTmpMail(""); setTmpButtonFlag(false); dispatch(accountInit());
     }
     const _formInit = () => {
-        setTmpUser(""); setTmpPass(""); setTmpMail("");
+        setTmpUser(""); setTmpPass(""); setTmpMail(""); setTmpButtonFlag(false);
     }
     const _login = () => {
         const headers = new Headers();
@@ -149,7 +150,6 @@ export const AppWidgetHead = () => {
     }
     const _accountForm = () => {
         const accountConfigModal = () => {
-            const [tmpButtonFlag, setTmpButtonFlag] = useState(false)
             const accountConfigInfoModal = () => {
                 return (
                     <div className="modal fade" id="accountConfigInfoModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -282,12 +282,12 @@ export const AppWidgetHead = () => {
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h1 className="modal-title fs-5">
+                                <h3 className="modal-title fs-5">
                                     <i className="fa-solid fa-circle-exclamation mx-1" />Caution⇒
-                                </h1>
-                                <h1 className="modal-title fs-5" id="accountCautionModalTitle">
+                                </h3>
+                                <h3 className="modal-title fs-5" id="accountCautionModalTitle">
                                     notitle
-                                </h1>
+                                </h3>
                             </div>
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>

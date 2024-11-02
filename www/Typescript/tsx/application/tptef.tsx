@@ -12,12 +12,14 @@ export const AppMain = () => {
     const roomKey = useAppSelector((state) => state.account.roomKey)
     const dispatch = useAppDispatch()
     const xhrTimeout = 3000
+    const fileSizeMax = 1024 * 1024 * 2
 
     const [room, setRoom] = useState({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" })
     const [tmpRoom, setTmpRoom] = useState("")
     const [tmpText, setTmpText] = useState("")
     const [contents, setContents] = useState([])
     const [tmpAttachment, setTmpAttachment] = useState(null)
+    const [tmpTargetRoom, setTmpTargetRoom] = useState("")
 
     useEffect(() => {
         if (room["room"] == "") searchRoom()
@@ -112,7 +114,11 @@ export const AppMain = () => {
                 .then(response => { roadModalAndDelay(fetchChat) })
                 .catch(error => console.error(error.message));
         }
-        if (tmpAttachment != null) {
+        if (fileSizeMax < tmpAttachment.size) {
+            $('#cautionInfoModal').modal('show');
+            $('#cautionInfoModalTitle').text("ファイルサイズが大きすぎます")
+        }
+        if (tmpAttachment != null && fileSizeMax < tmpAttachment.size) {
             const headers = new Headers();
             const formData = new FormData();
             formData.append("info", stringForSend())
@@ -212,7 +218,8 @@ export const AppMain = () => {
             .then(response => response.json())
             .then(resJ => {
                 if (resJ["message"] == "alreadyExisted") {
-                    $('#roomCreateRejectedAlreadyRoomExists').modal('show')
+                    $('#cautionInfoModal').modal('show')
+                    $('#cautionInfoModalTitle').text('Room create rejected because already room exists')
                 } else { }
                 // setState update cannot be set
                 roadModalAndDelay(searchRoom)
@@ -241,90 +248,52 @@ export const AppMain = () => {
             });
     }
     // ConsoleRender
-    const roomsTopFormRender = () => {
-        const roomCreateRejectedAlreadyRoomExists = () => {
-            return (
-                <div className="modal fade" id="roomCreateRejectedAlreadyRoomExists" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h1 className="modal-title fs-5">
-                                    <i className="fa-solid fa-ban mx-1" />Room create rejected because already room exists
-                                </h1>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" className="btn btn-success" data-bs-dismiss="modal"
-                                    onClick={() => $('#roomCreateModal').modal('show')}>
-                                    continue
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )
-        }
+    const roomTopFormRender = () => {
         const roomCreateModal = () => {
             return (
-                <div className="modal fade" id="roomCreateModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h1 className="modal-title fs-5" id="exampleModalLabel">
-                                    <i className="fa-solid fa-hammer mx-1" />Create Room
-                                </h1>
-                            </div>
-                            <div className="modal-body row">
-                                <div className="input-group m-1 col-12">
-                                    <span className="input-group-text" id="room-addon1">Room</span>
-                                    <input type="text" className="form-control" placeholder="Username" aria-label="user"
-                                        value={tmpRoom} onChange={(evt) => { setTmpRoom(evt.target.value) }} />
+                <div>
+                    <div className="modal fade" id="roomCreateModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div className="modal-dialog">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h1 className="modal-title fs-5" id="exampleModalLabel">
+                                        <i className="fa-solid fa-hammer mx-1" />Create Room
+                                    </h1>
                                 </div>
-                                <div className="input-group m-1 col-12">
-                                    <span className="input-group-text" id="room-addon2">Pass</span>
-                                    <input type="text" className="form-control" placeholder="Password" aria-label="pass"
-                                        value={tmpText} onChange={(evt) => { setTmpText(evt.target.value) }} />
+                                <div className="modal-body row">
+                                    <div className="input-group m-1 col-12">
+                                        <span className="input-group-text" id="room-addon1">Room</span>
+                                        <input type="text" className="form-control" placeholder="Username" aria-label="user"
+                                            value={tmpRoom} onChange={(evt) => { setTmpRoom(evt.target.value) }} />
+                                    </div>
+                                    <div className="input-group m-1 col-12">
+                                        <span className="input-group-text" id="room-addon2">Pass</span>
+                                        <input type="text" className="form-control" placeholder="Password" aria-label="pass"
+                                            value={tmpText} onChange={(evt) => { setTmpText(evt.target.value) }} />
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                {tmpRoom != "" && token != "" ? <div>
-                                    {tmpText == "" ?
-                                        <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
-                                            onClick={() => createRoom()}>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    {tmpRoom != "" && token != "" ? <div>
+                                        {tmpText == "" ?
+                                            <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
+                                                onClick={() => createRoom()}>
+                                                <i className="fa-solid fa-hammer mx-1" />Create
+                                            </button> :
+                                            <button type="button" className="btn btn-outline-warning" data-bs-dismiss="modal"
+                                                onClick={() => {
+                                                    // roomKey cannot be updated in time
+                                                    dispatch(accountSetRoomKey(tmpText))
+                                                    createRoom(tmpText)
+                                                }}>
+                                                <i className="fa-solid fa-key mx-1" />Create
+                                            </button>
+                                        }</div> :
+                                        <button type="button" className="btn btn-outline-primary" disabled>
                                             <i className="fa-solid fa-hammer mx-1" />Create
-                                        </button> :
-                                        <button type="button" className="btn btn-outline-warning" data-bs-dismiss="modal"
-                                            onClick={() => {
-                                                // roomKey cannot be updated in time
-                                                dispatch(accountSetRoomKey(tmpText))
-                                                createRoom(tmpText)
-                                            }}>
-                                            <i className="fa-solid fa-key mx-1" />Create
                                         </button>
-                                    }</div> :
-                                    <button type="button" className="btn btn-outline-primary" disabled>
-                                        <i className="fa-solid fa-hammer mx-1" />Create
-                                    </button>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )
-        }
-        const roomCreateNeedLoginInfoModal = () => {
-            return (
-                <div className="modal fade" id="roomCreateNeedLoginInfoModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h1 className="modal-title fs-5">
-                                    <i className="fa-solid fa-circle-info mx-1" />部屋作成にはログインが必要です
-                                </h1>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -332,10 +301,8 @@ export const AppMain = () => {
             )
         }
         return (
-            <div className="input-group d-flex justify-content-center align-items-center y-1">
+            <div className="input-group d-flex justify-content-center align-items-center my-1">
                 {roomCreateModal()}
-                {roomCreateRejectedAlreadyRoomExists()}
-                {roomCreateNeedLoginInfoModal()}
                 <button className="btn btn-outline-success btn-lg" type="button"
                     data-bs-toggle="tooltip" data-bs-placement="bottom" title="reload"
                     onClick={() => { searchRoom() }}>
@@ -346,18 +313,231 @@ export const AppMain = () => {
                 {token == "" ?
                     <button className="btn btn-outline-info btn-lg" type="button"
                         data-bs-toggle="tooltip" data-bs-placement="bottom" bs-title="Need login"
-                        onClick={() => { $('#roomCreateNeedLoginInfoModal').modal('show'); }}>
-                        <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }}/>
+                        onClick={() => {
+                            $('#helpInfoModal').modal('show');
+                            $('#helpInfoModalTitle').text("部屋作成にはログインが必要です")
+                        }}>
+                        <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
                         部屋作成
                     </button> :
                     <button className="btn btn-outline-primary btn-lg" type="button"
                         data-bs-toggle="tooltip" data-bs-placement="bottom" title="Create room"
                         onClick={() => { $('#roomCreateModal').modal('show'); }}>
-                        <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }}/>
+                        <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
                         部屋作成
                     </button>}
             </div>)
+    }
+    const roomTable = () => {
+        const roomInterModal = () => {
+            return (
+                <div className="modal fade" id="roomInterModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h1 className="modal-title fs-5">
+                                    <i className="fa-solid fa-lock mx-1" />Need Password
+                                </h1>
+                            </div>
+                            <div className="modal-body row">
+                                <div className="input-group m-1 col-12">
+                                    <span className="input-group-text">Pass</span>
+                                    <input type="text" className="form-control" placeholder="Password" aria-label="pass"
+                                        value={tmpText} onChange={(evt) => { setTmpText(evt.target.value) }} />
+                                </div>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" value={-1} id="roomInterModalButton"
+                                    className="btn btn-secondary" data-bs-dismiss="modal">
+                                    Close
+                                </button>
+                                {tmpText != "" ?
+                                    <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
+                                        onClick={
+                                            () => {
+                                                // roomKey cannot be updated in time
+                                                dispatch(accountSetRoomKey(tmpText))
+                                                fetchChat(Number(tmpTargetRoom), tmpText)
+                                            }}>
+                                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />Enter
+                                    </button> :
+                                    <button type="button" className="btn btn-outline-primary" disabled>
+                                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />Enter
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+        const roomPassWrongModal = () => {
+            return (
+                <div className="modal fade" id="roomPassWrongModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h1 className="modal-title fs-5">
+                                    <i className="fa-solid fa-ban mx-1" />Password Wrong!
+                                </h1>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" className="btn btn-success" data-bs-dismiss="modal"
+                                    onClick={() => $('#roomInterModal').modal('show')}>
+                                    continue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+        const roomTableDestroyRoomConfirmationModal = () => {
+            return (
+                <div className="modal fade" id="roomTableDestroyRoomConfirmationModal"
+                    aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h4 className="modal-title">
+                                    <i className="fa-solid fa-circle-info mx-1" />Are you sure Destory Room?
+                                </h4>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
+                                    onClick={() => { destroyRoom(Number(tmpTargetRoom)) }}>
+                                    <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />Destroy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+        const _tmpRecord = [];
+        // if contents dont have enough element for example contents hold chat_data ,table need break
+        if (0 < contents.length)
+            if (!compareDictKeys(contents[0], ["id", "user", "userid", "room", "timestamp", "passhash"]))
+                return (<div className="row m-1">loading</div>)
+        for (var i = 0; i < contents.length; i++) {
+            if (contents[i]["room"].indexOf(tmpRoom) == -1) continue
+            const _tmpData = [];
+            _tmpData.push(
+                <div className="col-12 border d-flex"
+                    style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.15))" }}>
+                    {roomPassWrongModal()}
+                    {roomInterModal()}
+                    {roomTableDestroyRoomConfirmationModal()}
+                    <h5 className="me-auto">
+                        <i className="far fa-user mx-1"></i>{contents[i]["user"]}
+                    </h5>
+                    {contents[i]["passhash"] == "" ?
+                        <button className="btn btn-outline-primary rounded-pill"
+                            onClick={(evt: any) => { fetchChat(evt.target.value) }} value={contents[i]["id"]}>
+                            <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>Enter
+                        </button> :
+                        <button className="btn btn-outline-dark rounded-pill"
+                            onClick={(evt: any) => {
+                                setTmpTargetRoom(evt.target.value)
+                                $('#roomInterModal').modal('show')
+                            }} value={contents[i]["id"]}>
+                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>Enter
+                        </button>
+                    }
+                    {contents[i]["userid"] == userId ?
+                        <button className="btn btn-outline-danger rounded-pill"
+                            onClick={(evt: any) => {
+                                setTmpTargetRoom(evt.target.value)
+                                $('#roomTableDestroyRoomConfirmationModal').modal('show');
 
+                            }} value={contents[i]["id"]}>
+                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>Delete
+                        </button> : <div></div>
+                    }
+                </div>)
+            _tmpData.push(
+                <div className="col-12 col-md-2 p-1 border"><div className="text-center">
+                    {Unixtime2String(Number(contents[i]["timestamp"]))}
+                </div></div>)
+            _tmpData.push(
+                <div className="col-12 col-md-10 p-1 d-flex justify-content-center align-items-center border">
+                    <h3>
+                        {contents[i]["room"]}
+                    </h3>
+                </div>)
+            _tmpRecord.push(
+                <div className="col-12 col-md-6" style={{
+                    border: "1px inset silver", borderRadius: "5px", marginBottom: "3px", boxShadow: "2px 2px 1px rgba(60,60,60,0.2)"
+                }}>
+                    <div className="row p-1">{_tmpData}</div>
+                </div>
+            )
+        }
+        return (<div className="row m-1">{_tmpRecord}</div>)
+    }
+    const chatTopFormRender = () => {
+        const destroyRoomConfirmationModal = () => {
+            return (
+                <div className="modal fade" id="destroyRoomConfirmationModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h4 className="modal-title">
+                                    <i className="fa-solid fa-circle-info mx-1" />Are you sure Destory Room?
+                                </h4>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
+                                    onClick={() => { destroyRoom() }}>
+                                    <i className="far fa-trash-alt mx-1" />Destroy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+        return (
+            <div className="input-group d-flex justify-content-center align-items-center my-1">
+                {destroyRoomConfirmationModal()}
+                <button className="btn btn-outline-success btn-lg" type="button"
+                    data-bs-toggle="tooltip" data-bs-placement="bottom" title="reload"
+                    onClick={() => { fetchChat() }}>
+                    <i className="fa-solid fa-rotate-right mx-1" />
+                </button>
+                <button className="btn btn-outline-dark btn-lg" type="button"
+                    data-bs-toggle="tooltip" data-bs-placement="bottom" title="You are not own this room"
+                    disabled>
+                    <i className="far fa-user mx-1"></i>{room["user"]}
+                </button>
+                <input className="flex-fill form-control form-control-lg" type="text" value={room["room"]}
+                    disabled>
+                </input >
+                {room["userid"] == userId ?
+                    <button className="btn btn-outline-danger btn-lg" type="button"
+                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="Destroy room"
+                        onClick={() => { $("destroyRoomConfirmationModal").modal("show") }}>
+                        <i className="far fa-trash-alt mx-1 " style={{ pointerEvents: "none" }}></i>部屋削除
+                    </button> :
+                    <button className="btn btn-outline-info btn-lg" type="button"
+                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="Destroy room"
+                        onClick={() => {
+                            $('#helpInfoModal').modal('show');
+                            $('#helpInfoModalTitle').text("部屋削除は部屋作成者にしかできません")
+                        }}>
+                        <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />部屋削除
+                    </button>
+                }
+                <button className="btn btn-outline-dark btn-lg" type="button"
+                    data-bs-toggle="tooltip" data-bs-placement="bottom" title="Exit room"
+                    onClick={() => { searchRoom() }}>
+                    <i className="fa-solid fa-right-from-bracket mx-1"></i>
+                    部屋を出る
+                </button>
+            </div>)
     }
     const chatTable = () => {
         // if contents dont have enough element for example contents hold chat_data ,table need break
@@ -433,127 +613,6 @@ export const AppMain = () => {
         }
         return (<div className="">{_tmpRecord}</div>)
     }
-    const roomTable = (_search = "") => {
-        const roomInterModal = () => {
-            return (
-                <div className="modal fade" id="roomInterModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h1 className="modal-title fs-5">
-                                    <i className="fa-solid fa-lock mx-1" />Need Password
-                                </h1>
-                            </div>
-                            <div className="modal-body row">
-                                <div className="input-group m-1 col-12">
-                                    <span className="input-group-text">Pass</span>
-                                    <input type="text" className="form-control" placeholder="Password" aria-label="pass"
-                                        value={tmpText} onChange={(evt) => { setTmpText(evt.target.value) }} />
-                                </div>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" value={-1} id="roomInterModalButton"
-                                    className="btn btn-secondary" data-bs-dismiss="modal">
-                                    Close
-                                </button>
-                                {tmpText != "" ?
-                                    <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
-                                        onClick={
-                                            () => {
-                                                // roomKey cannot be updated in time
-                                                dispatch(accountSetRoomKey(tmpText))
-                                                fetchChat(Number($('#roomInterModalButton').attr("value")), tmpText)
-                                            }}>
-                                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />Inter
-                                    </button> :
-                                    <button type="button" className="btn btn-outline-primary" disabled>
-                                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />Inter
-                                    </button>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )
-        }
-        const roomPassWrongModal = () => {
-            return (
-                <div className="modal fade" id="roomPassWrongModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h1 className="modal-title fs-5">
-                                    <i className="fa-solid fa-ban mx-1" />Password Wrong!
-                                </h1>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" className="btn btn-success" data-bs-dismiss="modal"
-                                    onClick={() => $('#roomInterModal').modal('show')}>
-                                    continue
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )
-        }
-        const _tmpRecord = [];
-        // if contents dont have enough element for example contents hold chat_data ,table need break
-        if (0 < contents.length)
-            if (!compareDictKeys(contents[0], ["id", "user", "userid", "room", "timestamp", "passhash"]))
-                return (<div className="row m-1">loading</div>)
-        for (var i = 0; i < contents.length; i++) {
-            if (contents[i]["room"].indexOf(_search) == -1) continue
-            const _tmpData = [];
-            _tmpData.push(
-                <div className="col-12 border d-flex"
-                    style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.15))" }}>
-                    {roomPassWrongModal()}
-                    {roomInterModal()}
-                    <h5 className="me-auto">
-                        <i className="far fa-user mx-1"></i>{contents[i]["user"]}
-                    </h5>
-                    {contents[i]["passhash"] == "" ?
-                        <button className="btn btn-outline-primary rounded-pill"
-                            onClick={(evt: any) => { fetchChat(evt.target.value) }} value={contents[i]["id"]}>
-                            <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>Enter
-                        </button> :
-                        <button className="btn btn-outline-dark rounded-pill"
-                            onClick={(evt: any) => {
-                                $('#roomInterModalButton').attr("value", evt.target.value);
-                                $('#roomInterModal').modal('show');
-                            }} value={contents[i]["id"]}>
-                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>Enter
-                        </button>
-                    }
-                    {contents[i]["userid"] == userId ?
-                        <button className="btn btn-outline-danger rounded-pill"
-                            onClick={(evt: any) => { destroyRoom(evt.target.value); }} value={contents[i]["id"]}>
-                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>Delete
-                        </button> : <div></div>
-                    }
-                </div>)
-            _tmpData.push(
-                <div className="col-12 col-md-2 p-1 border"><div className="text-center">
-                    {Unixtime2String(Number(contents[i]["timestamp"]))}
-                </div></div>)
-            _tmpData.push(
-                <div className="col-12 col-md-10 p-1 d-flex justify-content-center align-items-center border">
-                    <h3>
-                        {contents[i]["room"]}
-                    </h3>
-                </div>)
-            _tmpRecord.push(
-                <div className="col-12 col-md-6" style={{
-                    border: "1px inset silver", borderRadius: "5px", marginBottom: "3px", boxShadow: "2px 2px 1px rgba(60,60,60,0.2)"
-                }}>
-                    <div className="row p-1">{_tmpData}</div>
-                </div>
-            )
-        }
-        return (<div className="row m-1">{_tmpRecord}</div>)
-    }
     const inputConsole = () => {
         const remarkButton = () => {
             if (tmpAttachment == null && tmpText == "")
@@ -590,6 +649,48 @@ export const AppMain = () => {
         )
     }
     // applicationRender
+    const helpInfoModal = () => {
+        return (
+            <div className="modal fade" id="helpInfoModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h4 className="modal-title">
+                                <i className="fa-solid fa-circle-info mx-1" />
+                            </h4>
+                            <h4 className="modal-title" id="helpInfoModalTitle">
+                                help
+                            </h4>
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+    const cautionInfoModal = () => {
+        return (
+            <div className="modal fade" id="accountCautionModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h4 className="modal-title">
+                                <i className="fa-solid fa-circle-exclamation mx-1" />Caution⇒
+                            </h4>
+                            <h4 className="modal-title" id="accountCautionModalTitle">
+                                notitle
+                            </h4>
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
     const roadModalRender = () => {
         return (
             <div className="modal opacity-25" id="roadModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -607,46 +708,19 @@ export const AppMain = () => {
     }
     return (
         <div>
+            {helpInfoModal()}
+            {cautionInfoModal()}
             {roadModalRender()}
             <div className="">
                 {room["room"] == "" ?
                     <div className="m-1">
-                        {roomsTopFormRender()}
-                        {roomTable(tmpRoom)}
-                    </div>
-                    :
+                        {roomTopFormRender()}
+                        {roomTable()}
+                    </div> :
                     <div className="m-1">
-                        <div className="input-group d-flex justify-content-center align-items-center my-1">
-                            <button className="btn btn-outline-success btn-lg" type="button"
-                                data-bs-toggle="tooltip" data-bs-placement="bottom" title="reload"
-                                onClick={() => { fetchChat() }}>
-                                <i className="fa-solid fa-rotate-right mx-1" />
-                            </button>
-                            <input className="flex-fill form-control form-control-lg" type="text" value={room["room"]}
-                                disabled>
-                            </input >
-                            {room["userid"] == userId ?
-                                <button className="btn btn-outline-danger btn-lg" type="button"
-                                    data-bs-toggle="tooltip" data-bs-placement="bottom" title="Destroy room"
-                                    onClick={() => { destroyRoom() }}>
-                                    <i className="far fa-trash-alt mx-1"></i>
-                                    部屋を削除
-                                </button>
-                                :
-                                <button className="btn btn-outline-dark btn-lg" type="button"
-                                    data-bs-toggle="tooltip" data-bs-placement="bottom" title="You are not own this room"
-                                    disabled>
-                                    <i className="far fa-user mx-1"></i>{room["user"]}
-                                </button>
-                            }
-                            <button className="btn btn-outline-dark btn-lg" type="button"
-                                data-bs-toggle="tooltip" data-bs-placement="bottom" title="Exit room"
-                                onClick={() => { searchRoom() }}>
-                                <i className="fa-solid fa-right-from-bracket mx-1"></i>
-                                部屋を出る
-                            </button>
-                        </div>
-                        {chatTable()}{inputConsole()}
+                        {chatTopFormRender()}
+                        {chatTable()}
+                        {inputConsole()}
                     </div>
                 }
             </div>

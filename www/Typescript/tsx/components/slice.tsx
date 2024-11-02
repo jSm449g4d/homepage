@@ -7,8 +7,8 @@ import { store } from "./store";
 require.context('../application/', true, /\.ts(x?)$/)
 
 
-interface accountInterface {
-  user: string, token: string, id: number, roomKey: string, mail: string
+interface accountSetStateInterface {
+  user: string, token: string, id: number, mail: string, roomKey: string
 }
 export const accountSlice = createSlice({
   name: 'account',
@@ -20,10 +20,10 @@ export const accountSlice = createSlice({
       state.token = ""; state.user = ""; state.id = -1; state.roomKey = "", state.mail = ""
     },
     accountSetState: (state, action: { payload: any }) => {
-      state.token = action.payload.token
-      state.user = action.payload.user
-      state.id = action.payload.id
-      state.mail = action.payload.mail
+      if ("token" in action.payload) state.token = action.payload.token
+      if ("user" in action.payload) state.user = action.payload.user
+      if ("id" in action.payload) state.id = action.payload.id
+      if ("mail" in action.payload) state.mail = action.payload.mail
       state.roomKey = ""
     },
     accountSetRoomKey: (state, action: { payload: string }) => {
