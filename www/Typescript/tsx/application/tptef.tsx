@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import { jpclock, Unixtime2String } from "../components/util";
+import { HIModal, CIModal } from "../components/imodals";
 import { accountSetRoomKey } from '../components/slice'
 import { useAppSelector, useAppDispatch } from '../components/store'
 import "../stylecheets/style.sass";
@@ -82,19 +83,37 @@ export const AppMain = () => {
         fetch(request)
             .then(response => response.json())
             .then(resJ => {
-                if (resJ["message"] == "processed") {
-                    setRoom(resJ["room"]);
-                    sortSetContents(resJ["chats"])
+                switch (resJ["message"]) {
+                    case "processed": {
+                        setRoom(resJ["room"]);
+                        sortSetContents(resJ["chats"])
+                    } break;
+                    case "wrongPass": {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("部屋のパスワードが違います")
+                        searchRoom(); break;
+                    }
+                    case "notExist": {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("部屋が存在しません")
+                        searchRoom(); break;
+                    }
+                    case "tokenNothing": {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("JWTトークン未提出です")
+                        searchRoom(); break;
+                    }
+                    default: {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("その他のエラー")
+                        searchRoom(); break;
+                    }
                 }
-                else if (resJ["message"] == "wrongPass") {
-                    $('#roomPassWrongModal').modal('show')
-                    searchRoom()
-                }
-                else { searchRoom() }
             })
             .catch(error => {
+                $('#cautionInfoModal').modal('show');
+                $('#cautionInfoModalTitle').text("通信エラー")
                 console.error(error.message)
-                searchRoom()
             });
     }
     const remarkChat = () => {
@@ -129,10 +148,18 @@ export const AppMain = () => {
                             $('#cautionInfoModalTitle').text("JWTトークン未提出です")
                             searchRoom(); break;
                         }
-                        default: searchRoom(); break;
+                        default: {
+                            $('#cautionInfoModal').modal('show');
+                            $('#cautionInfoModalTitle').text("その他のエラー")
+                            searchRoom(); break;
+                        }
                     }
                 })
-                .catch(error => console.error(error.message));
+                .catch(error => {
+                    $('#cautionInfoModal').modal('show');
+                    $('#cautionInfoModalTitle').text("通信エラー")
+                    console.error(error.message)
+                });
         }
         if (fileSizeMax <= tmpAttachment.size) {
             $('#cautionInfoModal').modal('show');
@@ -170,10 +197,18 @@ export const AppMain = () => {
                             $('#cautionInfoModalTitle').text("JWTトークン未提出です")
                             searchRoom(); break;
                         }
-                        default: searchRoom(); break;
+                        default: {
+                            $('#cautionInfoModal').modal('show');
+                            $('#cautionInfoModalTitle').text("その他のエラー")
+                            searchRoom(); break;
+                        }
                     }
                 })
-                .catch(error => console.error(error.message));
+                .catch(error => {
+                    $('#cautionInfoModal').modal('show');
+                    $('#cautionInfoModalTitle').text("通信エラー")
+                    console.error(error.message)
+                });
         }
     }
     const deleteChat = (_id: number) => {
@@ -188,8 +223,37 @@ export const AppMain = () => {
             signal: AbortSignal.timeout(xhrTimeout)
         });
         fetch(request)
-            .then(response => { roadModalAndDelay(fetchChat) })
-            .catch(error => console.error(error.message));
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed": roadModalAndDelay(fetchChat); break;
+                    case "wrongPass": {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("部屋のパスワードが違います")
+                        searchRoom(); break;
+                    }
+                    case "notExist": {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("部屋が存在しません")
+                        searchRoom(); break;
+                    }
+                    case "tokenNothing": {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("JWTトークン未提出です")
+                        searchRoom(); break;
+                    }
+                    default: {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("その他のエラー")
+                        searchRoom(); break;
+                    }
+                }
+            })
+            .catch(error => {
+                $('#cautionInfoModal').modal('show');
+                $('#cautionInfoModalTitle').text("通信エラー")
+                console.error(error.message)
+            });
     }
     const downloadChat = (_id: number, _fileName: string = "") => {
         const headers = new Headers();
@@ -213,7 +277,11 @@ export const AppMain = () => {
                 a.click();
                 roadModalAndDelay(fetchChat)
             })
-            .catch(error => console.error(error.message));
+            .catch(error => {
+                $('#cautionInfoModal').modal('show');
+                $('#cautionInfoModalTitle').text("通信エラー")
+                console.error(error.message)
+            });
     }
     const searchRoom = () => {
         const sortSetContentsRev = (_contents: any = []) => {
@@ -234,11 +302,20 @@ export const AppMain = () => {
         fetch(request)
             .then(response => response.json())
             .then(resJ => {
-                if (resJ["message"] == "processed") {
-                    sortSetContentsRev(resJ["rooms"])
-                } else { searchRoom() }
+                switch (resJ["message"]) {
+                    case "processed": sortSetContentsRev(resJ["rooms"]); break;
+                    default: {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("その他のエラー")
+                        break;
+                    }
+                }
             })
-            .catch(error => console.error(error.message));
+            .catch(error => {
+                $('#cautionInfoModal').modal('show');
+                $('#cautionInfoModalTitle').text("通信エラー")
+                console.error(error.message)
+            });
     }
     const createRoom = (_roomKey = roomKey) => {
         exitRoom()
@@ -255,16 +332,29 @@ export const AppMain = () => {
         fetch(request)
             .then(response => response.json())
             .then(resJ => {
-                if (resJ["message"] == "alreadyExisted") {
-                    $('#cautionInfoModal').modal('show')
-                    $('#cautionInfoModalTitle').text('既にその名前の部屋が存在します')
-                } else { }
-                // setState update cannot be set
-                roadModalAndDelay(searchRoom)
+                switch (resJ["message"]) {
+                    case "processed": roadModalAndDelay(searchRoom); break;
+                    case "alreadyExisted": {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("既にその名前の部屋が存在します")
+                        searchRoom(); break;
+                    }
+                    case "tokenNothing": {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("JWTトークン未提出です")
+                        searchRoom(); break;
+                    }
+                    default: {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("その他のエラー")
+                        searchRoom(); break;
+                    }
+                }
             })
             .catch(error => {
+                $('#cautionInfoModal').modal('show');
+                $('#cautionInfoModalTitle').text("通信エラー")
                 console.error(error.message)
-                searchRoom()
             });
     }
     const destroyRoom = (_roomid = room["id"]) => {
@@ -279,10 +369,36 @@ export const AppMain = () => {
             signal: AbortSignal.timeout(xhrTimeout)
         });
         fetch(request)
-            .then(response => { roadModalAndDelay(searchRoom) })
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed": roadModalAndDelay(searchRoom); break;
+                    case "notExist": {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("部屋が存在しません")
+                        searchRoom(); break;
+                    }
+                    case "tokenNothing": {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("JWTトークン未提出です")
+                        searchRoom(); break;
+                    }
+                    case "youerntOwner": {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("部屋の所有権がありません")
+                        searchRoom(); break;
+                    }
+                    default: {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("その他のエラー")
+                        searchRoom(); break;
+                    }
+                }
+            })
             .catch(error => {
+                $('#cautionInfoModal').modal('show');
+                $('#cautionInfoModalTitle').text("通信エラー")
                 console.error(error.message)
-                searchRoom()
             });
     }
     // ConsoleRender
@@ -746,8 +862,6 @@ export const AppMain = () => {
     }
     return (
         <div>
-            {helpInfoModal()}
-            {cautionInfoModal()}
             {roadModalRender()}
             <div className="">
                 {room["room"] == "" ?

@@ -3,7 +3,8 @@ import { createRoot } from "react-dom/client"
 import { stopf5, Query2Dict } from "./util";
 require.context('../application/', true, /\.ts(x?)$/)
 import { Provider } from "react-redux"
-import { store } from "../components/store";
+import { IModalsRender } from "./imodals";
+import { store } from "./store";
 import { accountInit, accountSetState } from './slice'
 import { useAppSelector, useAppDispatch } from './store'
 
@@ -368,8 +369,8 @@ export const AppWidgetHead = () => {
     }
     return (
         <div style={{ borderBottom: "3px double gray", background: "linear-gradient(rgba(60,60,60,0),rgba(60,60,60,0.1)" }}>
+            {IModalsRender()}
             <div className="my-1 mx-2 row">
-
                 <div className="col-4 col-md-3">
                     <div className="dropdown d-flex align-items-center">
                         <ul className="dropdown-menu ">

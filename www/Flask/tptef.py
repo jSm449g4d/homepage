@@ -215,7 +215,7 @@ def show(request):
                     [_dataDict["chatid"], token["id"]],
                 )
                 conn.commit()
-                _remove_file = os.path.normpath(os.path.join(filedir, str(_chat["id"])))
+                _remove_file = os.path.normpath(os.path.join(filedir, str(_dataDict["chatid"])))
                 if os.path.exists(_remove_file):
                     os.remove(_remove_file)
                 return json.dumps({"message": "processed"}, ensure_ascii=False)
