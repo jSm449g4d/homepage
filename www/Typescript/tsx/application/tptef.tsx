@@ -54,10 +54,9 @@ export const AppMain = () => {
         $('#inputConsoleAttachment').val(null)
     }
     const exitRoom = (_setContentsInitialze = true) => {
-
         if (_setContentsInitialze) setContents([])
-        setRoom({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" }); setTmpRoom("");
-        setTmpText(""); setTmpAttachment(null);
+        setRoom({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" });
+        setTmpRoom(""); setTmpText(""); setTmpAttachment(null);
     }
     const compareDictKeys = (_targetDict: {}, _keys: any[]) => {
         if (Object.keys(_targetDict).sort().join() == _keys.sort().toString())
@@ -111,14 +110,36 @@ export const AppMain = () => {
                 signal: AbortSignal.timeout(xhrTimeout)
             });
             fetch(request)
-                .then(response => { roadModalAndDelay(fetchChat) })
+                .then(response => response.json())
+                .then(resJ => {
+                    switch (resJ["message"]) {
+                        case "processed": roadModalAndDelay(fetchChat); break;
+                        case "wrongPass": {
+                            $('#cautionInfoModal').modal('show');
+                            $('#cautionInfoModalTitle').text("部屋のパスワードが違います")
+                            searchRoom(); break;
+                        }
+                        case "notExist": {
+                            $('#cautionInfoModal').modal('show');
+                            $('#cautionInfoModalTitle').text("部屋が存在しません")
+                            searchRoom(); break;
+                        }
+                        case "tokenNothing": {
+                            $('#cautionInfoModal').modal('show');
+                            $('#cautionInfoModalTitle').text("JWTトークン未提出です")
+                            searchRoom(); break;
+                        }
+                        default: searchRoom(); break;
+                    }
+                })
                 .catch(error => console.error(error.message));
         }
-        if (fileSizeMax < tmpAttachment.size) {
+        if (fileSizeMax <= tmpAttachment.size) {
             $('#cautionInfoModal').modal('show');
-            $('#cautionInfoModalTitle').text("ファイルサイズが大きすぎます")
+            $('#cautionInfoModalTitle').text(
+                "ファイルサイズが大きすぎます(" + String(fileSizeMax) + " byte)未満")
         }
-        if (tmpAttachment != null && fileSizeMax < tmpAttachment.size) {
+        if (tmpAttachment != null && tmpAttachment.size < fileSizeMax) {
             const headers = new Headers();
             const formData = new FormData();
             formData.append("info", stringForSend())
@@ -132,8 +153,25 @@ export const AppMain = () => {
             fetch(request)
                 .then(response => response.json())
                 .then(resJ => {
-                    if (resJ["message"] == "processed") { roadModalAndDelay(fetchChat) }
-                    else { searchRoom() }
+                    switch (resJ["message"]) {
+                        case "processed": roadModalAndDelay(fetchChat); break;
+                        case "wrongPass": {
+                            $('#cautionInfoModal').modal('show');
+                            $('#cautionInfoModalTitle').text("部屋のパスワードが違います")
+                            searchRoom(); break;
+                        }
+                        case "notExist": {
+                            $('#cautionInfoModal').modal('show');
+                            $('#cautionInfoModalTitle').text("部屋が存在しません")
+                            searchRoom(); break;
+                        }
+                        case "tokenNothing": {
+                            $('#cautionInfoModal').modal('show');
+                            $('#cautionInfoModalTitle').text("JWTトークン未提出です")
+                            searchRoom(); break;
+                        }
+                        default: searchRoom(); break;
+                    }
                 })
                 .catch(error => console.error(error.message));
         }
@@ -219,7 +257,7 @@ export const AppMain = () => {
             .then(resJ => {
                 if (resJ["message"] == "alreadyExisted") {
                     $('#cautionInfoModal').modal('show')
-                    $('#cautionInfoModalTitle').text('Room create rejected because already room exists')
+                    $('#cautionInfoModalTitle').text('既にその名前の部屋が存在します')
                 } else { }
                 // setState update cannot be set
                 roadModalAndDelay(searchRoom)
@@ -672,14 +710,14 @@ export const AppMain = () => {
     }
     const cautionInfoModal = () => {
         return (
-            <div className="modal fade" id="accountCautionModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div className="modal fade" id="cautionInfoModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div className="modal-dialog">
                     <div className="modal-content">
                         <div className="modal-header">
                             <h4 className="modal-title">
                                 <i className="fa-solid fa-circle-exclamation mx-1" />Caution⇒
                             </h4>
-                            <h4 className="modal-title" id="accountCautionModalTitle">
+                            <h4 className="modal-title" id="cautionInfoModalTitle">
                                 notitle
                             </h4>
                         </div>
