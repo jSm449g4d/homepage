@@ -42,7 +42,7 @@ export const IModalsRender = () => {
                     <div className="modal-content">
                         <div className="modal-header">
                             <h4 className="modal-title">
-                                <i className="fa-solid fa-circle-exclamation text-warning mx-1" />Caution⇒
+                                <i className="fa-solid fa-circle-exclamation text-warning mx-1" />
                             </h4>
                             <h4 className="modal-title" id="cautionInfoModalTitle">caution</h4>
                         </div>

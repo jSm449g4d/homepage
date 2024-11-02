@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client"
 import { stopf5, Query2Dict } from "./util";
 require.context('../application/', true, /\.ts(x?)$/)
 import { Provider } from "react-redux"
-import { IModalsRender } from "./imodals";
+import { IModalsRender, HIModal, CIModal } from "./imodals";
 import { store } from "./store";
 import { accountInit, accountSetState } from './slice'
 import { useAppSelector, useAppDispatch } from './store'
@@ -42,27 +42,26 @@ export const AppWidgetHead = () => {
         fetch(request)
             .then(response => response.json())
             .then(resJ => {
-                if (resJ["message"] == "processed") {
-                    dispatch(accountSetState({
-                        user: resJ["user"], token: resJ["token"],
-                        id: resJ["id"], mail: resJ["mail"]
-                    }));
-                }
-                else if (resJ["message"] == "notExist") {
-                    $('#accountCautionModal').modal('show')
-                    $('#accountCautionModalTitle').text('アカウントが存在しません')
-                }
-                else if (resJ["message"] == "wrongPass") {
-                    $('#accountCautionModal').modal('show')
-                    $('#accountCautionModalTitle').text('パスワードが間違ってます')
-                }
-                else {
-                    $('#accountCautionModal').modal('show')
-                    $('#accountCautionModalTitle').text('不明なエラーです')
+                switch (resJ["message"]) {
+                    case "processed": {
+                        dispatch(accountSetState({
+                            user: resJ["user"], token: resJ["token"],
+                            id: resJ["id"], mail: resJ["mail"]
+                        })); break;
+                    }
+                    case "notExist": {
+                        CIModal("アカウントが存在しません"); break;
+                    }
+                    case "wrongPass": {
+                        CIModal("パスワードが間違ってます"); break;
+                    }
+                    default: { CIModal("不明なエラーです"); break; }
                 }
             })
-            .catch(error => console.error(error.message));
-        _formInit()
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
     }
     const _signin = () => {
         const headers = new Headers();
@@ -77,19 +76,25 @@ export const AppWidgetHead = () => {
         fetch(request)
             .then(response => response.json())
             .then(resJ => {
-                if (resJ["message"] == "processed") {
-                    dispatch(accountSetState({ user: resJ["user"], token: resJ["token"], id: resJ["id"], mail: resJ["mail"] }));
-                }
-                else if (resJ["message"] == "alreadyExist") {
-                    $('#accountCautionModal').modal('show')
-                    $('#accountCautionModalTitle').text('既にアカウントが存在します')
-                }
-                else {
-                    $('#accountCautionModal').modal('show')
-                    $('#accountCautionModalTitle').text('不明なエラーです')
+                switch (resJ["message"]) {
+                    case "processed": {
+                        dispatch(accountSetState({
+                            user: resJ["user"], token: resJ["token"], id: resJ["id"], mail: resJ["mail"]
+                        })); break;
+                    }
+                    case "alreadyExist": {
+                        CIModal("既にアカウントが存在します"); break;
+                    }
+                    case "wrongPass": {
+                        CIModal("パスワードが間違ってます"); break;
+                    }
+                    default: { CIModal("不明なエラーです"); break; }
                 }
             })
-            .catch(error => console.error(error.message));
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
         _formInit()
     }
     const _logout = () => { _logoutInit() }
@@ -106,23 +111,23 @@ export const AppWidgetHead = () => {
         fetch(request)
             .then(response => response.json())
             .then(resJ => {
-                if (resJ["message"] == "processed") {
-                    dispatch(accountSetState({ user: resJ["user"], mail: resJ["mail"] }));
-                }
-                else if (resJ["message"] == "notExist") {
-                    $('#accountCautionModal').modal('show')
-                    $('#accountCautionModalTitle').text('アカウントが存在しません')
-                }
-                else if (resJ["message"] == "alreadyExist") {
-                    $('#accountCautionModal').modal('show')
-                    $('#accountCautionModalTitle').text('アカウント名が使われてます')
-                }
-                else {
-                    $('#accountCautionModal').modal('show')
-                    $('#accountCautionModalTitle').text('不明なエラーです')
+                switch (resJ["message"]) {
+                    case "processed": {
+                        dispatch(accountSetState({ user: resJ["user"], mail: resJ["mail"] })); break;
+                    }
+                    case "notExist": {
+                        CIModal("アカウントが存在しません"); break;
+                    }
+                    case "alreadyExist": {
+                        CIModal("アカウント名が使われてます"); break;
+                    }
+                    default: { CIModal("不明なエラーです"); break; }
                 }
             })
-            .catch(error => console.error(error.message));
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
         _formInit()
     }
     const _accountDelete = () => {
@@ -138,15 +143,15 @@ export const AppWidgetHead = () => {
         fetch(request)
             .then(response => response.json())
             .then(resJ => {
-                if (resJ["message"] == "processed") {
-                    _logoutInit()
-                }
-                else {
-                    $('#accountCautionModal').modal('show')
-                    $('#accountCautionModalTitle').text('不明なエラーです')
+                switch (resJ["message"]) {
+                    case "processed": { _logoutInit(); break; }
+                    default: { CIModal("不明なエラーです"); break; }
                 }
             })
-            .catch(error => console.error(error.message));
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
         _formInit()
     }
     const _accountForm = () => {

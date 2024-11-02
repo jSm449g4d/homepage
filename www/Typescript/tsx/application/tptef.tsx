@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import { jpclock, Unixtime2String } from "../components/util";
 import { HIModal, CIModal } from "../components/imodals";
-import { accountSetRoomKey } from '../components/slice'
+import { accountSetState } from '../components/slice'
 import { useAppSelector, useAppDispatch } from '../components/store'
 import "../stylecheets/style.sass";
 
@@ -151,55 +151,56 @@ export const AppMain = () => {
                     console.error(error.message)
                 });
         }
+        // upload file
+        if (tmpAttachment == null) return
         if (fileSizeMax <= tmpAttachment.size) {
             $('#cautionInfoModal').modal('show');
             $('#cautionInfoModalTitle').text(
                 "ファイルサイズが大きすぎます(" + String(fileSizeMax) + " byte)未満")
+            return
         }
-        if (tmpAttachment != null && tmpAttachment.size < fileSizeMax) {
-            const headers = new Headers();
-            const formData = new FormData();
-            formData.append("info", stringForSend())
-            formData.append("upload", tmpAttachment, tmpAttachment.name)
-            const request = new Request("/tptef.py", {
-                method: 'POST',
-                headers: headers,
-                body: formData,
-                signal: AbortSignal.timeout(xhrTimeout)
-            });
-            fetch(request)
-                .then(response => response.json())
-                .then(resJ => {
-                    switch (resJ["message"]) {
-                        case "processed": roadModalAndDelay(fetchChat); break;
-                        case "wrongPass": {
-                            $('#cautionInfoModal').modal('show');
-                            $('#cautionInfoModalTitle').text("部屋のパスワードが違います")
-                            searchRoom(); break;
-                        }
-                        case "notExist": {
-                            $('#cautionInfoModal').modal('show');
-                            $('#cautionInfoModalTitle').text("部屋が存在しません")
-                            searchRoom(); break;
-                        }
-                        case "tokenNothing": {
-                            $('#cautionInfoModal').modal('show');
-                            $('#cautionInfoModalTitle').text("JWTトークン未提出です")
-                            searchRoom(); break;
-                        }
-                        default: {
-                            $('#cautionInfoModal').modal('show');
-                            $('#cautionInfoModalTitle').text("その他のエラー")
-                            searchRoom(); break;
-                        }
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("upload", tmpAttachment, tmpAttachment.name)
+        const request = new Request("/tptef.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed": roadModalAndDelay(fetchChat); break;
+                    case "wrongPass": {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("部屋のパスワードが違います")
+                        searchRoom(); break;
                     }
-                })
-                .catch(error => {
-                    $('#cautionInfoModal').modal('show');
-                    $('#cautionInfoModalTitle').text("通信エラー")
-                    console.error(error.message)
-                });
-        }
+                    case "notExist": {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("部屋が存在しません")
+                        searchRoom(); break;
+                    }
+                    case "tokenNothing": {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("JWTトークン未提出です")
+                        searchRoom(); break;
+                    }
+                    default: {
+                        $('#cautionInfoModal').modal('show');
+                        $('#cautionInfoModalTitle').text("その他のエラー")
+                        searchRoom(); break;
+                    }
+                }
+            })
+            .catch(error => {
+                $('#cautionInfoModal').modal('show');
+                $('#cautionInfoModalTitle').text("通信エラー")
+                console.error(error.message)
+            });
     }
     const deleteChat = (_id: number) => {
         const headers = new Headers();
@@ -352,7 +353,6 @@ export const AppMain = () => {
                 switch (resJ["message"]) {
                     case "processed": roadModalAndDelay(searchRoom); break;
                     case "notExist": {
-                        $('#cautionInfoModal').modal('show');
                         CIModal("部屋が存在しません")
                         searchRoom(); break;
                     }
@@ -411,7 +411,7 @@ export const AppMain = () => {
                                             <button type="button" className="btn btn-outline-warning" data-bs-dismiss="modal"
                                                 onClick={() => {
                                                     // roomKey cannot be updated in time
-                                                    dispatch(accountSetRoomKey(tmpText))
+                                                    dispatch(accountSetState({ "roomKey": tmpText }))
                                                     createRoom(tmpText)
                                                 }}>
                                                 <i className="fa-solid fa-key mx-1" />Create
@@ -481,7 +481,7 @@ export const AppMain = () => {
                                         onClick={
                                             () => {
                                                 // roomKey cannot be updated in time
-                                                dispatch(accountSetRoomKey(tmpText))
+                                                dispatch(accountSetState({ roomKey: tmpText }))
                                                 fetchChat(Number(tmpTargetRoom), tmpText)
                                             }}>
                                         <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />Enter
@@ -529,7 +529,7 @@ export const AppMain = () => {
             const _tmpData = [];
             _tmpData.push(
                 <div className="col-12 border d-flex"
-                    style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.15))" }}>
+                    style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }}>
                     {roomInterModal()}
                     {roomTableDestroyRoomConfirmationModal()}
                     <h5 className="me-auto">
@@ -594,7 +594,7 @@ export const AppMain = () => {
                                 <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
                                     onClick={() => { destroyRoom() }}>
-                                    <i className="far fa-trash-alt mx-1" />Destroy
+                                    <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />Destroy
                                 </button>
                             </div>
                         </div>
@@ -603,40 +603,39 @@ export const AppMain = () => {
             )
         }
         return (
-            <div className="input-group d-flex justify-content-center align-items-center my-1">
+            <div>
                 {destroyRoomConfirmationModal()}
-                <button className="btn btn-outline-success btn-lg" type="button"
-                    data-bs-toggle="tooltip" data-bs-placement="bottom" title="reload"
-                    onClick={() => { fetchChat() }}>
-                    <i className="fa-solid fa-rotate-right mx-1" />
-                </button>
-                <button className="btn btn-outline-dark btn-lg" type="button"
-                    data-bs-toggle="tooltip" data-bs-placement="bottom" title="You are not own this room"
-                    disabled>
-                    <i className="far fa-user mx-1"></i>{room["user"]}
-                </button>
-                <input className="flex-fill form-control form-control-lg" type="text" value={room["room"]}
-                    disabled>
-                </input >
-                {room["userid"] == userId ?
-                    <button className="btn btn-outline-danger btn-lg" type="button"
-                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="Destroy room"
-                        onClick={() => { $("destroyRoomConfirmationModal").modal("show") }}>
-                        <i className="far fa-trash-alt mx-1 " style={{ pointerEvents: "none" }}></i>部屋削除
-                    </button> :
-                    <button className="btn btn-outline-info btn-lg" type="button"
-                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="Destroy room"
-                        onClick={() => { HIModal("部屋削除は部屋作成者にしかできません") }}>
-                        <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />部屋削除
+                <div className="input-group d-flex justify-content-center align-items-center my-1">
+
+                    <button className="btn btn-outline-success btn-lg" type="button"
+                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="reload"
+                        onClick={() => { fetchChat() }}>
+                        <i className="fa-solid fa-rotate-right mx-1" />
                     </button>
-                }
-                <button className="btn btn-outline-dark btn-lg" type="button"
-                    data-bs-toggle="tooltip" data-bs-placement="bottom" title="Exit room"
-                    onClick={() => { searchRoom() }}>
-                    <i className="fa-solid fa-right-from-bracket mx-1"></i>
-                    部屋を出る
-                </button>
-            </div>)
+                    <button className="btn btn-outline-dark btn-lg" type="button"
+                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="You are not own this room"
+                        disabled>
+                        <i className="far fa-user mx-1"></i>{room["user"]}
+                    </button>
+                    <input className="flex-fill form-control form-control-lg" type="text" value={room["room"]}
+                        disabled>
+                    </input >
+                    {room["userid"] == userId ?
+                        <button className="btn btn-outline-danger btn-lg" type="button"
+                            onClick={() => { $("#destroyRoomConfirmationModal").modal('show') }}>
+                            <i className="far fa-trash-alt mx-1 " style={{ pointerEvents: "none" }}></i>部屋削除
+                        </button> :
+                        <button className="btn btn-outline-info btn-lg" type="button"
+                            onClick={() => { HIModal("部屋削除は部屋作成者にしかできません") }}>
+                            <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />部屋削除
+                        </button>
+                    }
+                    <button className="btn btn-outline-dark btn-lg" type="button"
+                        onClick={() => { searchRoom() }}>
+                        <i className="fa-solid fa-right-from-bracket mx-1"></i>
+                        部屋を出る
+                    </button>
+                </div></div>)
     }
     const chatTable = () => {
         // if contents dont have enough element for example contents hold chat_data ,table need break
@@ -650,7 +649,7 @@ export const AppMain = () => {
             if (contents[i]["mode"] == "text") {
                 _tmpData.push(
                     <div className="col-12 border d-flex"
-                        style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.15))" }}>
+                        style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }}>
                         <h5 className="me-auto">
                             <i className="far fa-user mx-1"></i>{contents[i]["user"]}
                         </h5>
@@ -676,7 +675,7 @@ export const AppMain = () => {
             if (contents[i]["mode"] == "attachment") {
                 _tmpData.push(
                     <div className="col-12 border d-flex"
-                        style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.15))" }}>
+                        style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,120,0.2))" }}>
                         <h5 className="me-auto">
                             <i className="far fa-user mx-1"></i>{contents[i]["user"]}
                         </h5>

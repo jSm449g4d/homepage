@@ -24,33 +24,12 @@ export const accountSlice = createSlice({
       if ("user" in action.payload) state.user = action.payload.user
       if ("id" in action.payload) state.id = action.payload.id
       if ("mail" in action.payload) state.mail = action.payload.mail
-      state.roomKey = ""
+      if ("roomKey" in action.payload) state.roomKey = action.payload.roomKey
     },
     accountSetRoomKey: (state, action: { payload: string }) => {
       state.roomKey = action.payload
     },
   },
 })
-/*
-export const mainappSlice = createSlice({
-  name: 'mainapp',
-  initialState: {
-    appMain: createRoot(document.getElementById("appMain")),
-    titlelogo: createRoot(document.getElementById("titlelogo")),
-  },
-  reducers: {
-    mainappRender: (state, action: { payload: string }) => {
-      import("../application/" + action.payload).then((module) => {
-        state.appMain.unmount()
-        //state.appMain = createRoot(document.getElementById("appMain"))
-        state.appMain.render(<Provider store={store}><module.AppMain /></Provider>)
-        state.titlelogo.unmount()
-        //state.titlelogo = createRoot(document.getElementById("titlelogo"))
-        state.titlelogo.render(<module.titleLogo />)
-      })
-    },
-  },
-})*/
 
-export const { accountInit, accountSetState, accountSetRoomKey } = accountSlice.actions
-// export const { mainappRender } = mainappSlice.actions
+export const { accountInit, accountSetState } = accountSlice.actions
