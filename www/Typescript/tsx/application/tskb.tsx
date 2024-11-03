@@ -294,6 +294,33 @@ export const AppMain = () => {
                 CIModal("通信エラー")
                 console.error(error.message)
             });
+
+        // tskbへのアクセス
+        const formDataII = new FormData();
+        formDataII.append("info", stringForSend())
+        const requestII = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(requestII)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed":
+                        CIModal("tskbへアクセス成功")
+                        break;
+                    default: {
+                        CIModal("その他のエラー")
+                        break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
     }
     const createRoom = (_roomKey = roomKey) => {
         exitRoom()
@@ -796,6 +823,6 @@ export const AppMain = () => {
 // titleLogo
 export const titleLogo = () => {
     return (<div id="titlelogo" style={{ fontFamily: "Impact", color: "black" }}>
-        <i className="far fa-comments mx-1" style={{ pointerEvents: "none" }}></i>チャットアプリ
+        <i className="fa-solid fa-book mx-1" style={{ pointerEvents: "none" }}></i>栄養計算
     </div>)
 }

@@ -8,6 +8,8 @@ import sys
 import os
 import flask
 
+FUNC_NAME = "login"
+
 
 # Processing when accessing directly with GET
 def get_response(_statusDict={"STATUS": "VALUE"}):
@@ -19,20 +21,19 @@ def get_response(_statusDict={"STATUS": "VALUE"}):
         os.path.join(os.path.dirname(__file__), "main.html"), "r", encoding="utf-8"
     ) as f:
         html = f.read()
-        html = html.replace("{{FUNC_NAME}}", "login")
+        html = html.replace("{{FUNC_NAME}}", FUNC_NAME)
         html = html.replace("{{STATUS_TABLE}}", _statusLines)
         return flask.render_template_string(html)
     return "404: nof found → main.html", 404
 
 
-# generate ./tmp
-tmp_dir = "./tmp"
+# load setting
+tmp_dir = "./tmp/" + FUNC_NAME
 os.makedirs(tmp_dir, exist_ok=True)
 key_dir = "./keys/keys.json"
-# load setting
-keys = {}
-db_dir = "./tmp/db"
+db_dir = "./tmp/sqlite.db"
 pyJWT_pass = "test"
+keys = {}
 if os.path.exists(key_dir):
     with open(key_dir) as f:
         keys = json.load(f)
@@ -44,8 +45,9 @@ if os.path.exists(key_dir):
 with closing(sqlite3.connect(db_dir)) as conn:
     cur = conn.cursor()
     cur.execute(
-        "CREATE TABLE IF NOT EXISTS account(id INTEGER PRIMARY KEY AUTOINCREMENT, user STRING UNIQUE NOT NULL"
-        ",passhash STRING NOT NULL,mail STRING NOT NULL,timestamp INTEGER NOT NULL)"
+        "CREATE TABLE IF NOT EXISTS account(id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "user TEXT UNIQUE NOT NULL,passhash TEXT NOT NULL,"
+        "mail TEXT DEFAULT '',timestamp INTEGER NOT NULL)"
     )
     conn.commit()
 

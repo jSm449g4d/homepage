@@ -8,7 +8,7 @@ import sys
 from contextlib import closing
 import time
 
-FUNC_NAME = "tptef"
+FUNC_NAME = "tskb"
 
 
 # Processing when accessing directly with GET
@@ -53,6 +53,31 @@ with closing(sqlite3.connect(db_dir)) as conn:
         "CREATE TABLE IF NOT EXISTS tptef_room(id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "user TEXT NOT NULL,userid INTEGER NOT NULL,room TEXT UNIQUE NOT NULL,"
         "passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL)"
+    )
+    cur.execute(
+        "CREATE TABLE IF NOT EXISTS tskb_combination(id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "name TEXT NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
+        "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
+        "contents TEXT NOT NULL)"
+    )
+    cur.execute(
+        "CREATE TABLE IF NOT EXISTS tskb_material(id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "name TEXT NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
+        "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
+        "unit TEXT DEFAULT 'g',cost REAL DEFAULT 0,"
+        "carbo REAL DEFAULT 0,fiber_soluble REAL DEFAULT 0,fiber_insoluble REAL DEFAULT 0,"
+        "protein REAL DEFAULT 0,saturated_fat REAL DEFAULT 0,monounsaturated_fat REAL DEFAULT 0,"
+        "polyunsaturated_fat REAL DEFAULT 0,n3 REAL DEFAULT 0,DHA_EPA REAL DEFAULT 0,"
+        "n6 REAL DEFAULT 0,ca REAL DEFAULT 0,cr REAL DEFAULT 0,"
+        "cu REAL DEFAULT 0,i REAL DEFAULT 0,fe REAL DEFAULT 0,"
+        "mg REAL DEFAULT 0,mn REAL DEFAULT 0,mo REAL DEFAULT 0,"
+        "p REAL DEFAULT 0,k REAL DEFAULT 0,se REAL DEFAULT 0,"
+        "na REAL DEFAULT 0,zn REAL DEFAULT 0,va REAL DEFAULT 0,"
+        "vb1 REAL DEFAULT 0,vb2 REAL DEFAULT 0,vb3 REAL DEFAULT 0,"
+        "vb5 REAL DEFAULT 0,vb6 REAL DEFAULT 0,vb7 REAL DEFAULT 0,"
+        "vb9 REAL DEFAULT 0,vb12 REAL DEFAULT 0,vc REAL DEFAULT 0,"
+        "vd REAL DEFAULT 0,ve REAL DEFAULT 0,vk REAL DEFAULT 0,"
+        "colin REAL DEFAULT 0,kcal REAL DEFAULT 0)"
     )
     conn.commit()
 

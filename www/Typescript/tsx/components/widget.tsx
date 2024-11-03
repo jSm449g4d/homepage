@@ -381,16 +381,20 @@ export const AppWidgetHead = () => {
                         <ul className="dropdown-menu ">
                             <li><a className="dropdown-item btn-col" style={{ fontSize: "1.5em" }}
                                 onClick={() => { _switchApp("homepage") }}>
-                                <i className="fas fa-home mx-1"></i>ホームページ
+                                <i className="fas fa-home mx-1" style={{ pointerEvents: "none" }}></i>ホームページ
                             </a></li>
                             <li><a className="dropdown-item btn-col" style={{ fontSize: "1.5em" }}
                                 onClick={() => { _switchApp("tptef") }}>
-                                <i className="far fa-comments mx-1"></i>チャット
+                                <i className="far fa-comments mx-1" style={{ pointerEvents: "none" }}></i>チャット
+                            </a></li>
+                            <li><a className="dropdown-item btn-col" style={{ fontSize: "1.5em" }}
+                                onClick={() => { _switchApp("tskb") }}>
+                                <i className="fa-solid fa-book mx-1" style={{ pointerEvents: "none" }}></i>栄養計算※工事中
                             </a></li>
                         </ul>
                         <button className="btn btn-primary dropdown-toggle"
                             type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i className="fa-solid fa-bars mx-1" />アプリ一覧
+                            <i className="fa-solid fa-book mx-1" style={{ pointerEvents: "none" }} />アプリ一覧
                         </button>
                     </div>
                 </div>
