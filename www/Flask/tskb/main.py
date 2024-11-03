@@ -54,6 +54,8 @@ with closing(sqlite3.connect(db_dir)) as conn:
         "user TEXT NOT NULL,userid INTEGER NOT NULL,room TEXT UNIQUE NOT NULL,"
         "passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL)"
     )
+
+    "(id,name,tag,description,userid,user,passhash,timestamp,contents)"
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_combination(id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "name TEXT NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
@@ -290,16 +292,25 @@ def show(request):
 
         if "search" in request.form:
             _dataDict.update(json.loads(request.form["search"]))
+            _userid = -1
+            if _dataDict["token"] != "":
+                token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
+                _userid = token["id"]
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
-                cur.execute("SELECT * FROM tptef_room")
-                _rooms = [
+                cur.execute(
+                    "SELECT * FROM tskb_combination where passhash != '0' OR "
+                    "userid = ?;",
+                    [_userid],
+                )
+                _tskb_combinations = [
                     {key: value for key, value in dict(result).items()}
                     for result in cur.fetchall()
                 ]
                 return json.dumps(
-                    {"message": "processed", "rooms": _rooms}, ensure_ascii=False
+                    {"message": "processed", "combinations": _tskb_combinations},
+                    ensure_ascii=False,
                 )
             return json.dumps({"message": "rejected"})
 
@@ -313,6 +324,8 @@ def show(request):
                 _roompasshash = hashlib.sha256(
                     _dataDict["roomKey"].encode()
                 ).hexdigest()
+            if _dataDict["privateFlag"] == True:
+                _roompasshash = "0"
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -356,31 +369,17 @@ def show(request):
                 cur = conn.cursor()
                 # check duplication
                 cur.execute(
-                    "SELECT * FROM tptef_room WHERE id = ?;", [_dataDict["roomid"]]
+                    "SELECT * FROM tskb_combination WHERE id = ?;",
+                    [_dataDict["combination_id"]],
                 )
-                _room = cur.fetchone()
-                if _room == None:
+                _combination = cur.fetchone()
+                if _combination == None:
                     return json.dumps({"message": "notExist"}, ensure_ascii=False)
-                if _room["userid"] != token["id"]:
+                if _combination["userid"] != token["id"]:
                     return json.dumps({"message": "youerntOwner"}, ensure_ascii=False)
                 cur.execute(
-                    "DELETE FROM tptef_room WHERE userid = ? AND id = ? ;",
-                    [token["id"], _dataDict["roomid"]],
-                )
-                cur.execute(
-                    "SELECT * FROM tptef_chat WHERE roomid = ? AND mode=? ;",
-                    [_room["id"], "attachment"],
-                )
-                _chats = cur.fetchall()
-                for _chat in _chats:
-                    _remove_file = os.path.normpath(
-                        os.path.join(tmp_dir, str(_chat["id"]))
-                    )
-                    if os.path.exists(_remove_file):
-                        os.remove(_remove_file)
-                cur.execute(
-                    "DELETE FROM tptef_chat WHERE roomid = ? ;",
-                    [_room["id"]],
+                    "DELETE FROM tskb_combination WHERE userid = ? AND id = ? ;",
+                    [token["id"], _dataDict["combination_id"]],
                 )
                 conn.commit()
                 return json.dumps({"message": "processed"}, ensure_ascii=False)

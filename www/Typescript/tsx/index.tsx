@@ -4,6 +4,7 @@ import { Provider } from "react-redux"
 import { Query2Dict } from "./components/util";
 import { store } from "./components/store";
 import { AppWidgetHead, AppWidgetFoot } from "./components/widget";
+import { IModalsRender } from "./components/imodals";
 
 require.context('./application/', true, /\.ts(x?)$/)
 // arias
@@ -18,6 +19,7 @@ import("./application/" + _application).then(async (module) => {
                 <AppWidgetHead />
                 <div id="appMain" />
                 <AppWidgetFoot />
+                <IModalsRender />
             </Provider>
         </React.StrictMode>);
 

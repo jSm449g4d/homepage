@@ -36,12 +36,8 @@ export const AppMain = () => {
         return () => clearInterval(_intervalId);
     }, []);
     // related to fetchAPI
-    const roadModalAndDelay = (_callback = () => { }, _delay = 100) => {
-        if (200 < _delay) $('#roadModal').modal('show');
-        setTimeout(() => {
-            _callback();
-            $('#roadModal').modal('hide');
-        }, _delay);
+    const roadDelay = (_callback = () => { }, _delay = 100) => {
+        setTimeout(() => { _callback(); }, _delay);
     }
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
@@ -128,7 +124,7 @@ export const AppMain = () => {
                 .then(response => response.json())
                 .then(resJ => {
                     switch (resJ["message"]) {
-                        case "processed": roadModalAndDelay(fetchChat); break;
+                        case "processed": roadDelay(fetchChat); break;
                         case "wrongPass": {
                             CIModal("部屋のパスワードが違います")
                             searchRoom(); break;
@@ -174,7 +170,7 @@ export const AppMain = () => {
             .then(response => response.json())
             .then(resJ => {
                 switch (resJ["message"]) {
-                    case "processed": roadModalAndDelay(fetchChat); break;
+                    case "processed": roadDelay(fetchChat); break;
                     case "wrongPass": {
                         CIModal("部屋のパスワードが違います")
                         searchRoom(); break;
@@ -213,7 +209,7 @@ export const AppMain = () => {
             .then(response => response.json())
             .then(resJ => {
                 switch (resJ["message"]) {
-                    case "processed": roadModalAndDelay(fetchChat); break;
+                    case "processed": roadDelay(fetchChat); break;
                     case "wrongPass": {
                         CIModal("部屋のパスワードが違います")
                         searchRoom(); break;
@@ -257,7 +253,7 @@ export const AppMain = () => {
                 a.setAttribute("style", "display: none");
                 a.setAttribute("download", _fileName);
                 a.click();
-                roadModalAndDelay(fetchChat)
+                roadDelay(fetchChat)
             })
             .catch(error => {
                 CIModal("通信エラー")
@@ -312,7 +308,7 @@ export const AppMain = () => {
             .then(response => response.json())
             .then(resJ => {
                 switch (resJ["message"]) {
-                    case "processed": roadModalAndDelay(searchRoom); break;
+                    case "processed": roadDelay(searchRoom); break;
                     case "alreadyExisted": {
                         CIModal("既にその名前の部屋が存在します")
                         searchRoom(); break;
@@ -347,7 +343,7 @@ export const AppMain = () => {
             .then(response => response.json())
             .then(resJ => {
                 switch (resJ["message"]) {
-                    case "processed": roadModalAndDelay(searchRoom); break;
+                    case "processed": roadDelay(searchRoom); break;
                     case "notExist": {
                         CIModal("部屋が存在しません")
                         searchRoom(); break;
@@ -381,17 +377,17 @@ export const AppMain = () => {
                             <div className="modal-content">
                                 <div className="modal-header">
                                     <h1 className="modal-title fs-5" id="exampleModalLabel">
-                                        <i className="fa-solid fa-hammer mx-1" />Create Room
+                                        <i className="fa-solid fa-hammer mx-1" />部屋作成
                                     </h1>
                                 </div>
                                 <div className="modal-body row">
                                     <div className="input-group m-1 col-12">
-                                        <span className="input-group-text" id="room-addon1">Room</span>
-                                        <input type="text" className="form-control" placeholder="Username" aria-label="user"
+                                        <span className="input-group-text">部屋名</span>
+                                        <input type="text" className="form-control" placeholder="Roomname" aria-label="user"
                                             value={tmpRoom} onChange={(evt) => { setTmpRoom(evt.target.value) }} />
                                     </div>
                                     <div className="input-group m-1 col-12">
-                                        <span className="input-group-text" id="room-addon2">Pass</span>
+                                        <span className="input-group-text">Pass</span>
                                         <input type="text" className="form-control" placeholder="Password" aria-label="pass"
                                             value={tmpRoomKey} onChange={(evt) => { setTmpRoomKey(evt.target.value) }} />
                                     </div>
@@ -402,18 +398,18 @@ export const AppMain = () => {
                                         {tmpRoomKey == "" ?
                                             <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
                                                 onClick={() => createRoom()}>
-                                                <i className="fa-solid fa-hammer mx-1" />Create
+                                                <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
                                             </button> :
                                             <button type="button" className="btn btn-outline-warning" data-bs-dismiss="modal"
                                                 onClick={() => {
                                                     dispatch(accountSetState({ "roomKey": tmpRoomKey }))
                                                     createRoom()
                                                 }}>
-                                                <i className="fa-solid fa-key mx-1" />Create
+                                                <i className="fa-solid fa-key mx-1" />作成
                                             </button>
                                         }</div> :
                                         <button type="button" className="btn btn-outline-primary" disabled>
-                                            <i className="fa-solid fa-hammer mx-1" />Create
+                                            <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
                                         </button>
                                     }
                                 </div>
@@ -424,28 +420,27 @@ export const AppMain = () => {
             )
         }
         return (
-            <div className="input-group d-flex justify-content-center align-items-center my-1">
-                {roomCreateModal()}
-                <button className="btn btn-outline-success btn-lg" type="button"
-                    data-bs-toggle="tooltip" data-bs-placement="bottom" title="reload"
-                    onClick={() => { searchRoom() }}>
-                    <i className="fa-solid fa-rotate-right mx-1" />
-                </button>
-                <input className="flex-fill form-control form-control-lg" type="text" placeholder="部屋名検索" value={tmpRoom}
-                    onChange={(evt: any) => { setTmpRoom(evt.target.value) }} />
-                {token == "" ?
-                    <button className="btn btn-outline-info btn-lg" type="button"
-                        data-bs-toggle="tooltip" data-bs-placement="bottom" bs-title="Need login"
-                        onClick={() => { HIModal("部屋作成にはログインが必要です") }}>
-                        <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
-                        部屋作成
-                    </button> :
-                    <button className="btn btn-outline-primary btn-lg" type="button"
-                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="Create room"
-                        onClick={() => { $('#roomCreateModal').modal('show'); }}>
-                        <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
-                        部屋作成
-                    </button>}
+            <div>{roomCreateModal()}
+                <div className="input-group d-flex justify-content-center align-items-center my-1">
+
+                    <button className="btn btn-outline-success btn-lg" type="button"
+                        onClick={() => { searchRoom() }}>
+                        <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
+                    </button>
+                    <input className="flex-fill form-control form-control-lg" type="text" placeholder="部屋名検索" value={tmpRoom}
+                        onChange={(evt: any) => { setTmpRoom(evt.target.value) }} />
+                    {token == "" ?
+                        <button className="btn btn-outline-info btn-lg" type="button"
+                            onClick={() => { HIModal("部屋作成にはログインが必要です") }}>
+                            <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
+                            部屋作成
+                        </button> :
+                        <button className="btn btn-outline-primary btn-lg" type="button"
+                            onClick={() => { setTmpRoom(""); $('#roomCreateModal').modal('show'); }}>
+                            <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
+                            部屋作成
+                        </button>}
+                </div>
             </div>)
     }
     const roomTable = () => {
@@ -456,7 +451,7 @@ export const AppMain = () => {
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h1 className="modal-title fs-5">
-                                    <i className="fa-solid fa-lock mx-1" />Need Password
+                                    <i className="fa-solid fa-lock mx-1" />パスワードが必要
                                 </h1>
                             </div>
                             <div className="modal-body row">
@@ -479,10 +474,10 @@ export const AppMain = () => {
                                                 dispatch(accountSetState({ roomKey: tmpRoomKey }))
                                                 fetchChat(Number(tmpTargetRoom), tmpRoomKey)
                                             }}>
-                                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />Enter
+                                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />入室
                                     </button> :
                                     <button type="button" className="btn btn-outline-primary" disabled>
-                                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />Enter
+                                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />入室
                                     </button>
                                 }
                             </div>
@@ -499,14 +494,14 @@ export const AppMain = () => {
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h4 className="modal-title">
-                                    <i className="fa-solid fa-circle-info mx-1" />Are you sure Destory Room?
+                                    <i className="fa-solid fa-circle-info mx-1" />部屋を削除しますか?
                                 </h4>
                             </div>
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
                                     onClick={() => { destroyRoom(Number(tmpTargetRoom)) }}>
-                                    <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />Destroy
+                                    <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />削除
                                 </button>
                             </div>
                         </div>
@@ -515,16 +510,17 @@ export const AppMain = () => {
             )
         }
         const _tmpRecord = [];
-        // if contents dont have enough element for example contents hold chat_data ,table need break
         if (0 < contents.length)
             if (!compareDictKeys(contents[0], ["id", "user", "userid", "room", "timestamp", "passhash"]))
                 return (<div className="row m-1">loading</div>)
         for (var i = 0; i < contents.length; i++) {
             if (contents[i]["room"].indexOf(tmpRoom) == -1) continue
             const _tmpData = [];
+            var _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }
+            if (contents[i]["passhash"] != "") _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.2))" }
             _tmpData.push(
                 <div className="col-12 border d-flex"
-                    style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }}>
+                    style={_style}>
                     {roomInterModal()}
                     {roomTableDestroyRoomConfirmationModal()}
                     <h5 className="me-auto">
@@ -533,14 +529,14 @@ export const AppMain = () => {
                     {contents[i]["passhash"] == "" ?
                         <button className="btn btn-outline-primary rounded-pill"
                             onClick={(evt: any) => { fetchChat(evt.target.value) }} value={contents[i]["id"]}>
-                            <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>Enter
+                            <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>入室
                         </button> :
                         <button className="btn btn-outline-dark rounded-pill"
                             onClick={(evt: any) => {
                                 setTmpTargetRoom(evt.target.value)
                                 $('#roomInterModal').modal('show')
                             }} value={contents[i]["id"]}>
-                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>Enter
+                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>入室
                         </button>
                     }
                     {contents[i]["userid"] == userId ?
@@ -550,20 +546,20 @@ export const AppMain = () => {
                                 $('#roomTableDestroyRoomConfirmationModal').modal('show');
 
                             }} value={contents[i]["id"]}>
-                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>Delete
+                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>削除
                         </button> : <div></div>
                     }
                 </div>)
-            _tmpData.push(
-                <div className="col-12 col-md-2 p-1 border"><div className="text-center">
-                    {Unixtime2String(Number(contents[i]["timestamp"]))}
-                </div></div>)
             _tmpData.push(
                 <div className="col-12 col-md-10 p-1 d-flex justify-content-center align-items-center border">
                     <h3>
                         {contents[i]["room"]}
                     </h3>
                 </div>)
+            _tmpData.push(
+                <div className="col-12 col-md-2 p-1 border"><div className="text-center">
+                    {Unixtime2String(Number(contents[i]["timestamp"]))}
+                </div></div>)
             _tmpRecord.push(
                 <div className="col-12 col-md-6" style={{
                     border: "1px inset silver", borderRadius: "5px", marginBottom: "3px", boxShadow: "2px 2px 1px rgba(60,60,60,0.2)"
@@ -601,7 +597,6 @@ export const AppMain = () => {
             <div>
                 {destroyRoomConfirmationModal()}
                 <div className="input-group d-flex justify-content-center align-items-center my-1">
-
                     <button className="btn btn-outline-success btn-lg" type="button"
                         data-bs-toggle="tooltip" data-bs-placement="bottom" title="reload"
                         onClick={() => { fetchChat() }}>
@@ -670,7 +665,7 @@ export const AppMain = () => {
             if (contents[i]["mode"] == "attachment") {
                 _tmpData.push(
                     <div className="col-12 border d-flex"
-                        style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,120,0.2))" }}>
+                        style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,150,0.2))" }}>
                         <h5 className="me-auto">
                             <i className="far fa-user mx-1"></i>{contents[i]["user"]}
                         </h5>
@@ -758,44 +753,26 @@ export const AppMain = () => {
         )
     }
     // applicationRender
-    const roadModalRender = () => {
-        return (
-            <div className="modal opacity-25" id="roadModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                <div className="modal-dialog modal-dialog-centered">
-                    <div className="modal-content d-flex justify-content-center align-items-center opacity-100">
-                        <div className="modal-header">
-                            <h5 className="modal-title">通信中</h5>
-                        </div>
-                        <div className="modal-body">
-                            <i className="spinner-border text-success mx-1" role="status" />通信中
-                        </div>
-                    </div>
-                </div>
-            </div>)
-    }
     return (
         <div>
-            {roadModalRender()}
-            <div className="">
-                {room["room"] == "" ?
-                    <div className="m-1">
-                        {roomTopFormRender()}
-                        {roomTable()}
-                    </div> :
-                    <div className="m-1">
-                        {chatTopFormRender()}
-                        {chatTable()}
-                        {inputConsole()}
-                    </div>
-                }
-            </div>
+            {room["room"] == "" ?
+                <div className="m-1">
+                    {roomTopFormRender()}
+                    {roomTable()}
+                </div> :
+                <div className="m-1">
+                    {chatTopFormRender()}
+                    {chatTable()}
+                    {inputConsole()}
+                </div>
+            }
         </div>
     )
 };
 
 // titleLogo
 export const titleLogo = () => {
-    return (<div id="titlelogo" style={{ fontFamily: "Impact", color: "black" }}>
+    return (<div id="rotxin-2" style={{ fontFamily: "Impact", color: "black" }}>
         <i className="far fa-comments mx-1" style={{ pointerEvents: "none" }}></i>チャットアプリ
     </div>)
 }

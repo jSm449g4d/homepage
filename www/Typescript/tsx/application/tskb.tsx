@@ -5,6 +5,7 @@ import { HIModal, CIModal } from "../components/imodals";
 import { accountSetState } from '../components/slice'
 import { useAppSelector, useAppDispatch } from '../components/store'
 import "../stylecheets/style.sass";
+import { string } from 'prop-types';
 
 export const AppMain = () => {
     const user = useAppSelector((state) => state.account.user)
@@ -16,18 +17,23 @@ export const AppMain = () => {
     const fileSizeMax = 1024 * 1024 * 2
 
     const [room, setRoom] = useState({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" })
-    const [tmpRoom, setTmpRoom] = useState("")
+    const [combination, setCombination] = useState({
+        "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
+        "timestamp": 0, "passhash": "", "contents": ""
+    })
+    const [tmpCombination, setTmpCombination] = useState("")
     const [tmpRoomKey, setTmpRoomKey] = useState("")
     const [tmpText, setTmpText] = useState("")
     const [contents, setContents] = useState([])
     const [tmpAttachment, setTmpAttachment] = useState(null)
-    const [tmpTargetRoom, setTmpTargetRoom] = useState("")
+    const [tmpTargetCombination, setTmpTargetCombination] = useState("")
+    const [tmpPrivateFlag, setTmpPrivateFlag] = useState(false)
 
     useEffect(() => {
-        if (room["room"] == "") searchRoom()
+        if (combination["name"] == "") searchCombination()
         else fetchChat()
     }, [token])
-    useEffect(() => { searchRoom() }, [])
+    useEffect(() => { searchCombination() }, [])
 
     // jpclock (decoration)
     const [jpclockNow, setJpclockNow] = useState("")
@@ -36,29 +42,25 @@ export const AppMain = () => {
         return () => clearInterval(_intervalId);
     }, []);
     // related to fetchAPI
-    const roadModalAndDelay = (_callback = () => { }, _delay = 100) => {
-        if (200 < _delay) $('#roadModal').modal('show');
-        setTimeout(() => {
-            _callback();
-            $('#roadModal').modal('hide');
-        }, _delay);
+    const roadDelay = (_callback = () => { }, _delay = 100) => {
+        setTimeout(() => { _callback(); }, _delay);
     }
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
-                "token": token, "text": tmpText, "user": user, roomid: room["id"], roomKey: roomKey
+                "token": token, "text": tmpText, "user": user, roomid: room["id"], roomKey: roomKey,
             }, _additionalDict)
         return (JSON.stringify(_sendDict))
     }
     const enterRoom = (_setContentsInitialze = true) => {
         if (_setContentsInitialze) setContents([])
-        setTmpRoom(""); setTmpText(""); setTmpRoomKey(""); setTmpAttachment(null);
+        setTmpCombination(""); setTmpText(""); setTmpRoomKey(""); setTmpAttachment(null);
         $('#inputConsoleAttachment').val(null)
     }
     const exitRoom = (_setContentsInitialze = true) => {
         if (_setContentsInitialze) setContents([])
         setRoom({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" });
-        setTmpRoom(""); setTmpText(""); setTmpRoomKey(""); setTmpAttachment(null);
+        setTmpCombination(""); setTmpText(""); setTmpRoomKey(""); setTmpAttachment(null);
     }
     const compareDictKeys = (_targetDict: {}, _keys: any[]) => {
         if (Object.keys(_targetDict).sort().join() == _keys.sort().toString())
@@ -128,7 +130,7 @@ export const AppMain = () => {
                 .then(response => response.json())
                 .then(resJ => {
                     switch (resJ["message"]) {
-                        case "processed": roadModalAndDelay(fetchChat); break;
+                        case "processed": roadDelay(fetchChat); break;
                         case "wrongPass": {
                             CIModal("部屋のパスワードが違います")
                             searchRoom(); break;
@@ -174,7 +176,7 @@ export const AppMain = () => {
             .then(response => response.json())
             .then(resJ => {
                 switch (resJ["message"]) {
-                    case "processed": roadModalAndDelay(fetchChat); break;
+                    case "processed": roadDelay(fetchChat); break;
                     case "wrongPass": {
                         CIModal("部屋のパスワードが違います")
                         searchRoom(); break;
@@ -213,7 +215,7 @@ export const AppMain = () => {
             .then(response => response.json())
             .then(resJ => {
                 switch (resJ["message"]) {
-                    case "processed": roadModalAndDelay(fetchChat); break;
+                    case "processed": roadDelay(fetchChat); break;
                     case "wrongPass": {
                         CIModal("部屋のパスワードが違います")
                         searchRoom(); break;
@@ -257,7 +259,7 @@ export const AppMain = () => {
                 a.setAttribute("style", "display: none");
                 a.setAttribute("download", _fileName);
                 a.click();
-                roadModalAndDelay(fetchChat)
+                roadDelay(fetchChat)
             })
             .catch(error => {
                 CIModal("通信エラー")
@@ -265,6 +267,8 @@ export const AppMain = () => {
             });
     }
     const searchRoom = () => {
+    }
+    const searchCombination = () => {
         const sortSetContentsRev = (_contents: any = []) => {
             const _sortContentsRev = (a: any, b: any) => { return b["timestamp"] - a["timestamp"] }
             setContents(_contents.sort(_sortContentsRev))
@@ -274,7 +278,7 @@ export const AppMain = () => {
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("search", JSON.stringify({}))
-        const request = new Request("/tptef/main.py", {
+        const request = new Request("/tskb/main.py", {
             method: 'POST',
             headers: headers,
             body: formData,
@@ -284,7 +288,7 @@ export const AppMain = () => {
             .then(response => response.json())
             .then(resJ => {
                 switch (resJ["message"]) {
-                    case "processed": sortSetContentsRev(resJ["rooms"]); break;
+                    case "processed": sortSetContentsRev(resJ["combinations"]); break;
                     default: {
                         CIModal("その他のエラー")
                         break;
@@ -296,54 +300,14 @@ export const AppMain = () => {
                 console.error(error.message)
             });
     }
-    const createRoom = (_roomKey = roomKey) => {
-        exitRoom()
-        const headers = new Headers();
-        const formData = new FormData();
-        formData.append("info", stringForSend())
-        formData.append("create", JSON.stringify({ "room": tmpRoom, "roomKey": _roomKey }))
-        const request = new Request("/tptef/main.py", {
-            method: 'POST',
-            headers: headers,
-            body: formData,
-            signal: AbortSignal.timeout(xhrTimeout)
-        });
-        fetch(request)
-            .then(response => response.json())
-            .then(resJ => {
-                switch (resJ["message"]) {
-                    case "processed": roadModalAndDelay(searchRoom); break;
-                    case "alreadyExisted": {
-                        CIModal("既にその名前の部屋が存在します")
-                        searchRoom(); break;
-                    }
-                    case "tokenNothing": {
-                        CIModal("JWTトークン未提出です")
-                        searchRoom(); break;
-                    }
-                    default: {
-                        CIModal("その他のエラー")
-                        searchRoom(); break;
-                    }
-                }
-            })
-            .catch(error => {
-                CIModal("通信エラー")
-                console.error(error.message)
-            });
-    }
     const createCombination = () => {
-        "CREATE TABLE IF NOT EXISTS tskb_combination(id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "name TEXT NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
-        "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
-        "contents TEXT NOT NULL)"
-        "(name,tag,description,userid,user,passhash,timestamp,contents)"
         exitRoom()
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("create", JSON.stringify({
-            "name": tmpRoom, "description": tmpText, "roomKey": tmpRoomKey,
+            "name": tmpCombination, "description": tmpText,
+            "roomKey": tmpRoomKey, "privateFlag": tmpPrivateFlag,
         }))
         const request = new Request("/tskb/main.py", {
             method: 'POST',
@@ -355,18 +319,18 @@ export const AppMain = () => {
             .then(response => response.json())
             .then(resJ => {
                 switch (resJ["message"]) {
-                    case "processed": roadModalAndDelay(searchRoom); break;
+                    case "processed": roadDelay(searchCombination); break;
                     case "alreadyExisted": {
                         CIModal("既存の名前")
-                        searchRoom(); break;
+                        searchCombination(); break;
                     }
                     case "tokenNothing": {
                         CIModal("JWTトークン未提出")
-                        searchRoom(); break;
+                        searchCombination(); break;
                     }
                     default: {
                         CIModal("その他のエラー")
-                        searchRoom(); break;
+                        searchCombination(); break;
                     }
                 }
             })
@@ -375,12 +339,12 @@ export const AppMain = () => {
                 console.error(error.message)
             });
     }
-    const destroyRoom = (_roomid = room["id"]) => {
+    const destroyCombination = (_id = combination["id"]) => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("destroy", JSON.stringify({ "roomid": _roomid }))
-        const request = new Request("/tptef/main.py", {
+        formData.append("destroy", JSON.stringify({ "combination_id": _id }))
+        const request = new Request("/tskb/main.py", {
             method: 'POST',
             headers: headers,
             body: formData,
@@ -390,22 +354,22 @@ export const AppMain = () => {
             .then(response => response.json())
             .then(resJ => {
                 switch (resJ["message"]) {
-                    case "processed": roadModalAndDelay(searchRoom); break;
+                    case "processed": roadDelay(searchCombination); break;
                     case "notExist": {
-                        CIModal("部屋が存在しません")
-                        searchRoom(); break;
+                        CIModal("レシピが存在しません")
+                        searchCombination(); break;
                     }
                     case "tokenNothing": {
                         CIModal("JWTトークン未提出です")
-                        searchRoom(); break;
+                        searchCombination(); break;
                     }
                     case "youerntOwner": {
-                        CIModal("部屋の所有権がありません")
-                        searchRoom(); break;
+                        CIModal("所有権がありません")
+                        searchCombination(); break;
                     }
                     default: {
                         CIModal("その他のエラー")
-                        searchRoom(); break;
+                        searchCombination(); break;
                     }
                 }
             })
@@ -415,37 +379,55 @@ export const AppMain = () => {
             });
     }
     // ConsoleRender
-    const roomTopFormRender = () => {
-        const roomCreateModal = () => {
+    const combinationTopFormRender = () => {
+        const combinationCreateModal = () => {
             return (
                 <div>
-                    <div className="modal fade" id="roomCreateModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div className="modal fade" id="combinationCreateModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
                         <div className="modal-dialog">
                             <div className="modal-content">
                                 <div className="modal-header">
                                     <h1 className="modal-title fs-5" id="exampleModalLabel">
-                                        <i className="fa-solid fa-hammer mx-1" />Create Room
+                                        <i className="fa-solid fa-hammer mx-1" />レシピ作成
                                     </h1>
                                 </div>
                                 <div className="modal-body row">
                                     <div className="input-group m-1 col-12">
-                                        <span className="input-group-text" id="room-addon1">Room</span>
+                                        <span className="input-group-text">レシピ名</span>
                                         <input type="text" className="form-control" placeholder="Username" aria-label="user"
-                                            value={tmpRoom} onChange={(evt) => { setTmpRoom(evt.target.value) }} />
+                                            value={tmpCombination} onChange={(evt) => { setTmpCombination(evt.target.value) }} />
+                                    </div>
+                                    <div className="form-check form-switch m-1">
+                                        <label className="form-check-label">非公開設定</label>
+                                        <input className="form-check-input" type="checkbox" role="switch" checked={tmpPrivateFlag}
+                                            style={{ transform: "rotate(90deg)" }}
+                                            onChange={(evt: any) => {
+                                                if (evt.target.checked == true) {
+                                                    setTmpPrivateFlag(true)
+                                                    $("#combinationCreateModalRoomKey").prop("disabled", true)
+                                                    setTmpRoomKey("")
+                                                }
+                                                else {
+                                                    setTmpPrivateFlag(false)
+                                                    $("#combinationCreateModalRoomKey").prop("disabled", false)
+                                                }
+                                            }}>
+                                        </input>
                                     </div>
                                     <div className="input-group m-1 col-12">
-                                        <span className="input-group-text" id="room-addon2">Pass</span>
+                                        <span className="input-group-text">Pass</span>
                                         <input type="text" className="form-control" placeholder="Password" aria-label="pass"
+                                            id="combinationCreateModalRoomKey"
                                             value={tmpRoomKey} onChange={(evt) => { setTmpRoomKey(evt.target.value) }} />
                                     </div>
                                 </div>
                                 <div className="modal-footer">
                                     <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    {tmpRoom != "" && token != "" ? <div>
+                                    {tmpCombination != "" && token != "" ? <div>
                                         {tmpRoomKey == "" ?
                                             <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
                                                 onClick={() => createCombination()}>
-                                                <i className="fa-solid fa-hammer mx-1" />Create
+                                                <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
                                             </button> :
                                             <button type="button" className="btn btn-outline-warning" data-bs-dismiss="modal"
                                                 onClick={() => {
@@ -453,11 +435,11 @@ export const AppMain = () => {
                                                     dispatch(accountSetState({ "roomKey": tmpRoomKey }))
                                                     createCombination()
                                                 }}>
-                                                <i className="fa-solid fa-key mx-1" />Create
+                                                <i className="fa-solid fa-key mx-1" style={{ pointerEvents: "none" }} />作成
                                             </button>
                                         }</div> :
                                         <button type="button" className="btn btn-outline-primary" disabled>
-                                            <i className="fa-solid fa-hammer mx-1" />Create
+                                            <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
                                         </button>
                                     }
                                 </div>
@@ -468,65 +450,68 @@ export const AppMain = () => {
             )
         }
         return (
-            <div className="input-group d-flex justify-content-center align-items-center my-1">
-                {roomCreateModal()}
-                <button className="btn btn-outline-success btn-lg" type="button"
-                    data-bs-toggle="tooltip" data-bs-placement="bottom" title="reload"
-                    onClick={() => { searchRoom() }}>
-                    <i className="fa-solid fa-rotate-right mx-1" />
-                </button>
-                <input className="flex-fill form-control form-control-lg" type="text" placeholder="部屋名検索" value={tmpRoom}
-                    onChange={(evt: any) => { setTmpRoom(evt.target.value) }} />
-                {token == "" ?
-                    <button className="btn btn-outline-info btn-lg" type="button"
-                        data-bs-toggle="tooltip" data-bs-placement="bottom" bs-title="Need login"
-                        onClick={() => { HIModal("部屋作成にはログインが必要です") }}>
-                        <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
-                        部屋作成
-                    </button> :
-                    <button className="btn btn-outline-primary btn-lg" type="button"
-                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="Create room"
-                        onClick={() => { $('#roomCreateModal').modal('show'); }}>
-                        <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
-                        部屋作成
-                    </button>}
+            <div>
+                {combinationCreateModal()}
+                <div className="input-group d-flex justify-content-center align-items-center my-1">
+
+                    <button className="btn btn-outline-success btn-lg" type="button"
+                        onClick={() => { searchCombination() }}>
+                        <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
+                    </button>
+                    <input className="flex-fill form-control form-control-lg" type="text" placeholder="部屋名検索"
+                        value={tmpCombination} onChange={(evt: any) => { setTmpCombination(evt.target.value) }} />
+                    {token == "" ?
+                        <button className="btn btn-outline-info btn-lg" type="button"
+                            onClick={() => { HIModal("レシピ作成にはログインが必要") }}>
+                            <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
+                            部屋作成
+                        </button> :
+                        <button className="btn btn-outline-primary btn-lg" type="button"
+                            onClick={() => {
+                                setTmpCombination("")
+                                $('#combinationCreateModal').modal('show');
+                            }}>
+                            <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
+                            部屋作成
+                        </button>}
+                </div>
             </div>)
     }
-    const roomTable = () => {
-        const roomInterModal = () => {
+    const combinationTable = () => {
+        const combinationInterModal = () => {
             return (
-                <div className="modal fade" id="roomInterModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal fade" id="combinationInterModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h1 className="modal-title fs-5">
-                                    <i className="fa-solid fa-lock mx-1" />Need Password
+                                    <i className="fa-solid fa-lock mx-1" />パスワードが必要
                                 </h1>
                             </div>
                             <div className="modal-body row">
                                 <div className="input-group m-1 col-12">
                                     <span className="input-group-text">Pass</span>
                                     <input type="text" className="form-control" placeholder="Password" aria-label="pass"
-                                        value={tmpText} onChange={(evt) => { setTmpText(evt.target.value) }} />
+                                        value={tmpRoomKey} onChange={(evt) => { setTmpRoomKey(evt.target.value) }} />
                                 </div>
                             </div>
                             <div className="modal-footer">
-                                <button type="button" value={-1} id="roomInterModalButton"
+                                <button type="button" value={-1} id="combinationInterModalButton"
                                     className="btn btn-secondary" data-bs-dismiss="modal">
                                     Close
                                 </button>
-                                {tmpText != "" ?
+                                {tmpRoomKey != "" ?
                                     <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
                                         onClick={
                                             () => {
                                                 // roomKey cannot be updated in time
-                                                dispatch(accountSetState({ roomKey: tmpText }))
-                                                fetchChat(Number(tmpTargetRoom), tmpText)
+                                                dispatch(accountSetState({ roomKey: tmpRoomKey }))
+                                                fetchChat(Number(tmpTargetCombination), tmpRoomKey)
                                             }}>
-                                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />Enter
+                                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />閲覧
                                     </button> :
                                     <button type="button" className="btn btn-outline-primary" disabled>
-                                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />Enter
+                                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />閲覧
                                     </button>
                                 }
                             </div>
@@ -535,22 +520,22 @@ export const AppMain = () => {
                 </div>
             )
         }
-        const roomTableDestroyRoomConfirmationModal = () => {
+        const combinationTableDestroycombinationConfirmationModal = () => {
             return (
-                <div className="modal fade" id="roomTableDestroyRoomConfirmationModal"
+                <div className="modal fade" id="combinationTableDestroycombinationConfirmationModal"
                     aria-labelledby="exampleModalLabel" aria-hidden="true">
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h4 className="modal-title">
-                                    <i className="fa-solid fa-circle-info mx-1" />Are you sure Destory Room?
+                                    <i className="fa-solid fa-circle-info mx-1" />レシピを破棄しますか?
                                 </h4>
                             </div>
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
-                                    onClick={() => { destroyRoom(Number(tmpTargetRoom)) }}>
-                                    <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />Destroy
+                                    onClick={() => { destroyCombination(Number(tmpTargetCombination)) }}>
+                                    <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />破棄
                                 </button>
                             </div>
                         </div>
@@ -559,55 +544,55 @@ export const AppMain = () => {
             )
         }
         const _tmpRecord = [];
-        // if contents dont have enough element for example contents hold chat_data ,table need break
         if (0 < contents.length)
-            if (!compareDictKeys(contents[0], ["id", "user", "userid", "room", "timestamp", "passhash"]))
+            if (!compareDictKeys(contents[0], ["id", "name", "tag", "description", "userid", "user", "passhash", "timestamp", "contents"]))
                 return (<div className="row m-1">loading</div>)
         for (var i = 0; i < contents.length; i++) {
-            if (contents[i]["room"].indexOf(tmpRoom) == -1) continue
+            if (contents[i]["name"].indexOf(tmpCombination) == -1) continue
             const _tmpData = [];
+            var _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }
+            if (contents[i]["passhash"] == "") { _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.2))" } }
+            if (contents[i]["passhash"] == "0") { _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,150,0.2))" } }
             _tmpData.push(
-                <div className="col-12 border d-flex"
-                    style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }}>
-                    {roomInterModal()}
-                    {roomTableDestroyRoomConfirmationModal()}
+                <div className="col-12 border d-flex" style={_style}>
+                    {combinationInterModal()}
+                    {combinationTableDestroycombinationConfirmationModal()}
                     <h5 className="me-auto">
-                        <i className="far fa-user mx-1"></i>{contents[i]["user"]}
+                        <i className="fa-solid fa-jar mx-1"></i>{contents[i]["name"]}
                     </h5>
                     {contents[i]["passhash"] == "" ?
                         <button className="btn btn-outline-primary rounded-pill"
                             onClick={(evt: any) => { fetchChat(evt.target.value) }} value={contents[i]["id"]}>
-                            <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>Enter
+                            <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>閲覧
                         </button> :
                         <button className="btn btn-outline-dark rounded-pill"
                             onClick={(evt: any) => {
-                                setTmpTargetRoom(evt.target.value)
-                                $('#roomInterModal').modal('show')
+                                setTmpTargetCombination(evt.target.value)
+                                $('#combinationInterModal').modal('show')
                             }} value={contents[i]["id"]}>
-                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>Enter
+                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>閲覧
                         </button>
                     }
                     {contents[i]["userid"] == userId ?
                         <button className="btn btn-outline-danger rounded-pill"
                             onClick={(evt: any) => {
-                                setTmpTargetRoom(evt.target.value)
-                                $('#roomTableDestroyRoomConfirmationModal').modal('show');
-
+                                setTmpTargetCombination(evt.target.value)
+                                $('#combinationTableDestroycombinationConfirmationModal').modal('show');
                             }} value={contents[i]["id"]}>
-                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>Delete
+                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>破棄
                         </button> : <div></div>
                     }
+                </div>)
+            _tmpData.push(
+                <div className="col-12 col-md-10 p-1 d-flex justify-content-center align-items-center border">
+                    <div>
+                        {contents[i]["description"]}
+                    </div>
                 </div>)
             _tmpData.push(
                 <div className="col-12 col-md-2 p-1 border"><div className="text-center">
                     {Unixtime2String(Number(contents[i]["timestamp"]))}
                 </div></div>)
-            _tmpData.push(
-                <div className="col-12 col-md-10 p-1 d-flex justify-content-center align-items-center border">
-                    <h3>
-                        {contents[i]["room"]}
-                    </h3>
-                </div>)
             _tmpRecord.push(
                 <div className="col-12 col-md-6" style={{
                     border: "1px inset silver", borderRadius: "5px", marginBottom: "3px", boxShadow: "2px 2px 1px rgba(60,60,60,0.2)"
@@ -632,7 +617,7 @@ export const AppMain = () => {
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
-                                    onClick={() => { destroyRoom() }}>
+                                    onClick={() => { destroyCombination() }}>
                                     <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />Destroy
                                 </button>
                             </div>
@@ -802,44 +787,28 @@ export const AppMain = () => {
         )
     }
     // applicationRender
-    const roadModalRender = () => {
-        return (
-            <div className="modal opacity-25" id="roadModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                <div className="modal-dialog modal-dialog-centered">
-                    <div className="modal-content d-flex justify-content-center align-items-center opacity-100">
-                        <div className="modal-header">
-                            <h5 className="modal-title">通信中</h5>
-                        </div>
-                        <div className="modal-body">
-                            <i className="spinner-border text-success mx-1" role="status" />通信中
-                        </div>
-                    </div>
-                </div>
-            </div>)
-    }
     return (
         <div>
-            {roadModalRender()}
-            <div className="">
-                {room["room"] == "" ?
-                    <div className="m-1">
-                        {roomTopFormRender()}
-                        {roomTable()}
-                    </div> :
-                    <div className="m-1">
+            {combination["name"] == "" ?
+                <div className="m-1">
+                    {combinationTopFormRender()}
+                    {combinationTable()}
+                </div> :
+                <div className="m-1">
+                    工事中
+                    {/** 
                         {chatTopFormRender()}
                         {chatTable()}
-                        {inputConsole()}
-                    </div>
-                }
-            </div>
+                        {inputConsole()}*/}
+                </div>
+            }
         </div>
     )
 };
 
 // titleLogo
 export const titleLogo = () => {
-    return (<div id="titlelogo" style={{ fontFamily: "Impact", color: "black" }}>
+    return (<div id="rotxin-2" style={{ fontFamily: "Impact", color: "black" }}>
         <i className="fa-solid fa-book mx-1" style={{ pointerEvents: "none" }}></i>栄養計算
     </div>)
 }
