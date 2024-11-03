@@ -4,18 +4,45 @@ import os
 import jwt
 import hashlib
 import flask
+import sys
 from contextlib import closing
 import time
 
 
-with open("keys/keys.json") as f:
-    keys = json.load(f)
-dbname = keys["db"]
-pyJWT_pass = keys["pyJWT_pass"]
-filedir = "tmp/tptef"
+# Processing when accessing directly with GET
+def get_response(_statusDict={"STATUS": "VALUE"}):
+    _statusLines: str = " <table border='1'>"
+    for key, value in _statusDict.items():
+        _statusLines += "<tr><th>" + key + "</th><th>" + value + "</th></tr>"
+    _statusLines += " </table>"
+    with open(
+        os.path.join(os.path.dirname(__file__), "main.html"), "r", encoding="utf-8"
+    ) as f:
+        html = f.read()
+        html = html.replace("{{FUNC_NAME}}", "tptef")
+        html = html.replace("{{STATUS_TABLE}}", _statusLines)
+        return flask.render_template_string(html)
+    return "404: nof found → main.html", 404
 
-os.makedirs(filedir, exist_ok=True)
-with closing(sqlite3.connect(dbname)) as conn:
+
+# generate ./tmp
+tmp_dir = "./tmp"
+os.makedirs(tmp_dir, exist_ok=True)
+key_dir = "./keys/keys.json"
+# load setting
+keys = {}
+db_dir = "./tmp/db"
+pyJWT_pass = "test"
+if os.path.exists(key_dir):
+    with open(key_dir) as f:
+        keys = json.load(f)
+        if "db" in keys:
+            db_dir = keys["db"]
+        if "pyJWT_pass" in keys:
+            pyJWT_pass = keys["pyJWT_pass"]
+
+# Application
+with closing(sqlite3.connect(db_dir)) as conn:
     cur = conn.cursor()
     cur.execute(
         "CREATE TABLE IF NOT EXISTS chat(id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -30,6 +57,9 @@ with closing(sqlite3.connect(dbname)) as conn:
 
 
 def show(request):
+
+    if request.method == "GET":
+        return get_response()
     if request.method == "POST":
         if "info" not in request.form:
             return json.dumps({"message": "notEnoughForm(info)"}, ensure_ascii=False)
@@ -42,7 +72,7 @@ def show(request):
                 _roompasshash = hashlib.sha256(
                     _dataDict["roomKey"].encode()
                 ).hexdigest()
-            with closing(sqlite3.connect(dbname)) as conn:
+            with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # duplication and roomKey check
@@ -81,7 +111,7 @@ def show(request):
                 _roompasshash = hashlib.sha256(
                     _dataDict["roomKey"].encode()
                 ).hexdigest()
-            with closing(sqlite3.connect(dbname)) as conn:
+            with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # duplication and roomKey check
@@ -116,7 +146,7 @@ def show(request):
                 _roompasshash = hashlib.sha256(
                     _dataDict["roomKey"].encode()
                 ).hexdigest()
-            with closing(sqlite3.connect(dbname)) as conn:
+            with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # duplication and roomKey check
@@ -148,7 +178,7 @@ def show(request):
                 if _chat == None:
                     return json.dumps({"message": "unknownError"}, ensure_ascii=False)
                 request.files["upload"].save(
-                    os.path.normpath(os.path.join(filedir, str(_chat["id"])))
+                    os.path.normpath(os.path.join(tmp_dir, str(_chat["id"])))
                 )
                 return json.dumps({"message": "processed"}, ensure_ascii=False)
             return json.dumps({"message": "rejected"})
@@ -161,7 +191,7 @@ def show(request):
                 _roompasshash = hashlib.sha256(
                     _dataDict["roomKey"].encode()
                 ).hexdigest()
-            with closing(sqlite3.connect(dbname)) as conn:
+            with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # duplication and roomKey check
@@ -179,7 +209,7 @@ def show(request):
                 _chat = cur.fetchone()
                 if _chat == None:
                     return json.dumps({"message": "rejected"}, ensure_ascii=False)
-                _target_file = os.path.normpath(os.path.join(filedir, str(_chat["id"])))
+                _target_file = os.path.normpath(os.path.join(tmp_dir, str(_chat["id"])))
                 if os.path.exists(_target_file):
                     return flask.send_file(
                         _target_file,
@@ -199,7 +229,7 @@ def show(request):
                 _roompasshash = hashlib.sha256(
                     _dataDict["roomKey"].encode()
                 ).hexdigest()
-            with closing(sqlite3.connect(dbname)) as conn:
+            with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # duplication and roomKey check
@@ -215,7 +245,9 @@ def show(request):
                     [_dataDict["chatid"], token["id"]],
                 )
                 conn.commit()
-                _remove_file = os.path.normpath(os.path.join(filedir, str(_dataDict["chatid"])))
+                _remove_file = os.path.normpath(
+                    os.path.join(tmp_dir, str(_dataDict["chatid"]))
+                )
                 if os.path.exists(_remove_file):
                     os.remove(_remove_file)
                 return json.dumps({"message": "processed"}, ensure_ascii=False)
@@ -223,7 +255,7 @@ def show(request):
 
         if "search" in request.form:
             _dataDict.update(json.loads(request.form["search"]))
-            with closing(sqlite3.connect(dbname)) as conn:
+            with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 cur.execute("SELECT * FROM room")
@@ -244,7 +276,7 @@ def show(request):
             _roompasshash = ""
             if _dataDict["text"] != "":
                 _roompasshash = hashlib.sha256(_dataDict["text"].encode()).hexdigest()
-            with closing(sqlite3.connect(dbname)) as conn:
+            with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # check duplication
@@ -277,7 +309,7 @@ def show(request):
             if _dataDict["token"] == "":
                 return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
-            with closing(sqlite3.connect(dbname)) as conn:
+            with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # check duplication
@@ -298,7 +330,7 @@ def show(request):
                 _chats = cur.fetchall()
                 for _chat in _chats:
                     _remove_file = os.path.normpath(
-                        os.path.join(filedir, str(_chat["id"]))
+                        os.path.join(tmp_dir, str(_chat["id"]))
                     )
                     if os.path.exists(_remove_file):
                         os.remove(_remove_file)
@@ -311,3 +343,23 @@ def show(request):
             return json.dumps({"message": "rejected"})
 
     return "404: nof found → main.html", 404
+
+
+# isolation
+if __name__ == "__main__":
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(os.path.join("./", __file__)))
+    app = flask.Flask(__name__, template_folder="./", static_folder="./static/")
+    app.config["MAX_CONTENT_LENGTH"] = 100000000
+    os.makedirs("./tmp", exist_ok=True)
+
+    # FaaS: root this
+    @app.route("/", methods=["GET", "POST"])
+    def py_show():
+        try:
+            return show(flask.request)
+        except Exception as e:
+            return "500 error⇒" + str(e), 500
+
+    # run
+    app.run()

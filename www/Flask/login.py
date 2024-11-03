@@ -6,7 +6,7 @@ from contextlib import closing
 import time
 
 
-with open("keys/keys.json") as f:
+with open("./keys/keys.json") as f:
     keys = json.load(f)
 dbname = keys["db"]
 pyJWT_pass = keys["pyJWT_pass"]

@@ -9,7 +9,7 @@ src/
 __pycache__/
 
 # temporary file
-www/tmp/*
+tmp/
 
 # VScode
 .vscode/

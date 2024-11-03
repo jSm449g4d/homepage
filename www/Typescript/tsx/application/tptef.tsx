@@ -74,7 +74,7 @@ export const AppMain = () => {
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("fetch", JSON.stringify({ "roomid": _roomid, "roomKey": _roomKey }))
-        const request = new Request("/tptef.py", {
+        const request = new Request("/tptef/main.py", {
             method: 'POST',
             headers: headers,
             body: formData,
@@ -117,7 +117,7 @@ export const AppMain = () => {
             const formData = new FormData();
             formData.append("info", stringForSend())
             formData.append("remark", JSON.stringify({}))
-            const request = new Request("/tptef.py", {
+            const request = new Request("/tptef/main.py", {
                 method: 'POST',
                 headers: headers,
                 body: formData,
@@ -163,7 +163,7 @@ export const AppMain = () => {
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("upload", tmpAttachment, tmpAttachment.name)
-        const request = new Request("/tptef.py", {
+        const request = new Request("/tptef/main.py", {
             method: 'POST',
             headers: headers,
             body: formData,
@@ -207,7 +207,7 @@ export const AppMain = () => {
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("delete", JSON.stringify({ "chatid": _id }))
-        const request = new Request("/tptef.py", {
+        const request = new Request("/tptef/main.py", {
             method: 'POST',
             headers: headers,
             body: formData,
@@ -246,7 +246,7 @@ export const AppMain = () => {
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("download", JSON.stringify({ "chatid": _id }))
-        const request = new Request("/tptef.py", {
+        const request = new Request("/tptef/main.py", {
             method: 'POST',
             headers: headers,
             body: formData,
@@ -278,7 +278,7 @@ export const AppMain = () => {
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("search", JSON.stringify({}))
-        const request = new Request("/tptef.py", {
+        const request = new Request("/tptef/main.py", {
             method: 'POST',
             headers: headers,
             body: formData,
@@ -306,7 +306,7 @@ export const AppMain = () => {
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("create", JSON.stringify({ "room": tmpRoom, "roomKey": _roomKey }))
-        const request = new Request("/tptef.py", {
+        const request = new Request("/tptef/main.py", {
             method: 'POST',
             headers: headers,
             body: formData,
@@ -341,7 +341,7 @@ export const AppMain = () => {
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("destroy", JSON.stringify({ "roomid": _roomid }))
-        const request = new Request("/tptef.py", {
+        const request = new Request("/tptef/main.py", {
             method: 'POST',
             headers: headers,
             body: formData,
