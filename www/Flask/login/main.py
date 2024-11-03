@@ -4,30 +4,64 @@ import hashlib
 import jwt
 from contextlib import closing
 import time
+import sys
+import os
+import flask
+
+FUNC_NAME = "login"
 
 
-with open("keys/keys.json") as f:
-    keys = json.load(f)
-dbname = keys["db"]
-pyJWT_pass = keys["pyJWT_pass"]
+# Processing when accessing directly with GET
+def get_response(_statusDict={"STATUS": "VALUE"}):
+    _statusLines: str = " <table border='1'>"
+    for key, value in _statusDict.items():
+        _statusLines += "<tr><th>" + key + "</th><th>" + value + "</th></tr>"
+    _statusLines += " </table>"
+    with open(
+        os.path.join(os.path.dirname(__file__), "main.html"), "r", encoding="utf-8"
+    ) as f:
+        html = f.read()
+        html = html.replace("{{FUNC_NAME}}", FUNC_NAME)
+        html = html.replace("{{STATUS_TABLE}}", _statusLines)
+        return flask.render_template_string(html)
+    return "404: nof found → main.html", 404
 
-with closing(sqlite3.connect(dbname)) as conn:
+
+# load setting
+tmp_dir = "./tmp/" + FUNC_NAME
+os.makedirs(tmp_dir, exist_ok=True)
+key_dir = "./keys/keys.json"
+db_dir = "./tmp/sqlite.db"
+pyJWT_pass = "test"
+keys = {}
+if os.path.exists(key_dir):
+    with open(key_dir) as f:
+        keys = json.load(f)
+        if "db" in keys:
+            db_dir = keys["db"]
+        if "pyJWT_pass" in keys:
+            pyJWT_pass = keys["pyJWT_pass"]
+
+with closing(sqlite3.connect(db_dir)) as conn:
     cur = conn.cursor()
     cur.execute(
-        "CREATE TABLE IF NOT EXISTS account(id INTEGER PRIMARY KEY AUTOINCREMENT, user STRING UNIQUE NOT NULL"
-        ",passhash STRING NOT NULL,mail STRING NOT NULL,timestamp INTEGER NOT NULL)"
+        "CREATE TABLE IF NOT EXISTS account(id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "user TEXT UNIQUE NOT NULL,passhash TEXT NOT NULL,"
+        "mail TEXT DEFAULT '',timestamp INTEGER NOT NULL)"
     )
     conn.commit()
 
 
 def show(request):
+    if request.method == "GET":
+        return get_response()
     if request.method == "POST":
 
         if "login" in request.form:
             _dataDict = json.loads(request.form["login"])
             user = _dataDict["user"]
             passhash = hashlib.sha256(_dataDict["pass"].encode()).hexdigest()
-            with closing(sqlite3.connect(dbname)) as conn:
+            with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 cur.execute("SELECT * FROM account WHERE user = ?;", [user])
@@ -56,7 +90,7 @@ def show(request):
         if "signin" in request.form:
             _dataDict = json.loads(request.form["signin"])
             passhash = hashlib.sha256(_dataDict["pass"].encode()).hexdigest()
-            with closing(sqlite3.connect(dbname)) as conn:
+            with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # check duplication
@@ -101,7 +135,7 @@ def show(request):
                 return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             _passhash = hashlib.sha256(_dataDict["pass"].encode()).hexdigest()
-            with closing(sqlite3.connect(dbname)) as conn:
+            with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # check duplication
@@ -139,7 +173,7 @@ def show(request):
             if _dataDict["token"] == "":
                 return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
-            with closing(sqlite3.connect(dbname)) as conn:
+            with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # process
@@ -152,3 +186,23 @@ def show(request):
             return json.dumps({"message": "rejected"})
 
     return "404: nof found → main.html", 404
+
+
+# isolation
+if __name__ == "__main__":
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(os.path.join("./", __file__)))
+    app = flask.Flask(__name__, template_folder="./", static_folder="./static/")
+    app.config["MAX_CONTENT_LENGTH"] = 100000000
+    os.makedirs("./tmp", exist_ok=True)
+
+    # FaaS: root this
+    @app.route("/", methods=["GET", "POST"])
+    def py_show():
+        try:
+            return show(flask.request)
+        except Exception as e:
+            return "500 error⇒" + str(e), 500
+
+    # run
+    app.run()

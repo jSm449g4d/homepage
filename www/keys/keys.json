@@ -1,4 +1,4 @@
 {
-    "db": "tmp/database.db",
+    "db": "./tmp/database.db",
     "pyJWT_pass": "test73pass"
 }

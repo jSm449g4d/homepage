@@ -17,13 +17,14 @@
     <!--Bootstrap + jQuery-->
     <script src="https://code.jquery.com/jquery-3.7.1.slim.js" crossorigin="anonymous"></script>
     <script>if (window.jQuery == null) document.write('<script src="/static/node_modules/jquery/dist/jquery.min.js"><\/script>');</script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" crossorigin="anonymous"></script>
-    <!--popper if you Bs5."bundle".min.js popper doesnt use
-    <script>if (window.Popper == null) document.write('<script src="/static/node_modules/@popperjs/core/dist/umd/popper.min.js"><\/script>');</script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        crossorigin="anonymous"></script>-->
+    <!--popper
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        crossorigin="anonymous"></script>
+    <script>if (window.Popper == null) document.write('<script src="/static/node_modules/@popperjs/core/dist/umd/popper.min.js"><\/script>');</script>-->
     <!--popper-->
-    <script>if ($.fn.modal == null) document.write('<script src="/static/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"><\/script>');</script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"></script>
+    <script>if (window.bootstrap == null) document.write('<script src="/static/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"><\/script>');</script>
     <!--Bootstrap + jQuery-->
     <!--React-->
     <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
@@ -32,8 +33,8 @@
     <script>if (window.ReactDOM == null) document.write('<script src="/static/node_modules/react-dom/umd/react-dom.development.js"><\/script>');</script>
     <!--React-->
     <!--recharts-->
-    <script src="https://unpkg.com/prop-types/prop-types.min.js"></script>
-    <script src="https://unpkg.com/recharts/umd/Recharts.js"></script>
+    <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.13.3/umd/Recharts.js"></script>
     <script>if (window.PropTypes == null) document.write('<script src="/static/node_modules/prop-types/prop-types.min.js"><\/script>');</script>
     <script>if (window.Recharts == null) document.write('<script src="/static/node_modules/recharts/umd/Recharts.js"><\/script>');</script>
     <!--recharts-->

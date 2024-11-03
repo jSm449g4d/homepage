@@ -14,7 +14,7 @@ app = flask.Flask(
     __name__, template_folder="./Flask/templates/", static_folder="./html/static/"
 )
 app.config["MAX_CONTENT_LENGTH"] = 100000000
-os.makedirs("tmp", exist_ok=True)
+os.makedirs("./tmp", exist_ok=True)
 
 
 # Index
