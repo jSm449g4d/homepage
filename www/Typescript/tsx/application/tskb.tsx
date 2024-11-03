@@ -17,6 +17,7 @@ export const AppMain = () => {
 
     const [room, setRoom] = useState({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" })
     const [tmpRoom, setTmpRoom] = useState("")
+    const [tmpRoomKey, setTmpRoomKey] = useState("")
     const [tmpText, setTmpText] = useState("")
     const [contents, setContents] = useState([])
     const [tmpAttachment, setTmpAttachment] = useState(null)
@@ -51,13 +52,13 @@ export const AppMain = () => {
     }
     const enterRoom = (_setContentsInitialze = true) => {
         if (_setContentsInitialze) setContents([])
-        setTmpRoom(""); setTmpText(""); setTmpAttachment(null);
+        setTmpRoom(""); setTmpText(""); setTmpRoomKey(""); setTmpAttachment(null);
         $('#inputConsoleAttachment').val(null)
     }
     const exitRoom = (_setContentsInitialze = true) => {
         if (_setContentsInitialze) setContents([])
         setRoom({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" });
-        setTmpRoom(""); setTmpText(""); setTmpAttachment(null);
+        setTmpRoom(""); setTmpText(""); setTmpRoomKey(""); setTmpAttachment(null);
     }
     const compareDictKeys = (_targetDict: {}, _keys: any[]) => {
         if (Object.keys(_targetDict).sort().join() == _keys.sort().toString())
@@ -294,33 +295,6 @@ export const AppMain = () => {
                 CIModal("通信エラー")
                 console.error(error.message)
             });
-
-        // tskbへのアクセス
-        const formDataII = new FormData();
-        formDataII.append("info", stringForSend())
-        const requestII = new Request("/tskb/main.py", {
-            method: 'POST',
-            headers: headers,
-            body: formData,
-            signal: AbortSignal.timeout(xhrTimeout)
-        });
-        fetch(requestII)
-            .then(response => response.json())
-            .then(resJ => {
-                switch (resJ["message"]) {
-                    case "processed":
-                        CIModal("tskbへアクセス成功")
-                        break;
-                    default: {
-                        CIModal("その他のエラー")
-                        break;
-                    }
-                }
-            })
-            .catch(error => {
-                CIModal("通信エラー")
-                console.error(error.message)
-            });
     }
     const createRoom = (_roomKey = roomKey) => {
         exitRoom()
@@ -345,6 +319,49 @@ export const AppMain = () => {
                     }
                     case "tokenNothing": {
                         CIModal("JWTトークン未提出です")
+                        searchRoom(); break;
+                    }
+                    default: {
+                        CIModal("その他のエラー")
+                        searchRoom(); break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
+    const createCombination = () => {
+        "CREATE TABLE IF NOT EXISTS tskb_combination(id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "name TEXT NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
+        "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
+        "contents TEXT NOT NULL)"
+        "(name,tag,description,userid,user,passhash,timestamp,contents)"
+        exitRoom()
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("create", JSON.stringify({
+            "name": tmpRoom, "description": tmpText, "roomKey": tmpRoomKey,
+        }))
+        const request = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed": roadModalAndDelay(searchRoom); break;
+                    case "alreadyExisted": {
+                        CIModal("既存の名前")
+                        searchRoom(); break;
+                    }
+                    case "tokenNothing": {
+                        CIModal("JWTトークン未提出")
                         searchRoom(); break;
                     }
                     default: {
@@ -419,22 +436,22 @@ export const AppMain = () => {
                                     <div className="input-group m-1 col-12">
                                         <span className="input-group-text" id="room-addon2">Pass</span>
                                         <input type="text" className="form-control" placeholder="Password" aria-label="pass"
-                                            value={tmpText} onChange={(evt) => { setTmpText(evt.target.value) }} />
+                                            value={tmpRoomKey} onChange={(evt) => { setTmpRoomKey(evt.target.value) }} />
                                     </div>
                                 </div>
                                 <div className="modal-footer">
                                     <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                     {tmpRoom != "" && token != "" ? <div>
-                                        {tmpText == "" ?
+                                        {tmpRoomKey == "" ?
                                             <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
-                                                onClick={() => createRoom()}>
+                                                onClick={() => createCombination()}>
                                                 <i className="fa-solid fa-hammer mx-1" />Create
                                             </button> :
                                             <button type="button" className="btn btn-outline-warning" data-bs-dismiss="modal"
                                                 onClick={() => {
                                                     // roomKey cannot be updated in time
-                                                    dispatch(accountSetState({ "roomKey": tmpText }))
-                                                    createRoom(tmpText)
+                                                    dispatch(accountSetState({ "roomKey": tmpRoomKey }))
+                                                    createCombination()
                                                 }}>
                                                 <i className="fa-solid fa-key mx-1" />Create
                                             </button>

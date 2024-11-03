@@ -216,7 +216,6 @@ def show(request):
             return json.dumps({"message": "rejected"})
 
         if "download" in request.form:
-            print(_dataDict)
             _dataDict.update(json.loads(request.form["download"]))
             _roompasshash = ""
             if _dataDict["roomKey"] != "":
@@ -310,38 +309,41 @@ def show(request):
                 return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             _roompasshash = ""
-            if _dataDict["text"] != "":
-                _roompasshash = hashlib.sha256(_dataDict["text"].encode()).hexdigest()
+            if _dataDict["roomKey"] != "":
+                _roompasshash = hashlib.sha256(
+                    _dataDict["roomKey"].encode()
+                ).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # check duplication
                 cur.execute(
-                    "SELECT * FROM tptef_room WHERE room = ?;", [_dataDict["room"]]
+                    "SELECT * FROM tskb_combination WHERE name = ?;",
+                    [_dataDict["name"]],
                 )
                 _room = cur.fetchone()
                 if _room != None:
                     return json.dumps({"message": "alreadyExisted"}, ensure_ascii=False)
                 cur.execute(
-                    "INSERT INTO tptef_room(user,userid,room,passhash,timestamp) values(?,?,?,?,?)",
+                    "INSERT INTO tskb_combination "
+                    "(name,tag,description,userid,user,passhash,timestamp,contents) "
+                    "values(?,?,?,?,?,?,?,?)",
                     [
-                        _dataDict["user"],
+                        _dataDict["name"],
+                        ",".join([]),
+                        _dataDict["description"],
                         token["id"],
-                        _dataDict["room"],
+                        _dataDict["user"],
                         _roompasshash,
                         int(time.time()),
+                        json.dumps({}, ensure_ascii=False),
                     ],
                 )
                 conn.commit()
-                cur.execute(
-                    "SELECT * FROM tptef_room WHERE room = ?;", [_dataDict["room"]]
+                return json.dumps(
+                    {"message": "processed"},
+                    ensure_ascii=False,
                 )
-                _room = cur.fetchone()
-                if _room != None:
-                    return json.dumps(
-                        {"message": "processed", "room": dict(_room)},
-                        ensure_ascii=False,
-                    )
             return json.dumps({"message": "rejected"})
 
         if "destroy" in request.form:

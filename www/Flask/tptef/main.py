@@ -84,7 +84,7 @@ def show(request):
                 if _room == None:
                     return json.dumps({"message": "notExist"}, ensure_ascii=False)
                 if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
-                    return json.dumps({"message": "wrongPass"})
+                    return json.dumps({"message": "wrongPass"}, ensure_ascii=False)
                 # process start
                 _userid = _room["userid"]
                 _roomid = _room["id"]
@@ -102,7 +102,7 @@ def show(request):
                     },
                     ensure_ascii=False,
                 )
-            return json.dumps({"message": "rejected"})
+            return json.dumps({"message": "rejected"}, ensure_ascii=False)
 
         if "remark" in request.form:
             _dataDict.update(json.loads(request.form["remark"]))
@@ -125,7 +125,7 @@ def show(request):
                 if _room == None:
                     return json.dumps({"message": "notExist"}, ensure_ascii=False)
                 if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
-                    return json.dumps({"message": "wrongPass"})
+                    return json.dumps({"message": "wrongPass"}, ensure_ascii=False)
                 # process start
                 cur.execute(
                     "INSERT INTO tptef_chat(user,userid,roomid,text,mode,timestamp) values(?,?,?,?,?,?)",
@@ -140,7 +140,7 @@ def show(request):
                 )
                 conn.commit()
                 return json.dumps({"message": "processed"}, ensure_ascii=False)
-            return json.dumps({"message": "rejected"})
+            return json.dumps({"message": "rejected"}, ensure_ascii=False)
 
         if "upload" in request.files:
             if _dataDict["token"] == "":
@@ -162,7 +162,7 @@ def show(request):
                 if _room == None:
                     return json.dumps({"message": "notExist"}, ensure_ascii=False)
                 if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
-                    return json.dumps({"message": "wrongPass"})
+                    return json.dumps({"message": "wrongPass"}, ensure_ascii=False)
                 # process start
                 _timestamp = int(time.time())
                 cur.execute(
@@ -188,10 +188,9 @@ def show(request):
                     os.path.normpath(os.path.join(tmp_dir, str(_chat["id"])))
                 )
                 return json.dumps({"message": "processed"}, ensure_ascii=False)
-            return json.dumps({"message": "rejected"})
+            return json.dumps({"message": "rejected"}, ensure_ascii=False)
 
         if "download" in request.form:
-            print(_dataDict)
             _dataDict.update(json.loads(request.form["download"]))
             _roompasshash = ""
             if _dataDict["roomKey"] != "":
@@ -209,7 +208,7 @@ def show(request):
                 if _room == None:
                     return json.dumps({"message": "notExist"}, ensure_ascii=False)
                 if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
-                    return json.dumps({"message": "wrongPass"})
+                    return json.dumps({"message": "wrongPass"}, ensure_ascii=False)
                 # process start
                 cur.execute(
                     "SELECT * FROM tptef_chat WHERE id = ? ;",
@@ -225,8 +224,8 @@ def show(request):
                         as_attachment=True,
                         download_name=_chat["text"],
                     )
-                return json.dumps({"message": "notExist"})
-            return json.dumps({"message": "rejected"})
+                return json.dumps({"message": "notExist"}, ensure_ascii=False)
+            return json.dumps({"message": "rejected"}, ensure_ascii=False)
 
         if "delete" in request.form:
             _dataDict.update(json.loads(request.form["delete"]))
@@ -249,7 +248,7 @@ def show(request):
                 if _room == None:
                     return json.dumps({"message": "notExist"}, ensure_ascii=False)
                 if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
-                    return json.dumps({"message": "wrongPass"})
+                    return json.dumps({"message": "wrongPass"}, ensure_ascii=False)
                 # process start
                 cur.execute(
                     "DELETE FROM tptef_chat WHERE id = ? AND userId = ? ;",
@@ -262,7 +261,7 @@ def show(request):
                 if os.path.exists(_remove_file):
                     os.remove(_remove_file)
                 return json.dumps({"message": "processed"}, ensure_ascii=False)
-            return json.dumps({"message": "rejected"})
+            return json.dumps({"message": "rejected"}, ensure_ascii=False)
 
         if "search" in request.form:
             _dataDict.update(json.loads(request.form["search"]))
@@ -277,7 +276,7 @@ def show(request):
                 return json.dumps(
                     {"message": "processed", "rooms": _rooms}, ensure_ascii=False
                 )
-            return json.dumps({"message": "rejected"})
+            return json.dumps({"message": "rejected"}, ensure_ascii=False)
 
         if "create" in request.form:
             _dataDict.update(json.loads(request.form["create"]))
@@ -285,8 +284,8 @@ def show(request):
                 return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             _roompasshash = ""
-            if _dataDict["text"] != "":
-                _roompasshash = hashlib.sha256(_dataDict["text"].encode()).hexdigest()
+            if _dataDict["roomKey"] != "":
+                _roompasshash = hashlib.sha256(_dataDict["roomKey"].encode()).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -317,7 +316,7 @@ def show(request):
                         {"message": "processed", "room": dict(_room)},
                         ensure_ascii=False,
                     )
-            return json.dumps({"message": "rejected"})
+            return json.dumps({"message": "rejected"}, ensure_ascii=False)
 
         if "destroy" in request.form:
             _dataDict.update(json.loads(request.form["destroy"]))
@@ -357,7 +356,7 @@ def show(request):
                 )
                 conn.commit()
                 return json.dumps({"message": "processed"}, ensure_ascii=False)
-            return json.dumps({"message": "rejected"})
+            return json.dumps({"message": "rejected"}, ensure_ascii=False)
 
     return "404: nof found → main.html", 404
 
