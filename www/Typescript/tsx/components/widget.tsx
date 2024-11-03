@@ -33,7 +33,7 @@ export const AppWidgetHead = () => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("login", JSON.stringify({ "user": tmpUser, "pass": tmpPass }))
-        const request = new Request("/login.py", {
+        const request = new Request("/login/main.py", {
             method: 'POST',
             headers: headers,
             body: formData,
@@ -67,7 +67,7 @@ export const AppWidgetHead = () => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("signin", JSON.stringify({ "user": tmpUser, "pass": tmpPass }))
-        const request = new Request("/login.py", {
+        const request = new Request("/login/main.py", {
             method: 'POST',
             headers: headers,
             body: formData,
@@ -102,7 +102,7 @@ export const AppWidgetHead = () => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("account_change", JSON.stringify({ "token": token, "user": tmpUser, "pass": tmpPass, "mail": tmpMail }))
-        const request = new Request("/login.py", {
+        const request = new Request("/login/main.py", {
             method: 'POST',
             headers: headers,
             body: formData,
@@ -134,7 +134,7 @@ export const AppWidgetHead = () => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("account_delete", JSON.stringify({ "token": token }))
-        const request = new Request("/login.py", {
+        const request = new Request("/login/main.py", {
             method: 'POST',
             headers: headers,
             body: formData,
