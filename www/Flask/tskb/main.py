@@ -58,13 +58,14 @@ with closing(sqlite3.connect(db_dir)) as conn:
         "passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL)"
     )
     "(id,name,tag,description,userid,user,passhash,timestamp,contents)"
+    # contents={material_id:amount}
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_combination(id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "name TEXT NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
         "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
         "contents TEXT NOT NULL)"
     )
-    "(id,name,tag,description,userid,user,passhash,timestamp,contents,"
+    "(id,name,tag,description,userid,user,passhash,timestamp,"
     "g,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
     "ca,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
     cur.execute(
@@ -120,22 +121,33 @@ def show(request):
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # process start
-                _userid = -1 if "id" in token else token["id"]
+                # select combination
+                _userid = -1
+                if "id" in token:
+                    _userid = token["id"]
                 cur.execute(
-                    "SELECT * FROM tskb_combination WHERE id = ? OR userid = ?;",
-                    [_dataDict["combinationid"], _userid],
+                    "SELECT * FROM tskb_combination WHERE id = ?;",
+                    [_dataDict["combinationid"]],
                 )
                 _combination = cur.fetchone()
                 if _combination == None:
                     return json.dumps({"message": "notExist"}, ensure_ascii=False)
                 elif _combination["passhash"] not in ["", _roompasshash]:
                     return json.dumps({"message": "wrongPass"})
-                elif (
-                    _combination["passhash"] == "0"
-                    and _combination["id"] != token["id"]
-                ):
+                elif _combination["passhash"] == "0" and _combination["id"] != _userid:
                     return json.dumps({"message": "wrongPass"})
-                _materials = _combination["contents"]
+                # select material
+                _contents = json.loads(_combination["contents"])
+                _materials = []
+                for _key, _val in _contents.items():
+                    cur.execute("SELECT * FROM tskb_material WHERE id = ?;", [_key])
+                    _material = cur.fetchone()
+                    if _material == None:
+                        continue
+                    if _material["passhash"] == "0":
+                        if _material["userid"] != token["id"]:
+                            continue
+                    _materials.append(dict(_material))
                 return json.dumps(
                     {
                         "message": "processed",
@@ -161,8 +173,8 @@ def show(request):
                 cur = conn.cursor()
                 # process start
                 cur.execute(
-                    "SELECT * FROM tskb_material WHERE id = ? OR userid = ?;",
-                    [_dataDict["materialid"], token["id"]],
+                    "SELECT * FROM tskb_material WHERE id = ?;",
+                    [_dataDict["materialid"]],
                 )
                 _material = cur.fetchone()
                 if _material == None:

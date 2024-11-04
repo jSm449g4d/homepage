@@ -22,9 +22,11 @@ export const AppMain = () => {
         "timestamp": 0, "passhash": "", "contents": ""
     })
     const [tmpCombination, setTmpCombination] = useState("")
+    const [tmpMaterial, setTmpMaterial] = useState("")
     const [tmpnutrition, setTmpNutrition] = useState({})
     const [tmpRoomKey, setTmpRoomKey] = useState("")
     const [tmpText, setTmpText] = useState("")
+    const [tmpDescription, setTmpDescription] = useState("")
     const [contents, setContents] = useState([])
     const [tmpAttachment, setTmpAttachment] = useState(null)
     const [tmpTargetId, setTmpTargetId] = useState("")
@@ -32,7 +34,7 @@ export const AppMain = () => {
 
     useEffect(() => {
         if (combination["name"] == "") searchCombination()
-        else fetchChat()
+        else fetchMaterial()
     }, [userId])
     useEffect(() => { searchCombination() }, [])
 
@@ -55,7 +57,8 @@ export const AppMain = () => {
     }
     const enterCombination = (_setContentsInitialze = true) => {
         if (_setContentsInitialze) setContents([])
-        setTmpCombination(""); setTmpText(""); setTmpRoomKey(""); setTmpAttachment(null);
+        setTmpCombination(""); setTmpMaterial(""); setTmpNutrition({}); setTmpText(""); setTmpRoomKey("");
+        setTmpAttachment(null); setTmpDescription("")
         $('#inputConsoleAttachment').val(null)
     }
     const exitCombination = (_setContentsInitialze = true) => {
@@ -64,7 +67,8 @@ export const AppMain = () => {
             "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
             "timestamp": 0, "passhash": "", "contents": ""
         })
-        setTmpCombination(""); setTmpText(""); setTmpRoomKey(""); setTmpAttachment(null);
+        setTmpCombination(""); setTmpMaterial(""); setTmpNutrition({}); setTmpText(""); setTmpRoomKey("");
+        setTmpAttachment(null); setTmpDescription("")
     }
     const compareDictKeys = (_targetDict: {}, _keys: any[]) => {
         if (Object.keys(_targetDict).sort().join() == _keys.sort().toString())
@@ -72,7 +76,7 @@ export const AppMain = () => {
         return false
     }
     const fetchChat = (_roomid = room["id"], _roomKey = roomKey) => { }
-    const fetchMaterial = (_roomid = room["id"], _roomKey = roomKey) => {
+    const fetchMaterial = (_combinationid = combination["id"], _roomKey = roomKey) => {
         const sortSetContents = (_contents: any = []) => {
             const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
             setContents(_contents.sort(_sortContents))
@@ -81,8 +85,8 @@ export const AppMain = () => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("fetch", JSON.stringify({ "roomid": _roomid, "roomKey": _roomKey }))
-        const request = new Request("/tptef/main.py", {
+        formData.append("fetch", JSON.stringify({ "combinationid": _combinationid, "roomKey": _roomKey }))
+        const request = new Request("/tskb/main.py", {
             method: 'POST',
             headers: headers,
             body: formData,
@@ -94,9 +98,10 @@ export const AppMain = () => {
                 switch (resJ["message"]) {
                     case "processed": {
                         setCombination(resJ["combination"]);
-                        sortSetContents(resJ["materials"])
+                        sortSetContents(resJ["materials"]);
                         dispatch(accountSetState({ token: resJ["token"] })); break;
-                    } break;
+                        
+                    }
                     case "wrongPass": {
                         CIModal("部屋のパスワードが違います")
                         searchCombination(); break;
@@ -130,7 +135,7 @@ export const AppMain = () => {
             const formData = new FormData();
             formData.append("info", stringForSend())
             formData.append("register", JSON.stringify(Object.assign({
-                "name": tmpCombination, "description": tmpText,
+                "name": tmpMaterial, "description": tmpDescription,
                 "roomKey": tmpRoomKey, "privateFlag": tmpPrivateFlag,
                 "materialid": tmpTargetId, "tmpnutrition": tmpnutrition
             }),
@@ -284,7 +289,7 @@ export const AppMain = () => {
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("create", JSON.stringify({
-            "name": tmpCombination, "description": tmpText,
+            "name": tmpCombination, "description": tmpDescription,
             "roomKey": tmpRoomKey, "privateFlag": tmpPrivateFlag,
         }))
         const request = new Request("/tskb/main.py", {
@@ -409,7 +414,6 @@ export const AppMain = () => {
                                             </button> :
                                             <button type="button" className="btn btn-outline-warning" data-bs-dismiss="modal"
                                                 onClick={() => {
-                                                    // roomKey cannot be updated in time
                                                     dispatch(accountSetState({ "roomKey": tmpRoomKey }))
                                                     createCombination()
                                                 }}>
@@ -463,7 +467,7 @@ export const AppMain = () => {
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h1 className="modal-title fs-5">
-                                    <i className="fa-solid fa-lock mx-1" />パスワードが必要
+                                    <i className="fa-solid fa-lock mx-1" />パスワード入力
                                 </h1>
                             </div>
                             <div className="modal-body row">
@@ -484,7 +488,7 @@ export const AppMain = () => {
                                             () => {
                                                 // roomKey cannot be updated in time
                                                 dispatch(accountSetState({ roomKey: tmpRoomKey }))
-                                                fetchChat(Number(tmpTargetId), tmpRoomKey)
+                                                fetchMaterial(Number(tmpTargetId), tmpRoomKey)
                                             }}>
                                         <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />閲覧
                                     </button> :
@@ -532,36 +536,32 @@ export const AppMain = () => {
             if (contents[i]["passhash"] != "") { _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.2))" } }
             if (contents[i]["passhash"] == "0") { _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,150,0.2))" } }
             _tmpData.push(
-                <div>
-                    {combinationInterModal()}
-                    {combinationTableDestroycombinationConfirmationModal()}
-                    <div className="col-12 border d-flex" style={_style}>
-                        <h5 className="me-auto">
-                            <i className="fa-solid fa-jar mx-1"></i>{contents[i]["name"]}
-                        </h5>
-                        {contents[i]["passhash"] == "" ?
-                            <button className="btn btn-outline-primary rounded-pill"
-                                onClick={(evt: any) => { fetchChat(evt.target.value) }} value={contents[i]["id"]}>
-                                <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>閲覧
-                            </button> :
-                            <button className="btn btn-outline-dark rounded-pill"
-                                onClick={(evt: any) => {
-                                    setTmpTargetId(evt.target.value)
-                                    $('#combinationInterModal').modal('show')
-                                }} value={contents[i]["id"]}>
-                                <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>閲覧
-                            </button>
-                        }
-                        {contents[i]["userid"] == userId ?
-                            <button className="btn btn-outline-danger rounded-pill"
-                                onClick={(evt: any) => {
-                                    setTmpTargetId(evt.target.value)
-                                    $('#combinationTableDestroycombinationConfirmationModal').modal('show');
-                                }} value={contents[i]["id"]}>
-                                <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>破棄
-                            </button> : <div></div>
-                        }
-                    </div>
+                <div className="col-12 border d-flex" style={_style}>
+                    <h5 className="me-auto">
+                        <i className="fa-solid fa-jar mx-1"></i>{contents[i]["name"]}
+                    </h5>
+                    {contents[i]["passhash"] == "" ?
+                        <button className="btn btn-outline-primary rounded-pill"
+                            onClick={(evt: any) => { fetchMaterial(evt.target.value) }} value={contents[i]["id"]}>
+                            <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>閲覧
+                        </button> :
+                        <button className="btn btn-outline-dark rounded-pill"
+                            onClick={(evt: any) => {
+                                setTmpTargetId(evt.target.value)
+                                $('#combinationInterModal').modal('show')
+                            }} value={contents[i]["id"]}>
+                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>閲覧
+                        </button>
+                    }
+                    {contents[i]["userid"] == userId ?
+                        <button className="btn btn-outline-danger rounded-pill"
+                            onClick={(evt: any) => {
+                                setTmpTargetId(evt.target.value)
+                                $('#combinationTableDestroycombinationConfirmationModal').modal('show');
+                            }} value={contents[i]["id"]}>
+                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>破棄
+                        </button> : <div></div>
+                    }
                 </div>)
             _tmpData.push(
                 <div className="col-12 col-md-10 p-1 d-flex justify-content-center align-items-center border">
@@ -581,7 +581,13 @@ export const AppMain = () => {
                 </div>
             )
         }
-        return (<div className="row m-1">{_tmpRecord}</div>)
+        return (
+            <div>
+                {combinationInterModal()}
+                {combinationTableDestroycombinationConfirmationModal()}
+                <div className="row m-1">{_tmpRecord}
+                </div>
+            </div>)
     }
     const materialTopFormRender = () => {
         const destroyMaterialConfirmationModal = () => {
@@ -660,7 +666,7 @@ export const AppMain = () => {
                         {contents[i]["text"]}
                     </div></div>)
                 _tmpData.push(
-                    <div className="col-12 col-md-3 border"><div className="text-center">
+                    <div className="col-12 col-md-3 border d-flex justify-content-end"><div className="text-center">
                         {
                             contents[i]["userid"] == userId ?
                                 <button className="btn btn-outline-danger rounded-pill"
@@ -711,10 +717,9 @@ export const AppMain = () => {
         }
         return (<div className="">{_tmpRecord}</div>)
     }
-    {/**
     const inputConsole = () => {
         const remarkButton = () => {
-            if (tmpAttachment == null && tmpText == "")
+            if (tmpAttachment == null && tmpCombination == "")
                 return (
                     <button className="btn btn-dark " disabled>
                         <i className="far fa-comment-dots mx-1" style={{ pointerEvents: "none" }}></i>要入力
@@ -722,7 +727,7 @@ export const AppMain = () => {
                 )
             return (
                 <button className="btn btn-success"
-                    onClick={() => { remarkChat(); }}>
+                    onClick={() => { registerMaterial(); }}>
                     <i className="far fa-comment-dots mx-1" style={{ pointerEvents: "none" }}></i>送信
                 </button>
             )
@@ -738,7 +743,7 @@ export const AppMain = () => {
                         <input type="file" className="form-control" placeholder="attachment file"
                             disabled />
                         <button className="btn btn-outline-info"
-                            onClick={() => { HIModal("発言機能にはログインが必要です"); }}>
+                            onClick={() => { HIModal("仮実装"); }}>
                             <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} ></i>送信
                         </button>
                     </div>
@@ -750,8 +755,8 @@ export const AppMain = () => {
                 <div className="col-12 d-flex justify-content-center">
                     <h5><i className="far fa-clock "></i>{jpclockNow}</h5>
                 </div>
-                <textarea className="form-control col-12 w-80" id="tptef_content" rows={4} value={tmpText}
-                    onChange={(evt) => { setTmpText(evt.target.value) }}></textarea>
+                <textarea className="form-control col-12 w-80" id="tptef_content" rows={4} value={tmpCombination}
+                    onChange={(evt) => { setTmpCombination(evt.target.value) }}></textarea>
                 <div className="col-12 my-1">
                     <div className="input-group">
                         <input type="file" className="form-control" placeholder="attachment file"
@@ -762,7 +767,7 @@ export const AppMain = () => {
                 </div>
             </div>
         )
-    }*/}
+    }
     // applicationRender
     return (
         <div>
@@ -773,9 +778,10 @@ export const AppMain = () => {
                 </div> :
                 <div className="m-1">
                     {materialTopFormRender()}
+                    {inputConsole()}
                     {/**
                     {chatTable()}
-                    {inputConsole()} */}
+                     */}
                 </div>
             }
         </div>
