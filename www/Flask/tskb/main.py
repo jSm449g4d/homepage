@@ -33,6 +33,7 @@ os.makedirs(tmp_dir, exist_ok=True)
 key_dir = "./keys/keys.json"
 db_dir = "./tmp/sqlite.db"
 pyJWT_pass = "test"
+pyJWT_timeout = 3600
 keys = {}
 if os.path.exists(key_dir):
     with open(key_dir) as f:
@@ -41,6 +42,8 @@ if os.path.exists(key_dir):
             db_dir = keys["db"]
         if "pyJWT_pass" in keys:
             pyJWT_pass = keys["pyJWT_pass"]
+        if "pyJWT_timeout" in keys:
+            pyJWT_timeout = keys["pyJWT_timeout"]
 
 with closing(sqlite3.connect(db_dir)) as conn:
     cur = conn.cursor()
@@ -54,22 +57,25 @@ with closing(sqlite3.connect(db_dir)) as conn:
         "user TEXT NOT NULL,userid INTEGER NOT NULL,room TEXT UNIQUE NOT NULL,"
         "passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL)"
     )
-
     "(id,name,tag,description,userid,user,passhash,timestamp,contents)"
+    # contents={material_id:amount}
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_combination(id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "name TEXT NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
         "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
         "contents TEXT NOT NULL)"
     )
+    "(id,name,tag,description,userid,user,passhash,timestamp,"
+    "g,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
+    "ca,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_material(id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "name TEXT NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
         "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
         "unit TEXT DEFAULT 'g',cost REAL DEFAULT 0,"
-        "carbo REAL DEFAULT 0,fiber_soluble REAL DEFAULT 0,fiber_insoluble REAL DEFAULT 0,"
-        "protein REAL DEFAULT 0,saturated_fat REAL DEFAULT 0,monounsaturated_fat REAL DEFAULT 0,"
-        "polyunsaturated_fat REAL DEFAULT 0,n3 REAL DEFAULT 0,DHA_EPA REAL DEFAULT 0,"
+        "carbo REAL DEFAULT 0,fiber REAL DEFAULT 0,"
+        "protein REAL DEFAULT 0,fat REAL DEFAULT 0,saturated_fat REAL DEFAULT 0,"
+        "n3 REAL DEFAULT 0,DHA_EPA REAL DEFAULT 0,"
         "n6 REAL DEFAULT 0,ca REAL DEFAULT 0,cr REAL DEFAULT 0,"
         "cu REAL DEFAULT 0,i REAL DEFAULT 0,fe REAL DEFAULT 0,"
         "mg REAL DEFAULT 0,mn REAL DEFAULT 0,mo REAL DEFAULT 0,"
@@ -92,84 +98,122 @@ def show(request):
         if "info" not in request.form:
             return json.dumps({"message": "notEnoughForm(info)"}, ensure_ascii=False)
         _dataDict = json.loads(request.form["info"])
+        token = ""
+        encoded_new_token = token
+        if _dataDict["token"] != "":
+            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
+            if token["timestamp"] + pyJWT_timeout < int(time.time()):
+                return json.dumps({"message": "tokenTimeout"}, ensure_ascii=False)
+            encoded_new_token = jwt.encode(
+                {"id": token["id"], "timestamp": int(time.time())},
+                pyJWT_pass,
+                algorithm="HS256",
+            )
 
         if "fetch" in request.form:
             _dataDict.update(json.loads(request.form["fetch"]))
-            _roompasshash = ""
-            if _dataDict["roomKey"] != "":
+            _roompasshash = _dataDict["roomKey"]
+            if _dataDict["roomKey"] not in ["", "0"]:
                 _roompasshash = hashlib.sha256(
                     _dataDict["roomKey"].encode()
                 ).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
-                # duplication and roomKey check
-                cur.execute(
-                    "SELECT * FROM tptef_room WHERE id = ?;", [_dataDict["roomid"]]
-                )
-                _room = cur.fetchone()
-                if _room == None:
-                    return json.dumps({"message": "notExist"}, ensure_ascii=False)
-                if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
-                    return json.dumps({"message": "wrongPass"})
                 # process start
-                _userid = _room["userid"]
-                _roomid = _room["id"]
-                cur.execute("SELECT * FROM tptef_chat WHERE roomid = ?;", [_roomid])
-                _chats = [
-                    {key: value for key, value in dict(result).items()}
-                    for result in cur.fetchall()
-                ]
+                # select combination
+                _userid = -1
+                if "id" in token:
+                    _userid = token["id"]
+                cur.execute(
+                    "SELECT * FROM tskb_combination WHERE id = ?;",
+                    [_dataDict["combinationid"]],
+                )
+                _combination = cur.fetchone()
+                if _combination == None:
+                    return json.dumps({"message": "notExist"}, ensure_ascii=False)
+                elif _combination["passhash"] not in ["", _roompasshash]:
+                    return json.dumps({"message": "wrongPass"})
+                elif _combination["passhash"] == "0" and _combination["id"] != _userid:
+                    return json.dumps({"message": "wrongPass"})
+                # select material
+                _contents = json.loads(_combination["contents"])
+                _materials = []
+                for _key, _val in _contents.items():
+                    cur.execute("SELECT * FROM tskb_material WHERE id = ?;", [_key])
+                    _material = cur.fetchone()
+                    if _material == None:
+                        continue
+                    if _material["passhash"] == "0":
+                        if _material["userid"] != token["id"]:
+                            continue
+                    _materials.append(dict(_material))
                 return json.dumps(
                     {
                         "message": "processed",
-                        "chats": _chats,
-                        "room": dict(_room),
-                        "userid": _userid,
+                        "materials": _materials,
+                        "combination": dict(_combination),
+                        "token": encoded_new_token,
                     },
                     ensure_ascii=False,
                 )
             return json.dumps({"message": "rejected"})
 
-        if "remark" in request.form:
-            _dataDict.update(json.loads(request.form["remark"]))
-            if _dataDict["token"] == "":
-                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
-            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
-            _roompasshash = ""
-            if _dataDict["roomKey"] != "":
+        if "register" in request.form:
+            _dataDict.update(json.loads(request.form["register"]))
+            _roompasshash = _dataDict["roomKey"]
+            if _dataDict["roomKey"] not in ["", "0"]:
                 _roompasshash = hashlib.sha256(
                     _dataDict["roomKey"].encode()
                 ).hexdigest()
+            if token == "":
+                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
-                # duplication and roomKey check
-                cur.execute(
-                    "SELECT * FROM tptef_room WHERE id = ?;", [_dataDict["roomid"]]
-                )
-                _room = cur.fetchone()
-                if _room == None:
-                    return json.dumps({"message": "notExist"}, ensure_ascii=False)
-                if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
-                    return json.dumps({"message": "wrongPass"})
                 # process start
                 cur.execute(
-                    "INSERT INTO tptef_chat(user,userid,roomid,text,mode,timestamp) values(?,?,?,?,?,?)",
-                    [
-                        _dataDict["user"],
-                        token["id"],
-                        _room["id"],
-                        _dataDict["text"],
-                        "text",
-                        int(time.time()),
-                    ],
+                    "SELECT * FROM tskb_material WHERE id = ?;",
+                    [_dataDict["materialid"]],
                 )
+                _material = cur.fetchone()
+                if _material == None:
+                    cur.execute(
+                        "INSERT INTO tskb_material "
+                        "(name,tag,description,userid,user,passhash,timestamp,contents) "
+                        "values(?,?,?,?,?,?,?,?)",
+                        [
+                            _dataDict["name"],
+                            ",".join([]),
+                            _dataDict["description"],
+                            token["id"],
+                            _dataDict["user"],
+                            _roompasshash,
+                            int(time.time()),
+                            json.dumps({}, ensure_ascii=False),
+                        ],
+                    )
+                    conn.commit()
+                    return json.dumps({"message": "processed"}, ensure_ascii=False)
+                elif _material["passhash"] not in ["", _roompasshash]:
+                    return json.dumps({"message": "wrongPass"})
+                elif _material["passhash"] == "0" and _material["id"] != token["id"]:
+                    return json.dumps({"message": "wrongPass"})
+                for key, value in _dataDict["materialid"]:
+                    cur.execute(
+                        "UPDATE tskb_material SET ? = ? WHERE id = ?;",
+                        [key, value, _material["id"]],
+                    )
                 conn.commit()
                 return json.dumps({"message": "processed"}, ensure_ascii=False)
             return json.dumps({"message": "rejected"})
 
         if "upload" in request.files:
+            _roompasshash = _dataDict["roomKey"]
+            if _dataDict["roomKey"] not in ["", "0"]:
+                _roompasshash = hashlib.sha256(
+                    _dataDict["roomKey"].encode()
+                ).hexdigest()
             if _dataDict["token"] == "":
                 return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
@@ -219,8 +263,8 @@ def show(request):
 
         if "download" in request.form:
             _dataDict.update(json.loads(request.form["download"]))
-            _roompasshash = ""
-            if _dataDict["roomKey"] != "":
+            _roompasshash = _dataDict["roomKey"]
+            if _dataDict["roomKey"] not in ["", "0"]:
                 _roompasshash = hashlib.sha256(
                     _dataDict["roomKey"].encode()
                 ).hexdigest()
@@ -256,14 +300,14 @@ def show(request):
 
         if "delete" in request.form:
             _dataDict.update(json.loads(request.form["delete"]))
-            if _dataDict["token"] == "":
-                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
-            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
-            _roompasshash = ""
-            if _dataDict["roomKey"] != "":
+            _roompasshash = _dataDict["roomKey"]
+            if _dataDict["roomKey"] not in ["", "0"]:
                 _roompasshash = hashlib.sha256(
                     _dataDict["roomKey"].encode()
                 ).hexdigest()
+            if _dataDict["token"] == "":
+                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
+            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -291,6 +335,11 @@ def show(request):
             return json.dumps({"message": "rejected"})
 
         if "search" in request.form:
+            _roompasshash = _dataDict["roomKey"]
+            if _dataDict["roomKey"] not in ["", "0"]:
+                _roompasshash = hashlib.sha256(
+                    _dataDict["roomKey"].encode()
+                ).hexdigest()
             _dataDict.update(json.loads(request.form["search"]))
             _userid = -1
             if _dataDict["token"] != "":
@@ -309,21 +358,25 @@ def show(request):
                     for result in cur.fetchall()
                 ]
                 return json.dumps(
-                    {"message": "processed", "combinations": _tskb_combinations},
+                    {
+                        "message": "processed",
+                        "combinations": _tskb_combinations,
+                        "token": encoded_new_token,
+                    },
                     ensure_ascii=False,
                 )
             return json.dumps({"message": "rejected"})
 
         if "create" in request.form:
             _dataDict.update(json.loads(request.form["create"]))
-            if _dataDict["token"] == "":
-                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
-            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
-            _roompasshash = ""
-            if _dataDict["roomKey"] != "":
+            _roompasshash = _dataDict["roomKey"]
+            if _dataDict["roomKey"] not in ["", "0"]:
                 _roompasshash = hashlib.sha256(
                     _dataDict["roomKey"].encode()
                 ).hexdigest()
+            if _dataDict["token"] == "":
+                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
+            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             if _dataDict["privateFlag"] == True:
                 _roompasshash = "0"
             with closing(sqlite3.connect(db_dir)) as conn:
@@ -360,6 +413,11 @@ def show(request):
             return json.dumps({"message": "rejected"})
 
         if "destroy" in request.form:
+            _roompasshash = _dataDict["roomKey"]
+            if _dataDict["roomKey"] not in ["", "0"]:
+                _roompasshash = hashlib.sha256(
+                    _dataDict["roomKey"].encode()
+                ).hexdigest()
             _dataDict.update(json.loads(request.form["destroy"]))
             if _dataDict["token"] == "":
                 return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)

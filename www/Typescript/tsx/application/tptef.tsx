@@ -21,12 +21,12 @@ export const AppMain = () => {
     const [tmpText, setTmpText] = useState("")
     const [contents, setContents] = useState([])
     const [tmpAttachment, setTmpAttachment] = useState(null)
-    const [tmpTargetRoom, setTmpTargetRoom] = useState("")
+    const [tmpTargetId, setTmpTargetId] = useState("")
 
     useEffect(() => {
         if (room["room"] == "") searchRoom()
         else fetchChat()
-    }, [token])
+    }, [userId])
     useEffect(() => { searchRoom() }, [])
 
     // jpclock (decoration)
@@ -84,6 +84,7 @@ export const AppMain = () => {
                     case "processed": {
                         setRoom(resJ["room"]);
                         sortSetContents(resJ["chats"])
+                        dispatch(accountSetState({ token: resJ["token"] })); break;
                     } break;
                     case "wrongPass": {
                         CIModal("部屋のパスワードが違います")
@@ -94,8 +95,12 @@ export const AppMain = () => {
                         searchRoom(); break;
                     }
                     case "tokenNothing": {
-                        CIModal("JWTトークン未提出です")
+                        CIModal("JWTトークン未提出")
                         searchRoom(); break;
+                    }
+                    case "tokenTimeout": {
+                        CIModal("JWTトークンタイムアウト");
+                        break;
                     }
                     default: {
                         CIModal("その他のエラー")
@@ -134,7 +139,7 @@ export const AppMain = () => {
                             searchRoom(); break;
                         }
                         case "tokenNothing": {
-                            CIModal("JWTトークン未提出です")
+                            CIModal("JWTトークン未提出")
                             searchRoom(); break;
                         }
                         default: {
@@ -180,7 +185,7 @@ export const AppMain = () => {
                         searchRoom(); break;
                     }
                     case "tokenNothing": {
-                        CIModal("JWTトークン未提出です")
+                        CIModal("JWTトークン未提出")
                         searchRoom(); break;
                     }
                     default: {
@@ -219,7 +224,7 @@ export const AppMain = () => {
                         searchRoom(); break;
                     }
                     case "tokenNothing": {
-                        CIModal("JWTトークン未提出です")
+                        CIModal("JWTトークン未提出")
                         searchRoom(); break;
                     }
                     default: {
@@ -233,11 +238,13 @@ export const AppMain = () => {
                 console.error(error.message)
             });
     }
-    const downloadChat = (_id: number, _fileName: string = "") => {
+    const downloadChat = (_id: number, _fileName: string = "", _asAttachment = true) => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("download", JSON.stringify({ "chatid": _id }))
+        formData.append("download", JSON.stringify({
+            "chatid": _id, "filename": _fileName, "as_attachment": _asAttachment
+        }))
         const request = new Request("/tptef/main.py", {
             method: 'POST',
             headers: headers,
@@ -280,7 +287,14 @@ export const AppMain = () => {
             .then(response => response.json())
             .then(resJ => {
                 switch (resJ["message"]) {
-                    case "processed": sortSetContentsRev(resJ["rooms"]); break;
+                    case "processed": {
+                        sortSetContentsRev(resJ["rooms"]);
+                        dispatch(accountSetState({ token: resJ["token"] })); break;
+                    }
+                    case "tokenTimeout": {
+                        CIModal("JWTトークンタイムアウト");
+                        break;
+                    }
                     default: {
                         CIModal("その他のエラー")
                         break;
@@ -314,7 +328,7 @@ export const AppMain = () => {
                         searchRoom(); break;
                     }
                     case "tokenNothing": {
-                        CIModal("JWTトークン未提出です")
+                        CIModal("JWTトークン未提出")
                         searchRoom(); break;
                     }
                     default: {
@@ -349,7 +363,7 @@ export const AppMain = () => {
                         searchRoom(); break;
                     }
                     case "tokenNothing": {
-                        CIModal("JWTトークン未提出です")
+                        CIModal("JWTトークン未提出")
                         searchRoom(); break;
                     }
                     case "youerntOwner": {
@@ -376,9 +390,9 @@ export const AppMain = () => {
                         <div className="modal-dialog">
                             <div className="modal-content">
                                 <div className="modal-header">
-                                    <h1 className="modal-title fs-5" id="exampleModalLabel">
+                                    <h3 className="modal-title fs-5">
                                         <i className="fa-solid fa-hammer mx-1" />部屋作成
-                                    </h1>
+                                    </h3>
                                 </div>
                                 <div className="modal-body row">
                                     <div className="input-group m-1 col-12">
@@ -451,7 +465,7 @@ export const AppMain = () => {
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h1 className="modal-title fs-5">
-                                    <i className="fa-solid fa-lock mx-1" />パスワードが必要
+                                    <i className="fa-solid fa-lock mx-1" />パスワード入力
                                 </h1>
                             </div>
                             <div className="modal-body row">
@@ -472,7 +486,7 @@ export const AppMain = () => {
                                             () => {
                                                 // roomKey cannot be updated in time
                                                 dispatch(accountSetState({ roomKey: tmpRoomKey }))
-                                                fetchChat(Number(tmpTargetRoom), tmpRoomKey)
+                                                fetchChat(Number(tmpTargetId), tmpRoomKey)
                                             }}>
                                         <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />入室
                                     </button> :
@@ -500,7 +514,7 @@ export const AppMain = () => {
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
-                                    onClick={() => { destroyRoom(Number(tmpTargetRoom)) }}>
+                                    onClick={() => { destroyRoom(Number(tmpTargetId)) }}>
                                     <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />削除
                                 </button>
                             </div>
@@ -519,10 +533,7 @@ export const AppMain = () => {
             var _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }
             if (contents[i]["passhash"] != "") _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.2))" }
             _tmpData.push(
-                <div className="col-12 border d-flex"
-                    style={_style}>
-                    {roomInterModal()}
-                    {roomTableDestroyRoomConfirmationModal()}
+                <div className="col-12 border d-flex" style={_style}>
                     <h5 className="me-auto">
                         <i className="far fa-user mx-1"></i>{contents[i]["user"]}
                     </h5>
@@ -533,7 +544,7 @@ export const AppMain = () => {
                         </button> :
                         <button className="btn btn-outline-dark rounded-pill"
                             onClick={(evt: any) => {
-                                setTmpTargetRoom(evt.target.value)
+                                setTmpTargetId(evt.target.value)
                                 $('#roomInterModal').modal('show')
                             }} value={contents[i]["id"]}>
                             <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>入室
@@ -542,14 +553,14 @@ export const AppMain = () => {
                     {contents[i]["userid"] == userId ?
                         <button className="btn btn-outline-danger rounded-pill"
                             onClick={(evt: any) => {
-                                setTmpTargetRoom(evt.target.value)
+                                setTmpTargetId(evt.target.value)
                                 $('#roomTableDestroyRoomConfirmationModal').modal('show');
 
                             }} value={contents[i]["id"]}>
                             <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>削除
                         </button> : <div></div>
                     }
-                </div>)
+                </div >)
             _tmpData.push(
                 <div className="col-12 col-md-10 p-1 d-flex justify-content-center align-items-center border">
                     <h3>
@@ -568,7 +579,13 @@ export const AppMain = () => {
                 </div>
             )
         }
-        return (<div className="row m-1">{_tmpRecord}</div>)
+        return (
+            <div>
+                {roomInterModal()}
+                {roomTableDestroyRoomConfirmationModal()}
+                <div className="row m-1">{_tmpRecord}
+                </div>
+            </div>)
     }
     const chatTopFormRender = () => {
         const destroyRoomConfirmationModal = () => {
@@ -598,12 +615,10 @@ export const AppMain = () => {
                 {destroyRoomConfirmationModal()}
                 <div className="input-group d-flex justify-content-center align-items-center my-1">
                     <button className="btn btn-outline-success btn-lg" type="button"
-                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="reload"
                         onClick={() => { fetchChat() }}>
                         <i className="fa-solid fa-rotate-right mx-1" />
                     </button>
                     <button className="btn btn-outline-dark btn-lg" type="button"
-                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="You are not own this room"
                         disabled>
                         <i className="far fa-user mx-1"></i>{room["user"]}
                     </button>
@@ -634,17 +649,20 @@ export const AppMain = () => {
                 return (<div className="row m-1">loading</div>)
         const _tmpRecord = [];
         for (var i = 0; i < contents.length; i++) {
+            var _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }
+            if (contents[i]["mode"] == "attachment")
+                _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,150,0.2))" }
             const _tmpData = [];
             // text
+            _tmpData.push(
+                <div className="col-12 border d-flex"
+                    style={_style}>
+                    <h5 className="me-auto">
+                        <i className="far fa-user mx-1"></i>{contents[i]["user"]}
+                    </h5>
+                    {Unixtime2String(Number(contents[i]["timestamp"]))}
+                </div>)
             if (contents[i]["mode"] == "text") {
-                _tmpData.push(
-                    <div className="col-12 border d-flex"
-                        style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }}>
-                        <h5 className="me-auto">
-                            <i className="far fa-user mx-1"></i>{contents[i]["user"]}
-                        </h5>
-                        {Unixtime2String(Number(contents[i]["timestamp"]))}
-                    </div>)
                 _tmpData.push(
                     <div className="col-12 col-md-9 border"><div className="text-center">
                         {contents[i]["text"]}
@@ -664,19 +682,11 @@ export const AppMain = () => {
             // file
             if (contents[i]["mode"] == "attachment") {
                 _tmpData.push(
-                    <div className="col-12 border d-flex"
-                        style={{ background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,150,0.2))" }}>
-                        <h5 className="me-auto">
-                            <i className="far fa-user mx-1"></i>{contents[i]["user"]}
-                        </h5>
-                        {Unixtime2String(Number(contents[i]["timestamp"]))}
-                    </div>)
-                _tmpData.push(
                     <div className="col-12 col-md-9 border"><div className="text-center">
                         {contents[i]["text"]}
                     </div></div>)
                 _tmpData.push(
-                    <div className="col-12 col-md-3 border"><div className="text-center">
+                    <div className="col-12 col-md-3 border d-flex justify-content-end">
                         <button className="btn btn-outline-primary rounded-pill"
                             onClick={(evt: any) => {
                                 downloadChat(evt.target.value, evt.target.name);
@@ -692,7 +702,7 @@ export const AppMain = () => {
                                     <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>Delete
                                 </button> : <div></div>
                         }
-                    </div></div>)
+                    </div>)
             }
             _tmpRecord.push(
                 <div style={{
