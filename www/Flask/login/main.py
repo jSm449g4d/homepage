@@ -33,6 +33,7 @@ os.makedirs(tmp_dir, exist_ok=True)
 key_dir = "./keys/keys.json"
 db_dir = "./tmp/sqlite.db"
 pyJWT_pass = "test"
+pyJWT_timeout = 3600
 keys = {}
 if os.path.exists(key_dir):
     with open(key_dir) as f:
@@ -41,6 +42,8 @@ if os.path.exists(key_dir):
             db_dir = keys["db"]
         if "pyJWT_pass" in keys:
             pyJWT_pass = keys["pyJWT_pass"]
+        if "pyJWT_timeout" in keys:
+            pyJWT_timeout = keys["pyJWT_timeout"]
 
 with closing(sqlite3.connect(db_dir)) as conn:
     cur = conn.cursor()
@@ -56,9 +59,23 @@ def show(request):
     if request.method == "GET":
         return get_response()
     if request.method == "POST":
+        if "info" not in request.form:
+            return json.dumps({"message": "notEnoughForm(info)"}, ensure_ascii=False)
+        _dataDict = json.loads(request.form["info"])
+        token = ""
+        encoded_new_token = token
+        if _dataDict["token"] != "":
+            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
+            if token["timestamp"] + pyJWT_timeout < int(time.time()):
+                return json.dumps({"message": "tokenTimeout"}, ensure_ascii=False)
+            encoded_new_token = jwt.encode(
+                {"id": token["id"], "timestamp": int(time.time())},
+                pyJWT_pass,
+                algorithm="HS256",
+            )
 
         if "login" in request.form:
-            _dataDict = json.loads(request.form["login"])
+            _dataDict.update(json.loads(request.form["login"]))
             user = _dataDict["user"]
             passhash = hashlib.sha256(_dataDict["pass"].encode()).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
@@ -71,7 +88,7 @@ def show(request):
                 if _data["passhash"] != passhash:
                     return json.dumps({"message": "wrongPass"})
                 token = jwt.encode(
-                    {"id": _data["id"], "timestamp": _data["timestamp"]},
+                    {"id": _data["id"], "timestamp": int(time.time())},
                     pyJWT_pass,
                     algorithm="HS256",
                 )
@@ -88,7 +105,7 @@ def show(request):
             return json.dumps({"message": "rejected"})
 
         if "signin" in request.form:
-            _dataDict = json.loads(request.form["signin"])
+            _dataDict.update(json.loads(request.form["signin"]))
             passhash = hashlib.sha256(_dataDict["pass"].encode()).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
@@ -111,7 +128,7 @@ def show(request):
                 )
                 _data = cur.fetchone()
                 token = jwt.encode(
-                    {"id": _data["id"], "timestamp": _data["timestamp"]},
+                    {"id": _data["id"], "timestamp": int(time.time())},
                     pyJWT_pass,
                     algorithm="HS256",
                 )
@@ -130,10 +147,9 @@ def show(request):
             return json.dumps({"message": "processed"}, ensure_ascii=False)
 
         if "account_change" in request.form:
-            _dataDict = json.loads(request.form["account_change"])
-            if _dataDict["token"] == "":
+            _dataDict.update(json.loads(request.form["account_change"]))
+            if token == "":
                 return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
-            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             _passhash = hashlib.sha256(_dataDict["pass"].encode()).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
@@ -163,26 +179,29 @@ def show(request):
                         "message": "processed",
                         "user": _user,
                         "mail": _mail,
+                        "token": encoded_new_token,
                     },
                     ensure_ascii=False,
                 )
             return json.dumps({"message": "rejected"})
 
         if "account_delete" in request.form:
-            _dataDict = json.loads(request.form["account_delete"])
-            if _dataDict["token"] == "":
+            _dataDict.update(json.loads(request.form["account_delete"]))
+            if token == "":
                 return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
-            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # process
                 cur.execute(
-                    "DELETE FROM account WHERE id = ? AND timestamp = ? ;",
-                    [token["id"], token["timestamp"]],
+                    "DELETE FROM account WHERE id = ?;",
+                    [token["id"]],
                 )
                 conn.commit()
-                return json.dumps({"message": "processed"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "processed"},
+                    ensure_ascii=False,
+                )
             return json.dumps({"message": "rejected"})
 
     return "404: nof found → main.html", 404

@@ -33,6 +33,7 @@ os.makedirs(tmp_dir, exist_ok=True)
 key_dir = "./keys/keys.json"
 db_dir = "./tmp/sqlite.db"
 pyJWT_pass = "test"
+pyJWT_timeout = 3600
 keys = {}
 if os.path.exists(key_dir):
     with open(key_dir) as f:
@@ -41,6 +42,8 @@ if os.path.exists(key_dir):
             db_dir = keys["db"]
         if "pyJWT_pass" in keys:
             pyJWT_pass = keys["pyJWT_pass"]
+        if "pyJWT_timeout" in keys:
+            pyJWT_timeout = keys["pyJWT_timeout"]
 
 with closing(sqlite3.connect(db_dir)) as conn:
     cur = conn.cursor()
@@ -65,14 +68,23 @@ def show(request):
         if "info" not in request.form:
             return json.dumps({"message": "notEnoughForm(info)"}, ensure_ascii=False)
         _dataDict = json.loads(request.form["info"])
+        token = ""
+        encoded_new_token = token
+        if _dataDict["token"] != "":
+            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
+            if token["timestamp"] + pyJWT_timeout < int(time.time()):
+                return json.dumps({"message": "tokenTimeout"}, ensure_ascii=False)
+            encoded_new_token = jwt.encode(
+                {"id": token["id"], "timestamp": int(time.time())},
+                pyJWT_pass,
+                algorithm="HS256",
+            )
 
         if "fetch" in request.form:
             _dataDict.update(json.loads(request.form["fetch"]))
-            _roompasshash = ""
-            if _dataDict["roomKey"] != "":
-                _roompasshash = hashlib.sha256(
-                    _dataDict["roomKey"].encode()
-                ).hexdigest()
+            _roompasshash = _dataDict["roomKey"]
+            if _dataDict["roomKey"] not in ["", "0"]:
+                _roompasshash = hashlib.sha256(_dataDict["roomKey"].encode()).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -99,6 +111,7 @@ def show(request):
                         "chats": _chats,
                         "room": dict(_room),
                         "userid": _userid,
+                        "token": encoded_new_token,
                     },
                     ensure_ascii=False,
                 )
@@ -106,14 +119,11 @@ def show(request):
 
         if "remark" in request.form:
             _dataDict.update(json.loads(request.form["remark"]))
-            if _dataDict["token"] == "":
+            _roompasshash = _dataDict["roomKey"]
+            if _dataDict["roomKey"] not in ["", "0"]:
+                _roompasshash = hashlib.sha256(_dataDict["roomKey"].encode()).hexdigest()
+            if token == "":
                 return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
-            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
-            _roompasshash = ""
-            if _dataDict["roomKey"] != "":
-                _roompasshash = hashlib.sha256(
-                    _dataDict["roomKey"].encode()
-                ).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -139,18 +149,18 @@ def show(request):
                     ],
                 )
                 conn.commit()
-                return json.dumps({"message": "processed"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "processed"},
+                    ensure_ascii=False,
+                )
             return json.dumps({"message": "rejected"}, ensure_ascii=False)
 
         if "upload" in request.files:
-            if _dataDict["token"] == "":
+            _roompasshash = _dataDict["roomKey"]
+            if _dataDict["roomKey"] not in ["", "0"]:
+                _roompasshash = hashlib.sha256(_dataDict["roomKey"].encode()).hexdigest()
+            if token == "":
                 return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
-            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
-            _roompasshash = ""
-            if _dataDict["roomKey"] != "":
-                _roompasshash = hashlib.sha256(
-                    _dataDict["roomKey"].encode()
-                ).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -187,16 +197,17 @@ def show(request):
                 request.files["upload"].save(
                     os.path.normpath(os.path.join(tmp_dir, str(_chat["id"])))
                 )
-                return json.dumps({"message": "processed"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "processed"},
+                    ensure_ascii=False,
+                )
             return json.dumps({"message": "rejected"}, ensure_ascii=False)
 
         if "download" in request.form:
             _dataDict.update(json.loads(request.form["download"]))
-            _roompasshash = ""
-            if _dataDict["roomKey"] != "":
-                _roompasshash = hashlib.sha256(
-                    _dataDict["roomKey"].encode()
-                ).hexdigest()
+            _roompasshash = _dataDict["roomKey"]
+            if _dataDict["roomKey"] not in ["", "0"]:
+                _roompasshash = hashlib.sha256(_dataDict["roomKey"].encode()).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -229,14 +240,11 @@ def show(request):
 
         if "delete" in request.form:
             _dataDict.update(json.loads(request.form["delete"]))
-            if _dataDict["token"] == "":
+            _roompasshash = _dataDict["roomKey"]
+            if _dataDict["roomKey"] not in ["", "0"]:
+                _roompasshash = hashlib.sha256(_dataDict["roomKey"].encode()).hexdigest()
+            if token == "":
                 return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
-            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
-            _roompasshash = ""
-            if _dataDict["roomKey"] != "":
-                _roompasshash = hashlib.sha256(
-                    _dataDict["roomKey"].encode()
-                ).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -260,11 +268,17 @@ def show(request):
                 )
                 if os.path.exists(_remove_file):
                     os.remove(_remove_file)
-                return json.dumps({"message": "processed"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "processed"},
+                    ensure_ascii=False,
+                )
             return json.dumps({"message": "rejected"}, ensure_ascii=False)
 
         if "search" in request.form:
             _dataDict.update(json.loads(request.form["search"]))
+            _roompasshash = _dataDict["roomKey"]
+            if _dataDict["roomKey"] not in ["", "0"]:
+                _roompasshash = hashlib.sha256(_dataDict["roomKey"].encode()).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -274,18 +288,22 @@ def show(request):
                     for result in cur.fetchall()
                 ]
                 return json.dumps(
-                    {"message": "processed", "rooms": _rooms}, ensure_ascii=False
+                    {
+                        "message": "processed",
+                        "rooms": _rooms,
+                        "token": encoded_new_token,
+                    },
+                    ensure_ascii=False,
                 )
             return json.dumps({"message": "rejected"}, ensure_ascii=False)
 
         if "create" in request.form:
             _dataDict.update(json.loads(request.form["create"]))
-            if _dataDict["token"] == "":
-                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
-            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
-            _roompasshash = ""
-            if _dataDict["roomKey"] != "":
+            _roompasshash = _dataDict["roomKey"]
+            if _dataDict["roomKey"] not in ["", "0"]:
                 _roompasshash = hashlib.sha256(_dataDict["roomKey"].encode()).hexdigest()
+            if token == "":
+                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -313,16 +331,21 @@ def show(request):
                 _room = cur.fetchone()
                 if _room != None:
                     return json.dumps(
-                        {"message": "processed", "room": dict(_room)},
+                        {
+                            "message": "processed",
+                            "room": dict(_room),
+                        },
                         ensure_ascii=False,
                     )
             return json.dumps({"message": "rejected"}, ensure_ascii=False)
 
         if "destroy" in request.form:
             _dataDict.update(json.loads(request.form["destroy"]))
-            if _dataDict["token"] == "":
+            _roompasshash = _dataDict["roomKey"]
+            if _dataDict["roomKey"] not in ["", "0"]:
+                _roompasshash = hashlib.sha256(_dataDict["roomKey"].encode()).hexdigest()
+            if token == "":
                 return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
-            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -355,7 +378,10 @@ def show(request):
                     [_room["id"]],
                 )
                 conn.commit()
-                return json.dumps({"message": "processed"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "processed"},
+                    ensure_ascii=False,
+                )
             return json.dumps({"message": "rejected"}, ensure_ascii=False)
 
     return "404: nof found → main.html", 404

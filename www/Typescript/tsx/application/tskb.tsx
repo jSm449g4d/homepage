@@ -22,17 +22,18 @@ export const AppMain = () => {
         "timestamp": 0, "passhash": "", "contents": ""
     })
     const [tmpCombination, setTmpCombination] = useState("")
+    const [tmpnutrition, setTmpNutrition] = useState({})
     const [tmpRoomKey, setTmpRoomKey] = useState("")
     const [tmpText, setTmpText] = useState("")
     const [contents, setContents] = useState([])
     const [tmpAttachment, setTmpAttachment] = useState(null)
-    const [tmpTargetCombination, setTmpTargetCombination] = useState("")
+    const [tmpTargetId, setTmpTargetId] = useState("")
     const [tmpPrivateFlag, setTmpPrivateFlag] = useState(false)
 
     useEffect(() => {
         if (combination["name"] == "") searchCombination()
         else fetchChat()
-    }, [token])
+    }, [userId])
     useEffect(() => { searchCombination() }, [])
 
     // jpclock (decoration)
@@ -52,14 +53,17 @@ export const AppMain = () => {
             }, _additionalDict)
         return (JSON.stringify(_sendDict))
     }
-    const enterRoom = (_setContentsInitialze = true) => {
+    const enterCombination = (_setContentsInitialze = true) => {
         if (_setContentsInitialze) setContents([])
         setTmpCombination(""); setTmpText(""); setTmpRoomKey(""); setTmpAttachment(null);
         $('#inputConsoleAttachment').val(null)
     }
-    const exitRoom = (_setContentsInitialze = true) => {
+    const exitCombination = (_setContentsInitialze = true) => {
         if (_setContentsInitialze) setContents([])
-        setRoom({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" });
+        setCombination({
+            "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
+            "timestamp": 0, "passhash": "", "contents": ""
+        })
         setTmpCombination(""); setTmpText(""); setTmpRoomKey(""); setTmpAttachment(null);
     }
     const compareDictKeys = (_targetDict: {}, _keys: any[]) => {
@@ -67,12 +71,13 @@ export const AppMain = () => {
             return (true)
         return false
     }
-    const fetchChat = (_roomid = room["id"], _roomKey = roomKey) => {
+    const fetchChat = (_roomid = room["id"], _roomKey = roomKey) => { }
+    const fetchMaterial = (_roomid = room["id"], _roomKey = roomKey) => {
         const sortSetContents = (_contents: any = []) => {
             const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
             setContents(_contents.sort(_sortContents))
         }
-        enterRoom(false)
+        enterCombination(false)
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
@@ -88,24 +93,29 @@ export const AppMain = () => {
             .then(resJ => {
                 switch (resJ["message"]) {
                     case "processed": {
-                        setRoom(resJ["room"]);
-                        sortSetContents(resJ["chats"])
+                        setCombination(resJ["combination"]);
+                        sortSetContents(resJ["materials"])
+                        dispatch(accountSetState({ token: resJ["token"] })); break;
                     } break;
                     case "wrongPass": {
                         CIModal("部屋のパスワードが違います")
-                        searchRoom(); break;
+                        searchCombination(); break;
                     }
                     case "notExist": {
                         CIModal("部屋が存在しません")
-                        searchRoom(); break;
+                        searchCombination(); break;
                     }
                     case "tokenNothing": {
-                        CIModal("JWTトークン未提出です")
-                        searchRoom(); break;
+                        CIModal("JWTトークン未提出")
+                        searchCombination(); break;
+                    }
+                    case "tokenTimeout": {
+                        CIModal("JWTトークンタイムアウト");
+                        break;
                     }
                     default: {
                         CIModal("その他のエラー")
-                        searchRoom(); break;
+                        searchCombination(); break;
                     }
                 }
             })
@@ -114,13 +124,19 @@ export const AppMain = () => {
                 console.error(error.message)
             });
     }
-    const remarkChat = () => {
+    const registerMaterial = () => {
         if (tmpText != "") {
             const headers = new Headers();
             const formData = new FormData();
             formData.append("info", stringForSend())
-            formData.append("remark", JSON.stringify({}))
-            const request = new Request("/tptef/main.py", {
+            formData.append("register", JSON.stringify(Object.assign({
+                "name": tmpCombination, "description": tmpText,
+                "roomKey": tmpRoomKey, "privateFlag": tmpPrivateFlag,
+                "materialid": tmpTargetId, "tmpnutrition": tmpnutrition
+            }),
+
+            ))
+            const request = new Request("/tskb/main.py", {
                 method: 'POST',
                 headers: headers,
                 body: formData,
@@ -130,22 +146,22 @@ export const AppMain = () => {
                 .then(response => response.json())
                 .then(resJ => {
                     switch (resJ["message"]) {
-                        case "processed": roadDelay(fetchChat); break;
+                        case "processed": roadDelay(fetchMaterial); break;
                         case "wrongPass": {
                             CIModal("部屋のパスワードが違います")
-                            searchRoom(); break;
+                            searchCombination(); break;
                         }
                         case "notExist": {
                             CIModal("部屋が存在しません")
-                            searchRoom(); break;
+                            searchCombination(); break;
                         }
                         case "tokenNothing": {
-                            CIModal("JWTトークン未提出です")
-                            searchRoom(); break;
+                            CIModal("JWTトークン未提出")
+                            searchCombination(); break;
                         }
                         default: {
                             CIModal("その他のエラー")
-                            searchRoom(); break;
+                            searchCombination(); break;
                         }
                     }
                 })
@@ -154,51 +170,6 @@ export const AppMain = () => {
                     console.error(error.message)
                 });
         }
-        // upload file
-        if (tmpAttachment == null) return
-        if (fileSizeMax <= tmpAttachment.size) {
-            $('#cautionInfoModal').modal('show');
-            $('#cautionInfoModalTitle').text(
-                "ファイルサイズが大きすぎます(" + String(fileSizeMax) + " byte)未満")
-            return
-        }
-        const headers = new Headers();
-        const formData = new FormData();
-        formData.append("info", stringForSend())
-        formData.append("upload", tmpAttachment, tmpAttachment.name)
-        const request = new Request("/tptef/main.py", {
-            method: 'POST',
-            headers: headers,
-            body: formData,
-            signal: AbortSignal.timeout(xhrTimeout)
-        });
-        fetch(request)
-            .then(response => response.json())
-            .then(resJ => {
-                switch (resJ["message"]) {
-                    case "processed": roadDelay(fetchChat); break;
-                    case "wrongPass": {
-                        CIModal("部屋のパスワードが違います")
-                        searchRoom(); break;
-                    }
-                    case "notExist": {
-                        CIModal("部屋が存在しません")
-                        searchRoom(); break;
-                    }
-                    case "tokenNothing": {
-                        CIModal("JWTトークン未提出です")
-                        searchRoom(); break;
-                    }
-                    default: {
-                        CIModal("その他のエラー")
-                        searchRoom(); break;
-                    }
-                }
-            })
-            .catch(error => {
-                CIModal("通信エラー")
-                console.error(error.message)
-            });
     }
     const deleteChat = (_id: number) => {
         const headers = new Headers();
@@ -225,7 +196,7 @@ export const AppMain = () => {
                         searchRoom(); break;
                     }
                     case "tokenNothing": {
-                        CIModal("JWTトークン未提出です")
+                        CIModal("JWTトークン未提出")
                         searchRoom(); break;
                     }
                     default: {
@@ -273,7 +244,7 @@ export const AppMain = () => {
             const _sortContentsRev = (a: any, b: any) => { return b["timestamp"] - a["timestamp"] }
             setContents(_contents.sort(_sortContentsRev))
         }
-        exitRoom(false)
+        exitCombination(false)
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
@@ -288,7 +259,14 @@ export const AppMain = () => {
             .then(response => response.json())
             .then(resJ => {
                 switch (resJ["message"]) {
-                    case "processed": sortSetContentsRev(resJ["combinations"]); break;
+                    case "processed": {
+                        sortSetContentsRev(resJ["combinations"]);
+                        dispatch(accountSetState({ token: resJ["token"] })); break;
+                    }
+                    case "tokenTimeout": {
+                        CIModal("JWTトークンタイムアウト");
+                        break;
+                    }
                     default: {
                         CIModal("その他のエラー")
                         break;
@@ -301,7 +279,7 @@ export const AppMain = () => {
             });
     }
     const createCombination = () => {
-        exitRoom()
+        exitCombination()
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
@@ -360,7 +338,7 @@ export const AppMain = () => {
                         searchCombination(); break;
                     }
                     case "tokenNothing": {
-                        CIModal("JWTトークン未提出です")
+                        CIModal("JWTトークン未提出")
                         searchCombination(); break;
                     }
                     case "youerntOwner": {
@@ -387,9 +365,9 @@ export const AppMain = () => {
                         <div className="modal-dialog">
                             <div className="modal-content">
                                 <div className="modal-header">
-                                    <h1 className="modal-title fs-5" id="exampleModalLabel">
+                                    <h3 className="modal-title fs-5">
                                         <i className="fa-solid fa-hammer mx-1" />レシピ作成
-                                    </h1>
+                                    </h3>
                                 </div>
                                 <div className="modal-body row">
                                     <div className="input-group m-1 col-12">
@@ -506,7 +484,7 @@ export const AppMain = () => {
                                             () => {
                                                 // roomKey cannot be updated in time
                                                 dispatch(accountSetState({ roomKey: tmpRoomKey }))
-                                                fetchChat(Number(tmpTargetCombination), tmpRoomKey)
+                                                fetchChat(Number(tmpTargetId), tmpRoomKey)
                                             }}>
                                         <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />閲覧
                                     </button> :
@@ -534,7 +512,7 @@ export const AppMain = () => {
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
-                                    onClick={() => { destroyCombination(Number(tmpTargetCombination)) }}>
+                                    onClick={() => { destroyCombination(Number(tmpTargetId)) }}>
                                     <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />破棄
                                 </button>
                             </div>
@@ -551,37 +529,39 @@ export const AppMain = () => {
             if (contents[i]["name"].indexOf(tmpCombination) == -1) continue
             const _tmpData = [];
             var _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }
-            if (contents[i]["passhash"] == "") { _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.2))" } }
+            if (contents[i]["passhash"] != "") { _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.2))" } }
             if (contents[i]["passhash"] == "0") { _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,150,0.2))" } }
             _tmpData.push(
-                <div className="col-12 border d-flex" style={_style}>
+                <div>
                     {combinationInterModal()}
                     {combinationTableDestroycombinationConfirmationModal()}
-                    <h5 className="me-auto">
-                        <i className="fa-solid fa-jar mx-1"></i>{contents[i]["name"]}
-                    </h5>
-                    {contents[i]["passhash"] == "" ?
-                        <button className="btn btn-outline-primary rounded-pill"
-                            onClick={(evt: any) => { fetchChat(evt.target.value) }} value={contents[i]["id"]}>
-                            <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>閲覧
-                        </button> :
-                        <button className="btn btn-outline-dark rounded-pill"
-                            onClick={(evt: any) => {
-                                setTmpTargetCombination(evt.target.value)
-                                $('#combinationInterModal').modal('show')
-                            }} value={contents[i]["id"]}>
-                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>閲覧
-                        </button>
-                    }
-                    {contents[i]["userid"] == userId ?
-                        <button className="btn btn-outline-danger rounded-pill"
-                            onClick={(evt: any) => {
-                                setTmpTargetCombination(evt.target.value)
-                                $('#combinationTableDestroycombinationConfirmationModal').modal('show');
-                            }} value={contents[i]["id"]}>
-                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>破棄
-                        </button> : <div></div>
-                    }
+                    <div className="col-12 border d-flex" style={_style}>
+                        <h5 className="me-auto">
+                            <i className="fa-solid fa-jar mx-1"></i>{contents[i]["name"]}
+                        </h5>
+                        {contents[i]["passhash"] == "" ?
+                            <button className="btn btn-outline-primary rounded-pill"
+                                onClick={(evt: any) => { fetchChat(evt.target.value) }} value={contents[i]["id"]}>
+                                <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>閲覧
+                            </button> :
+                            <button className="btn btn-outline-dark rounded-pill"
+                                onClick={(evt: any) => {
+                                    setTmpTargetId(evt.target.value)
+                                    $('#combinationInterModal').modal('show')
+                                }} value={contents[i]["id"]}>
+                                <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>閲覧
+                            </button>
+                        }
+                        {contents[i]["userid"] == userId ?
+                            <button className="btn btn-outline-danger rounded-pill"
+                                onClick={(evt: any) => {
+                                    setTmpTargetId(evt.target.value)
+                                    $('#combinationTableDestroycombinationConfirmationModal').modal('show');
+                                }} value={contents[i]["id"]}>
+                                <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>破棄
+                            </button> : <div></div>
+                        }
+                    </div>
                 </div>)
             _tmpData.push(
                 <div className="col-12 col-md-10 p-1 d-flex justify-content-center align-items-center border">
@@ -603,22 +583,22 @@ export const AppMain = () => {
         }
         return (<div className="row m-1">{_tmpRecord}</div>)
     }
-    const chatTopFormRender = () => {
-        const destroyRoomConfirmationModal = () => {
+    const materialTopFormRender = () => {
+        const destroyMaterialConfirmationModal = () => {
             return (
-                <div className="modal fade" id="destroyRoomConfirmationModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal fade" id="destroyMaterialConfirmationModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h4 className="modal-title">
-                                    <i className="fa-solid fa-circle-info mx-1" />Are you sure Destory Room?
+                                    <i className="fa-solid fa-circle-info mx-1" />レシピを破棄しますか?
                                 </h4>
                             </div>
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
                                     onClick={() => { destroyCombination() }}>
-                                    <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />Destroy
+                                    <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />破棄
                                 </button>
                             </div>
                         </div>
@@ -628,36 +608,32 @@ export const AppMain = () => {
         }
         return (
             <div>
-                {destroyRoomConfirmationModal()}
+                {destroyMaterialConfirmationModal()}
                 <div className="input-group d-flex justify-content-center align-items-center my-1">
-
                     <button className="btn btn-outline-success btn-lg" type="button"
-                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="reload"
-                        onClick={() => { fetchChat() }}>
+                        onClick={() => { fetchMaterial() }}>
                         <i className="fa-solid fa-rotate-right mx-1" />
                     </button>
                     <button className="btn btn-outline-dark btn-lg" type="button"
-                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="You are not own this room"
                         disabled>
-                        <i className="far fa-user mx-1"></i>{room["user"]}
+                        <i className="far fa-user mx-1"></i>{combination["user"]}
                     </button>
-                    <input className="flex-fill form-control form-control-lg" type="text" value={room["room"]}
+                    <input className="flex-fill form-control form-control-lg" type="text" value={combination["name"]}
                         disabled>
                     </input >
-                    {room["userid"] == userId ?
+                    {combination["userid"] == userId ?
                         <button className="btn btn-outline-danger btn-lg" type="button"
-                            onClick={() => { $("#destroyRoomConfirmationModal").modal('show') }}>
-                            <i className="far fa-trash-alt mx-1 " style={{ pointerEvents: "none" }}></i>部屋削除
+                            onClick={() => { $("#destroyMaterialConfirmationModal").modal('show') }}>
+                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>レシピ破棄
                         </button> :
                         <button className="btn btn-outline-info btn-lg" type="button"
-                            onClick={() => { HIModal("部屋削除は部屋作成者にしかできません") }}>
-                            <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />部屋削除
+                            onClick={() => { HIModal("レシピ破棄は作成者にしかできません") }}>
+                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>レシピ破棄
                         </button>
                     }
                     <button className="btn btn-outline-dark btn-lg" type="button"
-                        onClick={() => { searchRoom() }}>
-                        <i className="fa-solid fa-right-from-bracket mx-1"></i>
-                        部屋を出る
+                        onClick={() => { searchCombination() }}>
+                        <i className="fa-solid fa-right-from-bracket mx-1"></i>レシピ一覧に戻る
                     </button>
                 </div></div>)
     }
@@ -735,6 +711,7 @@ export const AppMain = () => {
         }
         return (<div className="">{_tmpRecord}</div>)
     }
+    {/**
     const inputConsole = () => {
         const remarkButton = () => {
             if (tmpAttachment == null && tmpText == "")
@@ -785,7 +762,7 @@ export const AppMain = () => {
                 </div>
             </div>
         )
-    }
+    }*/}
     // applicationRender
     return (
         <div>
@@ -795,11 +772,10 @@ export const AppMain = () => {
                     {combinationTable()}
                 </div> :
                 <div className="m-1">
-                    工事中
-                    {/** 
-                        {chatTopFormRender()}
-                        {chatTable()}
-                        {inputConsole()}*/}
+                    {materialTopFormRender()}
+                    {/**
+                    {chatTable()}
+                    {inputConsole()} */}
                 </div>
             }
         </div>

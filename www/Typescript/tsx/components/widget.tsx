@@ -20,6 +20,7 @@ export const AppWidgetHead = () => {
     const user = useAppSelector((state) => state.account.user)
     const token = useAppSelector((state) => state.account.token)
     const mail = useAppSelector((state) => state.account.mail)
+    const roomKey = useAppSelector((state) => state.account.roomKey)
     const dispatch = useAppDispatch()
 
     // accountControl
@@ -29,10 +30,18 @@ export const AppWidgetHead = () => {
     const _formInit = () => {
         setTmpUser(""); setTmpPass(""); setTmpMail(""); setTmpButtonFlag(false);
     }
+    const stringForSend = (_additionalDict: {} = {}) => {
+        const _sendDict = Object.assign(
+            {
+                "token": token, "user": tmpUser, "pass": tmpPass, "mail": tmpMail, "roomKey": roomKey
+            }, _additionalDict)
+        return (JSON.stringify(_sendDict))
+    }
     const _login = () => {
         const headers = new Headers();
         const formData = new FormData();
-        formData.append("login", JSON.stringify({ "user": tmpUser, "pass": tmpPass }))
+        formData.append("info", stringForSend())
+        formData.append("login", JSON.stringify({}))
         const request = new Request("/login/main.py", {
             method: 'POST',
             headers: headers,
@@ -62,11 +71,13 @@ export const AppWidgetHead = () => {
                 CIModal("通信エラー")
                 console.error(error.message)
             });
+            _formInit()
     }
     const _signin = () => {
         const headers = new Headers();
         const formData = new FormData();
-        formData.append("signin", JSON.stringify({ "user": tmpUser, "pass": tmpPass }))
+        formData.append("info", stringForSend())
+        formData.append("signin", JSON.stringify({}))
         const request = new Request("/login/main.py", {
             method: 'POST',
             headers: headers,
@@ -79,7 +90,7 @@ export const AppWidgetHead = () => {
                 switch (resJ["message"]) {
                     case "processed": {
                         dispatch(accountSetState({
-                            user: resJ["user"], token: resJ["token"], id: resJ["id"], mail: resJ["mail"]
+                            user: resJ["user"], id: resJ["id"], mail: resJ["mail"], token: resJ["token"],
                         })); break;
                     }
                     case "alreadyExist": {
@@ -101,7 +112,8 @@ export const AppWidgetHead = () => {
     const _accountChange = () => {
         const headers = new Headers();
         const formData = new FormData();
-        formData.append("account_change", JSON.stringify({ "token": token, "user": tmpUser, "pass": tmpPass, "mail": tmpMail }))
+        formData.append("info", stringForSend())
+        formData.append("account_change", JSON.stringify({}))
         const request = new Request("/login/main.py", {
             method: 'POST',
             headers: headers,
@@ -113,7 +125,15 @@ export const AppWidgetHead = () => {
             .then(resJ => {
                 switch (resJ["message"]) {
                     case "processed": {
-                        dispatch(accountSetState({ user: resJ["user"], mail: resJ["mail"] })); break;
+                        dispatch(accountSetState({ user: resJ["user"], mail: resJ["mail"], token: resJ["token"] })); break;
+                    }
+                    case "tokenNothing": {
+                        CIModal("JWTトークン未提出"); break;
+                    }
+                    case "tokenTimeout": {
+                        CIModal("JWTトークンタイムアウト");
+                        _logoutInit();
+                        break;
                     }
                     case "notExist": {
                         CIModal("アカウントが存在しません"); break;
@@ -133,7 +153,8 @@ export const AppWidgetHead = () => {
     const _accountDelete = () => {
         const headers = new Headers();
         const formData = new FormData();
-        formData.append("account_delete", JSON.stringify({ "token": token }))
+        formData.append("info", stringForSend())
+        formData.append("account_delete", JSON.stringify({}))
         const request = new Request("/login/main.py", {
             method: 'POST',
             headers: headers,
@@ -144,6 +165,14 @@ export const AppWidgetHead = () => {
             .then(response => response.json())
             .then(resJ => {
                 switch (resJ["message"]) {
+                    case "tokenNothing": {
+                        CIModal("JWTトークン未提出"); break;
+                    }
+                    case "tokenTimeout": {
+                        CIModal("JWTトークンタイムアウト");
+                        _logoutInit();
+                        break;
+                    }
                     case "processed": { _logoutInit(); break; }
                     default: { CIModal("不明なエラーです"); break; }
                 }
@@ -336,7 +365,14 @@ export const AppWidgetHead = () => {
                 {accountConfigModal()}
                 {token == "" ?
                     <div className="d-flex">
-                        <div className="me-auto row">
+                        <div className="me-auto"></div>
+                        <div className="d-flex justify-content-center align-items-center">
+                            {roomKey == "" ?
+                                <div></div> :
+                                <i className="fa-solid fa-key text-warning mx-1" style={{ pointerEvents: "none" }}></i>
+                            }
+                        </div>
+                        <div className="row">
                             <div className="input-group col-12">
                                 <span className="input-group-text">User</span>
                                 <input type="text" className="form-control" placeholder="Username" aria-label="Username"
@@ -361,7 +397,8 @@ export const AppWidgetHead = () => {
                         }
                     </div> :
                     <div className="d-flex">
-                        <div className="me-auto d-flex justify-content-center align-items-center">
+                        <div className="me-auto"></div>
+                        <div className="d-flex justify-content-center align-items-center">
                             <h5 className=""> {"ようこそ"}   </h5>
                             <h3 className="mx-2"> {user}</h3>
                         </div>

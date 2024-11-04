@@ -21,12 +21,12 @@ export const AppMain = () => {
     const [tmpText, setTmpText] = useState("")
     const [contents, setContents] = useState([])
     const [tmpAttachment, setTmpAttachment] = useState(null)
-    const [tmpTargetRoom, setTmpTargetRoom] = useState("")
+    const [tmpTargetId, setTmpTargetId] = useState("")
 
     useEffect(() => {
         if (room["room"] == "") searchRoom()
         else fetchChat()
-    }, [token])
+    }, [userId])
     useEffect(() => { searchRoom() }, [])
 
     // jpclock (decoration)
@@ -84,6 +84,7 @@ export const AppMain = () => {
                     case "processed": {
                         setRoom(resJ["room"]);
                         sortSetContents(resJ["chats"])
+                        dispatch(accountSetState({ token: resJ["token"] })); break;
                     } break;
                     case "wrongPass": {
                         CIModal("部屋のパスワードが違います")
@@ -94,8 +95,12 @@ export const AppMain = () => {
                         searchRoom(); break;
                     }
                     case "tokenNothing": {
-                        CIModal("JWTトークン未提出です")
+                        CIModal("JWTトークン未提出")
                         searchRoom(); break;
+                    }
+                    case "tokenTimeout": {
+                        CIModal("JWTトークンタイムアウト");
+                        break;
                     }
                     default: {
                         CIModal("その他のエラー")
@@ -134,7 +139,7 @@ export const AppMain = () => {
                             searchRoom(); break;
                         }
                         case "tokenNothing": {
-                            CIModal("JWTトークン未提出です")
+                            CIModal("JWTトークン未提出")
                             searchRoom(); break;
                         }
                         default: {
@@ -180,7 +185,7 @@ export const AppMain = () => {
                         searchRoom(); break;
                     }
                     case "tokenNothing": {
-                        CIModal("JWTトークン未提出です")
+                        CIModal("JWTトークン未提出")
                         searchRoom(); break;
                     }
                     default: {
@@ -219,7 +224,7 @@ export const AppMain = () => {
                         searchRoom(); break;
                     }
                     case "tokenNothing": {
-                        CIModal("JWTトークン未提出です")
+                        CIModal("JWTトークン未提出")
                         searchRoom(); break;
                     }
                     default: {
@@ -280,7 +285,14 @@ export const AppMain = () => {
             .then(response => response.json())
             .then(resJ => {
                 switch (resJ["message"]) {
-                    case "processed": sortSetContentsRev(resJ["rooms"]); break;
+                    case "processed": {
+                        sortSetContentsRev(resJ["rooms"]);
+                        dispatch(accountSetState({ token: resJ["token"] })); break;
+                    }
+                    case "tokenTimeout": {
+                        CIModal("JWTトークンタイムアウト");
+                        break;
+                    }
                     default: {
                         CIModal("その他のエラー")
                         break;
@@ -314,7 +326,7 @@ export const AppMain = () => {
                         searchRoom(); break;
                     }
                     case "tokenNothing": {
-                        CIModal("JWTトークン未提出です")
+                        CIModal("JWTトークン未提出")
                         searchRoom(); break;
                     }
                     default: {
@@ -349,7 +361,7 @@ export const AppMain = () => {
                         searchRoom(); break;
                     }
                     case "tokenNothing": {
-                        CIModal("JWTトークン未提出です")
+                        CIModal("JWTトークン未提出")
                         searchRoom(); break;
                     }
                     case "youerntOwner": {
@@ -376,9 +388,9 @@ export const AppMain = () => {
                         <div className="modal-dialog">
                             <div className="modal-content">
                                 <div className="modal-header">
-                                    <h1 className="modal-title fs-5" id="exampleModalLabel">
+                                    <h3 className="modal-title fs-5">
                                         <i className="fa-solid fa-hammer mx-1" />部屋作成
-                                    </h1>
+                                    </h3>
                                 </div>
                                 <div className="modal-body row">
                                     <div className="input-group m-1 col-12">
@@ -472,7 +484,7 @@ export const AppMain = () => {
                                             () => {
                                                 // roomKey cannot be updated in time
                                                 dispatch(accountSetState({ roomKey: tmpRoomKey }))
-                                                fetchChat(Number(tmpTargetRoom), tmpRoomKey)
+                                                fetchChat(Number(tmpTargetId), tmpRoomKey)
                                             }}>
                                         <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />入室
                                     </button> :
@@ -500,7 +512,7 @@ export const AppMain = () => {
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
-                                    onClick={() => { destroyRoom(Number(tmpTargetRoom)) }}>
+                                    onClick={() => { destroyRoom(Number(tmpTargetId)) }}>
                                     <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />削除
                                 </button>
                             </div>
@@ -519,37 +531,38 @@ export const AppMain = () => {
             var _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }
             if (contents[i]["passhash"] != "") _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.2))" }
             _tmpData.push(
-                <div className="col-12 border d-flex"
-                    style={_style}>
+                <div>
                     {roomInterModal()}
                     {roomTableDestroyRoomConfirmationModal()}
-                    <h5 className="me-auto">
-                        <i className="far fa-user mx-1"></i>{contents[i]["user"]}
-                    </h5>
-                    {contents[i]["passhash"] == "" ?
-                        <button className="btn btn-outline-primary rounded-pill"
-                            onClick={(evt: any) => { fetchChat(evt.target.value) }} value={contents[i]["id"]}>
-                            <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>入室
-                        </button> :
-                        <button className="btn btn-outline-dark rounded-pill"
-                            onClick={(evt: any) => {
-                                setTmpTargetRoom(evt.target.value)
-                                $('#roomInterModal').modal('show')
-                            }} value={contents[i]["id"]}>
-                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>入室
-                        </button>
-                    }
-                    {contents[i]["userid"] == userId ?
-                        <button className="btn btn-outline-danger rounded-pill"
-                            onClick={(evt: any) => {
-                                setTmpTargetRoom(evt.target.value)
-                                $('#roomTableDestroyRoomConfirmationModal').modal('show');
+                    <div className="col-12 border d-flex" style={_style}>
+                        <h5 className="me-auto">
+                            <i className="far fa-user mx-1"></i>{contents[i]["user"]}
+                        </h5>
+                        {contents[i]["passhash"] == "" ?
+                            <button className="btn btn-outline-primary rounded-pill"
+                                onClick={(evt: any) => { fetchChat(evt.target.value) }} value={contents[i]["id"]}>
+                                <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>入室
+                            </button> :
+                            <button className="btn btn-outline-dark rounded-pill"
+                                onClick={(evt: any) => {
+                                    setTmpTargetId(evt.target.value)
+                                    $('#roomInterModal').modal('show')
+                                }} value={contents[i]["id"]}>
+                                <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>入室
+                            </button>
+                        }
+                        {contents[i]["userid"] == userId ?
+                            <button className="btn btn-outline-danger rounded-pill"
+                                onClick={(evt: any) => {
+                                    setTmpTargetId(evt.target.value)
+                                    $('#roomTableDestroyRoomConfirmationModal').modal('show');
 
-                            }} value={contents[i]["id"]}>
-                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>削除
-                        </button> : <div></div>
-                    }
-                </div>)
+                                }} value={contents[i]["id"]}>
+                                <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>削除
+                            </button> : <div></div>
+                        }
+                    </div>
+                </div >)
             _tmpData.push(
                 <div className="col-12 col-md-10 p-1 d-flex justify-content-center align-items-center border">
                     <h3>
@@ -598,12 +611,10 @@ export const AppMain = () => {
                 {destroyRoomConfirmationModal()}
                 <div className="input-group d-flex justify-content-center align-items-center my-1">
                     <button className="btn btn-outline-success btn-lg" type="button"
-                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="reload"
                         onClick={() => { fetchChat() }}>
                         <i className="fa-solid fa-rotate-right mx-1" />
                     </button>
                     <button className="btn btn-outline-dark btn-lg" type="button"
-                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="You are not own this room"
                         disabled>
                         <i className="far fa-user mx-1"></i>{room["user"]}
                     </button>
