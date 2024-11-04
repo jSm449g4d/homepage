@@ -110,6 +110,38 @@ def show(request):
                 algorithm="HS256",
             )
 
+        if "explore" in request.form:
+            _dataDict.update(json.loads(request.form["explore"]))
+            _roompasshash = _dataDict["roomKey"]
+            with closing(sqlite3.connect(db_dir)) as conn:
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                _userid = -1
+                if token != "":
+                    _userid = token["id"]
+                # process start
+                cur.execute(
+                    "SELECT * FROM tskb_material WHERE name = ?;",
+                    [_dataDict["keyword"]],
+                )
+                _materials = [
+                    {key: value for key, value in dict(result).items()}
+                    for result in cur.fetchall()
+                ]
+                _materials = [
+                    _m
+                    for _m in _materials
+                    if _m["passhash"] != "0" and _m["id"] == _userid
+                ]
+                return json.dumps(
+                    {
+                        "message": "processed",
+                        "materials": _materials,
+                    },
+                    ensure_ascii=False,
+                )
+            return json.dumps({"message": "rejected"})
+
         if "fetch" in request.form:
             _dataDict.update(json.loads(request.form["fetch"]))
             _roompasshash = _dataDict["roomKey"]
@@ -341,8 +373,7 @@ def show(request):
                 ).hexdigest()
             _dataDict.update(json.loads(request.form["search"]))
             _userid = -1
-            if _dataDict["token"] != "":
-                token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
+            if token != "":
                 _userid = token["id"]
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
