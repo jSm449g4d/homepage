@@ -180,8 +180,8 @@ def show(request):
                 if _material == None:
                     cur.execute(
                         "INSERT INTO tskb_material "
-                        "(name,tag,description,userid,user,passhash,timestamp,contents) "
-                        "values(?,?,?,?,?,?,?,?)",
+                        "(name,tag,description,userid,user,passhash,timestamp) "
+                        "values(?,?,?,?,?,?,?)",
                         [
                             _dataDict["name"],
                             ",".join([]),
@@ -190,7 +190,6 @@ def show(request):
                             _dataDict["user"],
                             _roompasshash,
                             int(time.time()),
-                            json.dumps({}, ensure_ascii=False),
                         ],
                     )
                     conn.commit()

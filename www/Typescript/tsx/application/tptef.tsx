@@ -56,10 +56,9 @@ export const AppMain = () => {
         setRoom({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" });
         setTmpRoom(""); setTmpText(""); setTmpRoomKey(""); setTmpAttachment(null);
     }
-    const compareDictKeys = (_targetDict: {}, _keys: any[]) => {
-        if (Object.keys(_targetDict).sort().join() == _keys.sort().toString())
-            return (true)
-        return false
+    const satisfyDictKeys = (_targetDict: {}, _keys: any[]) => {
+        for (let _i = 0; _i<_keys.length; _i++) if (_keys[_i] in _targetDict == false) return false
+        return true
     }
     const fetchChat = (_roomid = room["id"], _roomKey = roomKey) => {
         const sortSetContents = (_contents: any = []) => {
@@ -525,7 +524,7 @@ export const AppMain = () => {
         }
         const _tmpRecord = [];
         if (0 < contents.length)
-            if (!compareDictKeys(contents[0], ["id", "user", "userid", "room", "timestamp", "passhash"]))
+            if (!satisfyDictKeys(contents[0], ["id", "user", "userid", "room", "timestamp", "passhash"]))
                 return (<div className="row m-1">loading</div>)
         for (var i = 0; i < contents.length; i++) {
             if (contents[i]["room"].indexOf(tmpRoom) == -1) continue
@@ -616,7 +615,7 @@ export const AppMain = () => {
                 <div className="input-group d-flex justify-content-center align-items-center my-1">
                     <button className="btn btn-outline-success btn-lg" type="button"
                         onClick={() => { fetchChat() }}>
-                        <i className="fa-solid fa-rotate-right mx-1" />
+                        <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }}/>
                     </button>
                     <button className="btn btn-outline-dark btn-lg" type="button"
                         disabled>
@@ -645,7 +644,7 @@ export const AppMain = () => {
     const chatTable = () => {
         // if contents dont have enough element for example contents hold chat_data ,table need break
         if (0 < contents.length)
-            if (!compareDictKeys(contents[0], ["id", "user", "userid", "roomid", "text", "mode", "timestamp"]))
+            if (!satisfyDictKeys(contents[0], ["id", "user", "userid", "roomid", "text", "mode", "timestamp"]))
                 return (<div className="row m-1">loading</div>)
         const _tmpRecord = [];
         for (var i = 0; i < contents.length; i++) {
