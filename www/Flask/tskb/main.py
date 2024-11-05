@@ -61,7 +61,7 @@ with closing(sqlite3.connect(db_dir)) as conn:
     # contents={material_id:amount}
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_combination(id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "name TEXT NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
+        "name TEXT UNIQUE NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
         "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
         "contents TEXT NOT NULL)"
     )
@@ -70,7 +70,7 @@ with closing(sqlite3.connect(db_dir)) as conn:
     "ca,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_material(id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "name TEXT NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
+        "name TEXT UNIQUE NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
         "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
         "unit TEXT DEFAULT 'g',cost REAL DEFAULT 0,"
         "carbo REAL DEFAULT 0,fiber REAL DEFAULT 0,"
@@ -193,23 +193,22 @@ def show(request):
 
         if "register" in request.form:
             _dataDict.update(json.loads(request.form["register"]))
-            _roompasshash = _dataDict["roomKey"]
-            if _dataDict["roomKey"] not in ["", "0"]:
-                _roompasshash = hashlib.sha256(
-                    _dataDict["roomKey"].encode()
-                ).hexdigest()
             if token == "":
                 return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
+                _roompasshash = "" if _dataDict["privateFlag"] == False else "0"
                 # process start
-                cur.execute(
-                    "SELECT * FROM tskb_material WHERE id = ?;",
-                    [_dataDict["materialid"]],
-                )
-                _material = cur.fetchone()
-                if _material == None:
+                # register material
+                if _dataDict["materialid"] == -1:
+                    cur.execute(
+                        "SELECT * FROM tskb_material WHERE name = ?;",
+                        [_dataDict["name"]],
+                    )
+                    _material = cur.fetchone()
+                    if _material != None:
+                        return json.dumps({"message": "alreadyExisted"})
                     cur.execute(
                         "INSERT INTO tskb_material "
                         "(name,tag,description,userid,user,passhash,timestamp) "
@@ -226,10 +225,18 @@ def show(request):
                     )
                     conn.commit()
                     return json.dumps({"message": "processed"}, ensure_ascii=False)
+                # update material
+                cur.execute(
+                    "SELECT * FROM tskb_material WHERE id = ?;",
+                    [_dataDict["materialid"]],
+                )
+                _material = cur.fetchone()
+                if _material == None:
+                    return json.dumps({"message": "notExist"}, ensure_ascii=False)
                 elif _material["passhash"] not in ["", _roompasshash]:
-                    return json.dumps({"message": "wrongPass"})
+                    return json.dumps({"message": "wrongPass"}, ensure_ascii=False)
                 elif _material["passhash"] == "0" and _material["id"] != token["id"]:
-                    return json.dumps({"message": "wrongPass"})
+                    return json.dumps({"message": "wrongPass"}, ensure_ascii=False)
                 for key, value in _dataDict["materialid"]:
                     cur.execute(
                         "UPDATE tskb_material SET ? = ? WHERE id = ?;",
