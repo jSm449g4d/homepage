@@ -382,7 +382,7 @@ export const AppMain = () => {
             });
     }
     // ConsoleRender
-    const roomTopFormRender = () => {
+    const roomTopForm = () => {
         const roomCreateModal = () => {
             return (
                 <div>
@@ -510,7 +510,8 @@ export const AppMain = () => {
             if (contents[i]["room"].indexOf(tmpRoom) == -1) continue
             const _tmpData = [];
             var _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }
-            if (contents[i]["passhash"] != "") _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.2))" }
+            if (contents[i]["passhash"] != "")
+                _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.2))" }
             _tmpData.push(
                 <div className="col-12 border d-flex" style={_style}>
                     <h5 className="me-auto">
@@ -565,7 +566,7 @@ export const AppMain = () => {
                 </div>
             </div>)
     }
-    const chatTopFormRender = () => {
+    const chatTopForm = () => {
         return (
             <div>
                 <div className="input-group d-flex justify-content-center align-items-center my-1">
@@ -610,8 +611,7 @@ export const AppMain = () => {
             const _tmpData = [];
             // text
             _tmpData.push(
-                <div className="col-12 border d-flex"
-                    style={_style}>
+                <div className="col-12 border d-flex" style={_style}>
                     <h5 className="me-auto">
                         <i className="far fa-user mx-1"></i>{contents[i]["user"]}
                     </h5>
@@ -743,18 +743,19 @@ export const AppMain = () => {
         )
     }
     return (
-        <div>{destroyRoomModal()}
+        <div>
             {room["room"] == "" ?
                 <div className="m-1">
-                    {roomTopFormRender()}
+                    {roomTopForm()}
                     {roomTable()}
                 </div> :
                 <div className="m-1">
-                    {chatTopFormRender()}
+                    {chatTopForm()}
                     {chatTable()}
                     {inputConsole()}
                 </div>
             }
+            {destroyRoomModal()}
         </div>
     )
 };

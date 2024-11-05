@@ -354,37 +354,17 @@ def show(request):
 
         if "delete" in request.form:
             _dataDict.update(json.loads(request.form["delete"]))
-            _roompasshash = _dataDict["roomKey"]
-            if _dataDict["roomKey"] not in ["", "0"]:
-                _roompasshash = hashlib.sha256(
-                    _dataDict["roomKey"].encode()
-                ).hexdigest()
             if _dataDict["token"] == "":
                 return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
-            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # duplication and roomKey check
                 cur.execute(
-                    "SELECT * FROM tptef_room WHERE id = ?;", [_dataDict["roomid"]]
-                )
-                _room = cur.fetchone()
-                if _room == None:
-                    return json.dumps({"message": "notExist"}, ensure_ascii=False)
-                if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
-                    return json.dumps({"message": "wrongPass"})
-                # process start
-                cur.execute(
-                    "DELETE FROM tptef_chat WHERE id = ? AND userId = ? ;",
-                    [_dataDict["chatid"], token["id"]],
+                    "DELETE FROM tskb_material WHERE id = ? AND userid = ?;",
+                    [_dataDict["materialid"], token["id"]],
                 )
                 conn.commit()
-                _remove_file = os.path.normpath(
-                    os.path.join(tmp_dir, str(_dataDict["chatid"]))
-                )
-                if os.path.exists(_remove_file):
-                    os.remove(_remove_file)
                 return json.dumps({"message": "processed"}, ensure_ascii=False)
             return json.dumps({"message": "rejected"})
 
