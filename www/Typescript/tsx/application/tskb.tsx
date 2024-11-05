@@ -31,7 +31,7 @@ export const AppMain = () => {
     const [tmpPrivateFlag, setTmpPrivateFlag] = useState(false)
     const [tmpExploreMaterial, setTmpExploreMaterial] = useState("")
     const [contents, setContents] = useState([])
-    const [searchContents, setExploreContents] = useState([])
+    const [exploreContents, setExploreContents] = useState([])
 
     useEffect(() => {
         if (combination["name"] == "") searchCombination()
@@ -588,38 +588,38 @@ export const AppMain = () => {
                 </div>
             </div>)
     }
-    const materialTopFormRender = () => {
-        return (
-            <div>
-                <div className="input-group d-flex justify-content-center align-items-center my-1">
-                    <button className="btn btn-outline-success btn-lg" type="button"
-                        onClick={() => { fetchMaterial() }}>
-                        <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
-                    </button>
-                    <button className="btn btn-outline-dark btn-lg" type="button"
-                        disabled>
-                        <i className="far fa-user mx-1"></i>{combination["user"]}
-                    </button>
-                    <input className="flex-fill form-control form-control-lg" type="text" value={combination["name"]}
-                        disabled>
-                    </input >
-                    {combination["userid"] == userId ?
-                        <button className="btn btn-outline-danger btn-lg" type="button"
-                            onClick={() => { $("#destroyCombinationModal").modal('show') }}>
-                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>レシピ破棄
-                        </button> :
-                        <button className="btn btn-outline-info btn-lg" type="button"
-                            onClick={() => { HIModal("レシピ破棄は作成者にしかできません") }}>
-                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>レシピ破棄
-                        </button>
-                    }
-                    <button className="btn btn-outline-dark btn-lg" type="button"
-                        onClick={() => { searchCombination() }}>
-                        <i className="fa-solid fa-right-from-bracket mx-1"></i>レシピ一覧に戻る
-                    </button>
-                </div></div>)
-    }
     const materialTable = () => {
+        const materialTopForm = () => {
+            return (
+                <div>
+                    <div className="input-group d-flex justify-content-center align-items-center my-1">
+                        <button className="btn btn-outline-success btn-lg" type="button"
+                            onClick={() => { fetchMaterial() }}>
+                            <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
+                        </button>
+                        <button className="btn btn-outline-dark btn-lg" type="button"
+                            disabled>
+                            <i className="far fa-user mx-1"></i>{combination["user"]}
+                        </button>
+                        <input className="flex-fill form-control form-control-lg" type="text" value={combination["name"]}
+                            disabled>
+                        </input >
+                        {combination["userid"] == userId ?
+                            <button className="btn btn-outline-danger btn-lg" type="button"
+                                onClick={() => { $("#destroyCombinationModal").modal('show') }}>
+                                <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>レシピ破棄
+                            </button> :
+                            <button className="btn btn-outline-info btn-lg" type="button"
+                                onClick={() => { HIModal("レシピ破棄は作成者にしかできません") }}>
+                                <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>レシピ破棄
+                            </button>
+                        }
+                        <button className="btn btn-outline-dark btn-lg" type="button"
+                            onClick={() => { searchCombination() }}>
+                            <i className="fa-solid fa-right-from-bracket mx-1"></i>レシピ一覧に戻る
+                        </button>
+                    </div></div>)
+        }
         "(id,name,tag,description,userid,user,passhash,timestamp,"
         "g,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
         "ca,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
@@ -696,12 +696,67 @@ export const AppMain = () => {
                 </tr>)
         }
         return (
-            <div style={{ overflow: "auto" }}>
-                <table className="table table-dark table-striped-columns table-bordered"
-                    style={{ whiteSpace: "nowrap" }}>
-                    <thead>{_tmpElementColumn}</thead>
-                    <tbody>{_tmpRecord}</tbody>
-                </table>
+            <div>{materialTopForm()}
+                <div style={{ overflow: "auto" }}>
+                    <table className="table table-dark table-striped-columns table-bordered"
+                        style={{ whiteSpace: "nowrap" }}>
+                        <thead>{_tmpElementColumn}</thead>
+                        <tbody>{_tmpRecord}</tbody>
+                    </table>
+                </div>
+            </div>)
+    }
+    const materialCongigTable = () => {
+        "(id,name,tag,description,userid,user,passhash,timestamp,"
+        "g,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
+        "ca,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
+        if (0 < contents.length)
+            if (!satisfyDictKeys(contents[0], []))
+                return (<div className="row m-1">loading</div>)
+        const _tmpElementColumn = [];
+        _tmpElementColumn.push(
+            <tr className="sticky-top">
+                <th scope="col">操作</th><th scope="col">名称</th><th scope="col">量</th><th scope="col">単価</th>
+                <th scope="col">炭水化物</th><th scope="col">食物繊維</th><th scope="col">タンパク質</th><th scope="col">熱量</th>
+                <th scope="col">脂質</th><th scope="col">飽和脂肪酸</th><th scope="col">n-3脂肪酸</th>
+                <th scope="col">DHA-EPA</th><th scope="col">n-6脂肪酸</th><th scope="col">カルシウム</th>
+                <th scope="col">クロム</th><th scope="col">銅</th><th scope="col">ヨウ素</th><th scope="col">鉄</th>
+                <th scope="col">マグネシウム</th><th scope="col">マンガン</th><th scope="col">モリブデン</th>
+                <th scope="col">リン</th><th scope="col">カリウム</th><th scope="col">セレン</th><th scope="col">ナトリウム</th>
+                <th scope="col">亜鉛</th><th scope="col">VA</th><th scope="col">VB1</th><th scope="col">VB2</th>
+                <th scope="col">vb3</th><th scope="col">vb5</th><th scope="col">vb6</th><th scope="col">vb7</th>
+                <th scope="col">vb9</th><th scope="col">vb12</th><th scope="col">vc</th><th scope="col">vd</th>
+                <th scope="col">ve</th><th scope="col">vk</th><th scope="col">コリン</th>
+            </tr>
+        )
+        const _tmpRecord = [];
+        const _testColumn = [];
+        _testColumn.push(
+            <th><input type="button" className="btn btn-primary" /></th>
+        )
+        _tmpRecord.push(
+            <tr>
+                {_testColumn}<th>名称1</th><th>量</th><th>単価</th>
+                <th>炭水化物</th><th>食物繊維</th><th>タンパク質</th><th>熱量</th>
+                <th>脂質</th><th>飽和脂肪酸</th><th>n-3脂肪酸</th>
+                <th>DHA-EPA</th><th>n-6脂肪酸</th><th>カルシウム</th>
+                <th>クロム</th><th>銅</th><th>ヨウ素</th><th>鉄</th>
+                <th>マグネシウム</th><th>マンガン</th><th>モリブデン</th>
+                <th>リン</th><th>カリウム</th><th>セレン</th><th>ナトリウム</th>
+                <th>亜鉛</th><th>VA</th><th>VB1</th><th>VB2</th>
+                <th>vb3</th><th>vb5</th><th>vb6</th><th>vb7</th>
+                <th>vb9</th><th>vb12</th><th>vc</th><th>vd</th>
+                <th>ve</th><th>vk</th><th>コリン</th>
+            </tr>)
+        return (
+            <div>
+                <div style={{ overflow: "auto" }}>
+                    <table className="table table-dark table-striped-columns table-bordered"
+                        style={{ whiteSpace: "nowrap" }}>
+                        <thead>{_tmpElementColumn}</thead>
+                        <tbody>{_tmpRecord}</tbody>
+                    </table>
+                </div>
             </div>)
     }
     const exploreMaterialForm = () => {
@@ -793,11 +848,11 @@ export const AppMain = () => {
                     </input >
                     {token == "" ?
                         <button className="btn btn-outline-primary btn-lg" type="button" disabled >
-                            + 素材作成
+                            + 素材新規作成
                         </button> :
                         <button className="btn btn-outline-primary btn-lg" type="button"
                             onClick={() => $("#materialCreateModal").modal("show")} >
-                            + 素材作成
+                            + 素材新規作成
                         </button>}
                 </div></div>)
     }
@@ -880,33 +935,33 @@ export const AppMain = () => {
             )
         }
         // if contents dont have enough element for example contents hold chat_data ,table need break
-        if (0 < searchContents.length)
-            if (!satisfyDictKeys(searchContents[0], ["id", "userid", "description", "passhash", "timestamp"]))
+        if (0 < exploreContents.length)
+            if (!satisfyDictKeys(exploreContents[0], ["id", "userid", "description", "passhash", "timestamp"]))
                 return (<div className="row m-1">loading</div>)
         const _tmpRecord = [];
-        for (var i = 0; i < searchContents.length; i++) {
+        for (var i = 0; i < exploreContents.length; i++) {
             const _tmpData = [];
             var _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }
-            if (searchContents[i]["passhash"] != "")
+            if (exploreContents[i]["passhash"] != "")
                 _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.2))" }
             _tmpData.push(
                 <div className="col-12 border d-flex" style={_style}>
                     <h5 className="me-auto">
-                        <i className="fa-solid fa-lemon mx-1"></i>{searchContents[i]["name"]}
+                        <i className="fa-solid fa-lemon mx-1"></i>{exploreContents[i]["name"]}
                     </h5>
-                    {searchContents[i]["userid"] == userId ?
+                    {exploreContents[i]["userid"] == userId ?
                         <button className="btn btn-outline-success rounded-pill"
                             onClick={(evt: any) => {
                                 $("#materialConfigModal").modal("show")
                                 setTmpTargetId(evt.target.value)
                             }}
-                            value={searchContents[i]["id"]}>
+                            value={exploreContents[i]["id"]}>
                             <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }}></i>編集
                         </button> : <div></div>
                     }
                     {combination["userid"] == userId ?
                         <button className="btn btn-outline-primary rounded-pill"
-                            onClick={(evt: any) => { }} value={searchContents[i]["id"]}>
+                            onClick={(evt: any) => { }} value={exploreContents[i]["id"]}>
                             + レシピに追加
                         </button> : <div></div>
                     }
@@ -914,12 +969,12 @@ export const AppMain = () => {
             _tmpData.push(
                 <div className="col-12 col-md-10 p-1">
                     <div>
-                        {searchContents[i]["description"]}
+                        {exploreContents[i]["description"]}
                     </div>
                 </div>)
             _tmpData.push(
                 <div className="col-12 col-md-2 p-1 border"><div className="text-center">
-                    {Unixtime2String(Number(searchContents[i]["timestamp"]))}
+                    {Unixtime2String(Number(exploreContents[i]["timestamp"]))}
                 </div></div>)
             _tmpRecord.push(
                 <div className="col-12 col-md-6" style={{
@@ -988,7 +1043,6 @@ export const AppMain = () => {
                     {combinationTable()}
                 </div> :
                 <div className="m-1">
-                    {materialTopFormRender()}
                     {materialTable()}
                     {exploreMaterialForm()}
                     {exploreMaterialTable()}

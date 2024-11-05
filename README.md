@@ -1,12 +1,17 @@
 ## URL
 
 ### テスト環境(Dev ブランチ ⇒CloudRun)
-
-※サーバーレスなので暫くするとデータは揮発します<br>
+※サーバーレスなので暫くするとデータは揮発します  
 https://homepage-tlnesjcoqq-an.a.run.app/
+
+### 本番環境(Dev ブランチ ⇒CloudRun)
+※オレオレ認証  
+※テスト環境よりだいぶ古く、時々データをリセットしてます  
+https://160.248.2.165/
 
 # ホームページと Web アプリ
 ホームページに、色々な Web アプリをどんどん追加する構成です
+現在栄養計算アプリを開発中
 
 ## アプリ一覧
 - チャットアプリ
@@ -15,7 +20,7 @@ https://homepage-tlnesjcoqq-an.a.run.app/
 ## 使用技術
 ### インフラ
 - テスト環境: GCP(Cloudbuild, CloudRun) + Debian + Waitress
-- 本番環境: 現在工事中
+- 本番環境: VPS + Ubuntu24.04 + Apache2.4⇒(逆串)⇒Waitress
 ### フロントエンド
 - React(Typescript)
 - Redux
@@ -62,7 +67,7 @@ homepage/
 ┣.gitignore (git push で push したくないファイル一覧)  
 ┣cloudbuild.yaml (CaaS へのデプロイ指示書)  
 ┣LICENSE (MIT: ご自由にお使いください)  
-┗README.md この文書
+┗README.md (この文書)
 
 ## 動かし方
 /www/Dockerfile に書いてある通りに作業ば多分動きます
@@ -92,4 +97,3 @@ Firebase(BaaS)の導入 ⇒ 使い勝手が良くなかったので脱 BaaS 化
 /www/Flask/及び/www/Typescript/tsx/application/に入っている各モジュールは、  
 wsgi.pyやindex.tsxが必要に応じて動的インポートする設計です。  
 このようなアイソレーション化により、各種アプリや機能の交換や拡張が容易になります。  
-特に、/www/Flask/の各モジュールは単体でもサーバーを建て、機能させることもできる仕様に設計しました。  
