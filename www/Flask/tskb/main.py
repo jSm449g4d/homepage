@@ -65,6 +65,7 @@ with closing(sqlite3.connect(db_dir)) as conn:
         "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
         "contents TEXT NOT NULL)"
     )
+    # passhash="": public ,"0": private
     "(id,name,tag,description,userid,user,passhash,timestamp,"
     "g,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
     "ca,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
@@ -112,7 +113,6 @@ def show(request):
 
         if "explore" in request.form:
             _dataDict.update(json.loads(request.form["explore"]))
-            _roompasshash = _dataDict["roomKey"]
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -120,26 +120,42 @@ def show(request):
                 if token != "":
                     _userid = token["id"]
                 # process start
-                cur.execute(
-                    "SELECT * FROM tskb_material WHERE name = ?;",
-                    [_dataDict["keyword"]],
-                )
-                _materials = [
-                    {key: value for key, value in dict(result).items()}
-                    for result in cur.fetchall()
-                ]
-                _materials = [
-                    _m
-                    for _m in _materials
-                    if _m["passhash"] != "0" and _m["id"] == _userid
-                ]
-                return json.dumps(
-                    {
-                        "message": "processed",
-                        "materials": _materials,
-                    },
-                    ensure_ascii=False,
-                )
+                # search opend material
+                if _dataDict["privateFlag"] == False:
+                    cur.execute(
+                        "SELECT * FROM tskb_material WHERE name LIKE ? "
+                        "AND passhash = '' LIMIT 100;",
+                        ["%" + _dataDict["keyword"] + "%"],
+                    )
+                    _materials = [
+                        {key: value for key, value in dict(result).items()}
+                        for result in cur.fetchall()
+                    ]
+                    return json.dumps(
+                        {
+                            "message": "processed",
+                            "materials": _materials,
+                        },
+                        ensure_ascii=False,
+                    )
+                if _dataDict["privateFlag"] == True:
+                    cur.execute(
+                        "SELECT * FROM tskb_material WHERE userid = ? "
+                        "AND passhash = '0'",
+                        [token["id"]],
+                    )
+                    _materials = [
+                        {key: value for key, value in dict(result).items()}
+                        for result in cur.fetchall()
+                    ]
+                    return json.dumps(
+                        {
+                            "message": "processed",
+                            "materials": _materials,
+                        },
+                        ensure_ascii=False,
+                    )
+                # search closed material
             return json.dumps({"message": "rejected"})
 
         if "fetch" in request.form:

@@ -75,7 +75,7 @@ export const AppMain = () => {
         return true
     }
     const fetchChat = (_roomid = room["id"], _roomKey = roomKey) => { }
-    const exploreMaterial = (_combinationid = combination["id"], _roomKey = roomKey) => {
+    const exploreMaterial = (_tmpPrivateFlag = tmpPrivateFlag) => {
         const sortSetSearchContents = (_contents: any = []) => {
             const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
             setSearchContents(_contents.sort(_sortContents))
@@ -84,7 +84,9 @@ export const AppMain = () => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("explore", JSON.stringify({ "keyword": tmpMaterial }))
+        formData.append("explore", JSON.stringify({
+            "keyword": tmpMaterial, "privateFlag": _tmpPrivateFlag
+        }))
         const request = new Request("/tskb/main.py", {
             method: 'POST',
             headers: headers,
@@ -829,7 +831,7 @@ export const AppMain = () => {
         const _tmpElementColumn = [];
         _tmpElementColumn.push(
             <tr>
-                <th scope="col">名称</th><th scope="col">概説</th><th scope="col">量</th><th scope="col">単価</th>
+                <th scope="col">操作</th><th scope="col">名称</th><th scope="col">量</th><th scope="col">単価</th>
                 <th scope="col">炭水化物</th><th scope="col">食物繊維</th><th scope="col">タンパク質</th><th scope="col">熱量</th>
                 <th scope="col">脂質</th><th scope="col">飽和脂肪酸</th><th scope="col">n-3脂肪酸</th>
                 <th scope="col">DHA-EPA</th><th scope="col">n-6脂肪酸</th><th scope="col">カルシウム</th>
@@ -843,9 +845,17 @@ export const AppMain = () => {
             </tr>
         )
         const _tmpRecord = [];
+        const _testColumn = [];
+        _testColumn.push(
+            <th>
+                <button type="button" className="btn btn-primary" data-bs-dismiss="modal"
+                    onClick={() => { }}>
+                    <i className="fa-solid fa-wrench" style={{ pointerEvents: "none" }} />
+                </button>
+            </th>)
         _tmpRecord.push(
             <tr>
-                <th>名称1</th><th>概説</th><th>量</th><th>単価</th>
+                {_testColumn}<th>名称1</th><th>量</th><th>単価</th>
                 <th>炭水化物</th><th>食物繊維</th><th>タンパク質</th><th>熱量</th>
                 <th>脂質</th><th>飽和脂肪酸</th><th>n-3脂肪酸</th>
                 <th>DHA-EPA</th><th>n-6脂肪酸</th><th>カルシウム</th>
@@ -859,7 +869,7 @@ export const AppMain = () => {
             </tr>)
         _tmpRecord.push(
             <tr>
-                <th>名称2</th><th>概説</th><th>量</th><th>単価</th>
+                {_testColumn}<th>目標</th><th>量</th><th>単価</th>
                 <th>炭水化物</th><th>食物繊維</th><th>タンパク質</th><th>熱量</th>
                 <th>脂質</th><th>飽和脂肪酸</th><th>n-3脂肪酸</th>
                 <th>DHA-EPA</th><th>n-6脂肪酸</th><th>カルシウム</th>
@@ -874,7 +884,7 @@ export const AppMain = () => {
         for (var i = 0; i < contents.length; i++) {
             _tmpRecord.push(
                 <tr>
-                    <th>{contents[i]["name"]}</th><th>概説</th><th>量</th><th>単価</th>
+                    {_testColumn}<th>概説</th><th>量</th><th>単価</th>
                     <th>炭水化物</th><th>食物繊維</th><th>タンパク質</th><th>熱量</th>
                     <th>脂質</th><th>飽和脂肪酸</th><th>n-3脂肪酸</th>
                     <th>DHA-EPA</th><th>n-6脂肪酸</th><th>カルシウム</th>
@@ -890,7 +900,7 @@ export const AppMain = () => {
         for (var i = 0; i < searchContents.length; i++) {
             _tmpRecord.push(
                 <tr>
-                    <th>{searchContents[i]["name"]}</th><th>概説</th><th>量</th><th>単価</th>
+                    {_testColumn}<th>{searchContents[i]["name"]}</th><th>量</th><th>単価</th>
                     <th>炭水化物</th><th>食物繊維</th><th>タンパク質</th><th>熱量</th>
                     <th>脂質</th><th>飽和脂肪酸</th><th>n-3脂肪酸</th>
                     <th>DHA-EPA</th><th>n-6脂肪酸</th><th>カルシウム</th>
@@ -905,7 +915,7 @@ export const AppMain = () => {
         }
         return (
             <div>
-                <table className="table table-dark table-striped-columns table-bordered" >
+                <table className="table table-dark table-striped-columns table-bordered" style={{ whiteSpace: "nowrap" }}>
                     <thead>{_tmpElementColumn}</thead>
                     <tbody>{_tmpRecord}</tbody>
                 </table>
