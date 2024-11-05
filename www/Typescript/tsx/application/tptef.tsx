@@ -16,12 +16,12 @@ export const AppMain = () => {
     const fileSizeMax = 1024 * 1024 * 2
 
     const [room, setRoom] = useState({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" })
-    const [tmpRoom, setTmpRoom] = useState("")
     const [tmpRoomKey, setTmpRoomKey] = useState("")
+    const [tmpRoom, setTmpRoom] = useState("")
     const [tmpText, setTmpText] = useState("")
-    const [contents, setContents] = useState([])
     const [tmpAttachment, setTmpAttachment] = useState(null)
-    const [tmpTargetId, setTmpTargetId] = useState("")
+    const [tmpTargetId, setTmpTargetId] = useState(-1)
+    const [contents, setContents] = useState([])
 
     useEffect(() => {
         if (room["room"] == "") searchRoom()
@@ -47,17 +47,17 @@ export const AppMain = () => {
         return (JSON.stringify(_sendDict))
     }
     const enterRoom = (_setContentsInitialze = true) => {
+        setTmpRoomKey(""); setTmpRoom(""); setTmpText(""); setTmpAttachment(null); setTmpTargetId(-1);
         if (_setContentsInitialze) setContents([])
-        setTmpRoom(""); setTmpText(""); setTmpRoomKey(""); setTmpAttachment(null);
         $('#inputConsoleAttachment').val(null)
     }
     const exitRoom = (_setContentsInitialze = true) => {
-        if (_setContentsInitialze) setContents([])
         setRoom({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" });
-        setTmpRoom(""); setTmpText(""); setTmpRoomKey(""); setTmpAttachment(null);
+        setTmpRoomKey(""); setTmpRoom(""); setTmpText(""); setTmpAttachment(null); setTmpTargetId(-1);
+        if (_setContentsInitialze) setContents([])
     }
     const satisfyDictKeys = (_targetDict: {}, _keys: any[]) => {
-        for (let _i = 0; _i<_keys.length; _i++) if (_keys[_i] in _targetDict == false) return false
+        for (let _i = 0; _i < _keys.length; _i++) if (_keys[_i] in _targetDict == false) return false
         return true
     }
     const fetchChat = (_roomid = room["id"], _roomKey = roomKey) => {
@@ -341,7 +341,8 @@ export const AppMain = () => {
                 console.error(error.message)
             });
     }
-    const destroyRoom = (_roomid = room["id"]) => {
+    const destroyRoom = () => {
+        const _roomid = room["room"] == "" ? tmpTargetId : room["id"]
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
@@ -381,7 +382,7 @@ export const AppMain = () => {
             });
     }
     // ConsoleRender
-    const roomTopFormRender = () => {
+    const roomTopForm = () => {
         const roomCreateModal = () => {
             return (
                 <div>
@@ -407,23 +408,25 @@ export const AppMain = () => {
                                 </div>
                                 <div className="modal-footer">
                                     <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    {tmpRoom != "" && token != "" ? <div>
-                                        {tmpRoomKey == "" ?
-                                            <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
-                                                onClick={() => createRoom()}>
-                                                <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
-                                            </button> :
-                                            <button type="button" className="btn btn-outline-warning" data-bs-dismiss="modal"
-                                                onClick={() => {
-                                                    dispatch(accountSetState({ "roomKey": tmpRoomKey }))
-                                                    createRoom()
-                                                }}>
-                                                <i className="fa-solid fa-key mx-1" />作成
-                                            </button>
-                                        }</div> :
-                                        <button type="button" className="btn btn-outline-primary" disabled>
+                                    {tmpRoom == "" || token == "" ?
+                                        <button type="button" className="btn btn-outline-info"
+                                            onClick={() => { HIModal("部屋名が入力されてません") }}>
                                             <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
-                                        </button>
+                                        </button> :
+                                        <div>
+                                            {tmpRoomKey == "" ?
+                                                <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
+                                                    onClick={() => createRoom()}>
+                                                    <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
+                                                </button> :
+                                                <button type="button" className="btn btn-outline-warning" data-bs-dismiss="modal"
+                                                    onClick={() => {
+                                                        dispatch(accountSetState({ "roomKey": tmpRoomKey }))
+                                                        createRoom()
+                                                    }}>
+                                                    <i className="fa-solid fa-key mx-1" />作成
+                                                </button>}
+                                        </div>
                                     }
                                 </div>
                             </div>
@@ -499,29 +502,6 @@ export const AppMain = () => {
                 </div>
             )
         }
-        const roomTableDestroyRoomConfirmationModal = () => {
-            return (
-                <div className="modal fade" id="roomTableDestroyRoomConfirmationModal"
-                    aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h4 className="modal-title">
-                                    <i className="fa-solid fa-circle-info mx-1" />部屋を削除しますか?
-                                </h4>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
-                                    onClick={() => { destroyRoom(Number(tmpTargetId)) }}>
-                                    <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />削除
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )
-        }
         const _tmpRecord = [];
         if (0 < contents.length)
             if (!satisfyDictKeys(contents[0], ["id", "user", "userid", "room", "timestamp", "passhash"]))
@@ -530,7 +510,8 @@ export const AppMain = () => {
             if (contents[i]["room"].indexOf(tmpRoom) == -1) continue
             const _tmpData = [];
             var _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }
-            if (contents[i]["passhash"] != "") _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.2))" }
+            if (contents[i]["passhash"] != "")
+                _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.2))" }
             _tmpData.push(
                 <div className="col-12 border d-flex" style={_style}>
                     <h5 className="me-auto">
@@ -553,7 +534,7 @@ export const AppMain = () => {
                         <button className="btn btn-outline-danger rounded-pill"
                             onClick={(evt: any) => {
                                 setTmpTargetId(evt.target.value)
-                                $('#roomTableDestroyRoomConfirmationModal').modal('show');
+                                $('#destroyRoomModal').modal('show');
 
                             }} value={contents[i]["id"]}>
                             <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>削除
@@ -581,41 +562,17 @@ export const AppMain = () => {
         return (
             <div>
                 {roomInterModal()}
-                {roomTableDestroyRoomConfirmationModal()}
                 <div className="row m-1">{_tmpRecord}
                 </div>
             </div>)
     }
-    const chatTopFormRender = () => {
-        const destroyRoomConfirmationModal = () => {
-            return (
-                <div className="modal fade" id="destroyRoomConfirmationModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h4 className="modal-title">
-                                    <i className="fa-solid fa-circle-info mx-1" />Are you sure Destory Room?
-                                </h4>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
-                                    onClick={() => { destroyRoom() }}>
-                                    <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />Destroy
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )
-        }
+    const chatTopForm = () => {
         return (
             <div>
-                {destroyRoomConfirmationModal()}
                 <div className="input-group d-flex justify-content-center align-items-center my-1">
                     <button className="btn btn-outline-success btn-lg" type="button"
                         onClick={() => { fetchChat() }}>
-                        <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }}/>
+                        <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                     </button>
                     <button className="btn btn-outline-dark btn-lg" type="button"
                         disabled>
@@ -626,7 +583,7 @@ export const AppMain = () => {
                     </input >
                     {room["userid"] == userId ?
                         <button className="btn btn-outline-danger btn-lg" type="button"
-                            onClick={() => { $("#destroyRoomConfirmationModal").modal('show') }}>
+                            onClick={() => { $("#destroyRoomModal").modal('show') }}>
                             <i className="far fa-trash-alt mx-1 " style={{ pointerEvents: "none" }}></i>部屋削除
                         </button> :
                         <button className="btn btn-outline-info btn-lg" type="button"
@@ -654,8 +611,7 @@ export const AppMain = () => {
             const _tmpData = [];
             // text
             _tmpData.push(
-                <div className="col-12 border d-flex"
-                    style={_style}>
+                <div className="col-12 border d-flex" style={_style}>
                     <h5 className="me-auto">
                         <i className="far fa-user mx-1"></i>{contents[i]["user"]}
                     </h5>
@@ -748,7 +704,7 @@ export const AppMain = () => {
                 <div className="col-12 d-flex justify-content-center">
                     <h5><i className="far fa-clock "></i>{jpclockNow}</h5>
                 </div>
-                <textarea className="form-control col-12 w-80" id="tptef_content" rows={4} value={tmpText}
+                <textarea className="form-control col-12 w-80" rows={4} value={tmpText}
                     onChange={(evt) => { setTmpText(evt.target.value) }}></textarea>
                 <div className="col-12 my-1">
                     <div className="input-group">
@@ -762,19 +718,44 @@ export const AppMain = () => {
         )
     }
     // applicationRender
+
+    const destroyRoomModal = () => {
+        return (
+            <div className="modal fade" id="destroyRoomModal"
+                aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h4 className="modal-title">
+                                <i className="fa-solid fa-circle-info mx-1" />部屋を削除しますか?
+                            </h4>
+                        </div>
+                        <div className="modal-footer d-flex">
+                            <button type="button" className="btn btn-secondary me-auto" data-bs-dismiss="modal">Close</button>
+                            <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
+                                onClick={() => { destroyRoom() }}>
+                                <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />削除
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
     return (
         <div>
             {room["room"] == "" ?
                 <div className="m-1">
-                    {roomTopFormRender()}
+                    {roomTopForm()}
                     {roomTable()}
                 </div> :
                 <div className="m-1">
-                    {chatTopFormRender()}
+                    {chatTopForm()}
                     {chatTable()}
                     {inputConsole()}
                 </div>
             }
+            {destroyRoomModal()}
         </div>
     )
 };
