@@ -4,7 +4,7 @@
 ※サーバーレスなので暫くするとデータは揮発します  
 https://homepage-tlnesjcoqq-an.a.run.app/
 
-### 本番環境(Dev ブランチ ⇒CloudRun)
+### 本番環境(VPS)
 ※オレオレ認証  
 ※テスト環境よりだいぶ古く、時々データをリセットしてます  
 https://160.248.2.165/
@@ -19,7 +19,7 @@ https://160.248.2.165/
 
 ## 使用技術
 ### インフラ
-- テスト環境: GCP(Cloudbuild, CloudRun) + Debian + Waitress
+- テスト環境: GCP(Cloudbuild, CloudRun) + Waitress
 - 本番環境: VPS + Ubuntu24.04 + Apache2.4⇒(逆串)⇒Waitress
 ### フロントエンド
 - React(Typescript)
