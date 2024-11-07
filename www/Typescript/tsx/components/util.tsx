@@ -51,3 +51,8 @@ export const Unixtime2String = (unixtime: number = 0) => {
         "月 " + now.getDate() + "日 " + now.getHours() + ": " + now.getMinutes() + ": " + now.getSeconds();
     return timestamp
 }
+
+export const satisfyDictKeys = (_targetDict: {}, _keys: any[]) => {
+    for (let _i = 0; _i < _keys.length; _i++) if (_keys[_i] in _targetDict == false) return false
+    return true
+}

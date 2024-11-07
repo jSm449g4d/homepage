@@ -97,14 +97,20 @@ def show(request):
         return get_response()
     if request.method == "POST":
         if "info" not in request.form:
-            return json.dumps({"message": "notEnoughForm(info)"}, ensure_ascii=False)
+            return json.dumps(
+                {"message": "notEnoughForm(info)", "text": "INFOフォーム無し"},
+                ensure_ascii=False,
+            )
         _dataDict = json.loads(request.form["info"])
         token = ""
         encoded_new_token = token
         if _dataDict["token"] != "":
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             if token["timestamp"] + pyJWT_timeout < int(time.time()):
-                return json.dumps({"message": "tokenTimeout"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "tokenTimeout", "text": "JWT期限切れ"},
+                    ensure_ascii=False,
+                )
             encoded_new_token = jwt.encode(
                 {"id": token["id"], "timestamp": int(time.time())},
                 pyJWT_pass,
@@ -156,7 +162,7 @@ def show(request):
                         ensure_ascii=False,
                     )
                 # search closed material
-            return json.dumps({"message": "rejected"})
+            return json.dumps({"message": "rejected", "text": "不明なエラー"})
 
         if "fetch" in request.form:
             _dataDict.update(json.loads(request.form["fetch"]))
@@ -179,11 +185,14 @@ def show(request):
                 )
                 _combination = cur.fetchone()
                 if _combination == None:
-                    return json.dumps({"message": "notExist"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "notExist", "text": "レシピが不明"},
+                        ensure_ascii=False,
+                    )
                 elif _combination["passhash"] not in ["", _roompasshash]:
-                    return json.dumps({"message": "wrongPass"})
+                    return json.dumps({"message": "wrongPass", "text": "アクセス拒否"})
                 elif _combination["passhash"] == "0" and _combination["id"] != _userid:
-                    return json.dumps({"message": "wrongPass"})
+                    return json.dumps({"message": "wrongPass", "text": "アクセス拒否"})
                 # select material
                 _contents = json.loads(_combination["contents"])
                 _materials = []
@@ -205,12 +214,14 @@ def show(request):
                     },
                     ensure_ascii=False,
                 )
-            return json.dumps({"message": "rejected"})
+            return json.dumps({"message": "rejected", "text": "不明なエラー"})
 
         if "register" in request.form:
             _dataDict.update(json.loads(request.form["register"]))
             if token == "":
-                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
+                )
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -224,7 +235,9 @@ def show(request):
                     )
                     _material = cur.fetchone()
                     if _material != None:
-                        return json.dumps({"message": "alreadyExisted"})
+                        return json.dumps(
+                            {"message": "alreadyExisted", "text": "既存の名前"}
+                        )
                     cur.execute(
                         "INSERT INTO tskb_material "
                         "(name,tag,description,userid,user,passhash,timestamp) "
@@ -248,11 +261,19 @@ def show(request):
                 )
                 _material = cur.fetchone()
                 if _material == None:
-                    return json.dumps({"message": "notExist"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "notExist", "text": "素材不明"}, ensure_ascii=False
+                    )
                 elif _material["passhash"] not in ["", _roompasshash]:
-                    return json.dumps({"message": "wrongPass"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "wrongPass", "text": "アクセス拒否"},
+                        ensure_ascii=False,
+                    )
                 elif _material["passhash"] == "0" and _material["id"] != token["id"]:
-                    return json.dumps({"message": "wrongPass"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "wrongPass", "text": "アクセス拒否"},
+                        ensure_ascii=False,
+                    )
                 for key, value in _dataDict["materialid"]:
                     cur.execute(
                         "UPDATE tskb_material SET ? = ? WHERE id = ?;",
@@ -260,7 +281,7 @@ def show(request):
                     )
                 conn.commit()
                 return json.dumps({"message": "processed"}, ensure_ascii=False)
-            return json.dumps({"message": "rejected"})
+            return json.dumps({"message": "rejected", "text": "不明なエラー"})
 
         if "upload" in request.files:
             _roompasshash = _dataDict["roomKey"]
@@ -269,7 +290,10 @@ def show(request):
                     _dataDict["roomKey"].encode()
                 ).hexdigest()
             if _dataDict["token"] == "":
-                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "tokenNothing", "text": "トークン未提出"},
+                    ensure_ascii=False,
+                )
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             _roompasshash = ""
             if _dataDict["roomKey"] != "":
@@ -355,7 +379,9 @@ def show(request):
         if "delete" in request.form:
             _dataDict.update(json.loads(request.form["delete"]))
             if _dataDict["token"] == "":
-                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
+                )
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -366,7 +392,7 @@ def show(request):
                 )
                 conn.commit()
                 return json.dumps({"message": "processed"}, ensure_ascii=False)
-            return json.dumps({"message": "rejected"})
+            return json.dumps({"message": "rejected", "text": "不明なエラー"})
 
         if "search" in request.form:
             _roompasshash = _dataDict["roomKey"]
@@ -398,7 +424,7 @@ def show(request):
                     },
                     ensure_ascii=False,
                 )
-            return json.dumps({"message": "rejected"})
+            return json.dumps({"message": "rejected", "text": "不明なエラー"})
 
         if "create" in request.form:
             _dataDict.update(json.loads(request.form["create"]))
@@ -408,7 +434,9 @@ def show(request):
                     _dataDict["roomKey"].encode()
                 ).hexdigest()
             if _dataDict["token"] == "":
-                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
+                )
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             if _dataDict["privateFlag"] == True:
                 _roompasshash = "0"
@@ -422,7 +450,10 @@ def show(request):
                 )
                 _room = cur.fetchone()
                 if _room != None:
-                    return json.dumps({"message": "alreadyExisted"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "alreadyExisted", "text": "既存の名前"},
+                        ensure_ascii=False,
+                    )
                 cur.execute(
                     "INSERT INTO tskb_combination "
                     "(name,tag,description,userid,user,passhash,timestamp,contents) "
@@ -453,7 +484,9 @@ def show(request):
                 ).hexdigest()
             _dataDict.update(json.loads(request.form["destroy"]))
             if _dataDict["token"] == "":
-                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
+                )
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
@@ -465,16 +498,22 @@ def show(request):
                 )
                 _combination = cur.fetchone()
                 if _combination == None:
-                    return json.dumps({"message": "notExist"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "notExist", "text": "レシピ不明"},
+                        ensure_ascii=False,
+                    )
                 if _combination["userid"] != token["id"]:
-                    return json.dumps({"message": "youerntOwner"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "youerntOwner", "text": "所有権無"},
+                        ensure_ascii=False,
+                    )
                 cur.execute(
                     "DELETE FROM tskb_combination WHERE userid = ? AND id = ? ;",
                     [token["id"], _dataDict["combination_id"]],
                 )
                 conn.commit()
                 return json.dumps({"message": "processed"}, ensure_ascii=False)
-            return json.dumps({"message": "rejected"})
+            return json.dumps({"message": "rejected", "text": "不明なエラー"})
 
     return "404: nof found → main.html", 404
 

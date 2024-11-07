@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
 
-import { jpclock, Unixtime2String } from "../components/util";
-import { HIModal, CIModal } from "../components/imodals";
-import { accountSetState } from '../components/slice'
-import { useAppSelector, useAppDispatch } from '../components/store'
-import "../stylecheets/style.sass";
-import { string } from 'prop-types';
+import { jpclock, Unixtime2String, satisfyDictKeys } from "../../components/util";
+import { HIModal, CIModal } from "../../components/imodals";
+import { Provider } from "react-redux"
+import { accountSetState, tskbSetState } from '../../components/slice'
+import { useAppSelector, useAppDispatch } from '../../components/store'
+import { CTable } from "./components/combinationTable"
+import { EMTable } from "./components/explorematerialtable"
+import { MTable } from "./components/materialtable"
+import "../../stylecheets/style.sass";
 
 export const AppMain = () => {
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
     const token = useAppSelector((state) => state.account.token)
     const roomKey = useAppSelector((state) => state.account.roomKey)
-    const dispatch = useAppDispatch()
+    const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
+    const AppDispatch = useAppDispatch()
     const xhrTimeout = 3000
-    const fileSizeMax = 1024 * 1024 * 2
 
     const [room, setRoom] = useState({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" })
     const [combination, setCombination] = useState({
@@ -34,12 +37,28 @@ export const AppMain = () => {
     const [exploreContents, setExploreContents] = useState([])
 
     useEffect(() => {
-        if (combination["name"] == "") searchCombination()
-        else fetchMaterial()
+        AppDispatch(tskbSetState({ "tableStatus": "CTable" }))
     }, [userId])
-    useEffect(() => { searchCombination() }, [])
+    useEffect(() => {
+        AppDispatch(tskbSetState({ "tableStatus": "CTable" }))
+    }, [])
 
+    const _titleLogo = () => {
+        const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
+        return (
+            <div>
+                <div id="rotxin-2 row" style={{ fontFamily: "Impact", color: "black" }}>
+                    <div id="col-12 col-md-6">
+                        <i className="fa-solid fa-book mx-1" style={{ pointerEvents: "none" }}></i>栄養計算
+                    </div>
+                    <div id="col-12 col-md-6">
+                        {tableStatus}
+                    </div>
+                </div>
+            </div>)
+    }
     // jpclock (decoration)
+    /** 
     const [jpclockNow, setJpclockNow] = useState("")
     useEffect(() => {
         const _intervalId = setInterval(() => setJpclockNow(jpclock()), 500);
@@ -72,10 +91,6 @@ export const AppMain = () => {
         setTmpText(""); setTmpDescription(""); setTmpTargetId(-1); setTmpPrivateFlag(false)
         setTmpExploreMaterial("")
         if (_setContentsInitialze) { setContents([]), setExploreContents([]) }
-    }
-    const satisfyDictKeys = (_targetDict: {}, _keys: any[]) => {
-        for (let _i = 0; _i < _keys.length; _i++) if (_keys[_i] in _targetDict == false) return false
-        return true
     }
     const exploreMaterial = (_tmpPrivateFlag = tmpPrivateFlag) => {
         const sortSetExploreContents = (_contents: any = []) => {
@@ -153,7 +168,7 @@ export const AppMain = () => {
                     case "processed": {
                         setCombination(resJ["combination"]);
                         sortSetContents(resJ["materials"]);
-                        dispatch(accountSetState({ token: resJ["token"] })); break;
+                        AppDispatch(accountSetState({ token: resJ["token"] })); break;
 
                     }
                     case "wrongPass": {
@@ -284,7 +299,7 @@ export const AppMain = () => {
                 switch (resJ["message"]) {
                     case "processed": {
                         sortSetContentsRev(resJ["combinations"]);
-                        dispatch(accountSetState({ token: resJ["token"] })); break;
+                        AppDispatch(accountSetState({ token: resJ["token"] })); break;
                     }
                     case "tokenTimeout": {
                         CIModal("JWTトークンタイムアウト");
@@ -381,213 +396,6 @@ export const AppMain = () => {
             });
     }
     // ConsoleRender
-    const combinationTopForm = () => {
-        const combinationCreateModal = () => {
-            return (
-                <div>
-                    <div className="modal fade" id="combinationCreateModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                        <div className="modal-dialog">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h3 className="modal-title fs-5">
-                                        <i className="fa-solid fa-hammer mx-1" />レシピ作成
-                                    </h3>
-                                </div>
-                                <div className="modal-body row">
-                                    <div className="input-group m-1 col-12">
-                                        <span className="input-group-text">レシピ名</span>
-                                        <input type="text" className="form-control" placeholder="Username" aria-label="user"
-                                            value={tmpCombination} onChange={(evt) => { setTmpCombination(evt.target.value) }} />
-                                    </div>
-                                    <div className="form-check form-switch m-1">
-                                        <label className="form-check-label">非公開設定</label>
-                                        <input className="form-check-input" type="checkbox" role="switch" checked={tmpPrivateFlag}
-                                            style={{ transform: "rotate(90deg)" }}
-                                            onChange={(evt: any) => {
-                                                if (evt.target.checked == true) {
-                                                    setTmpPrivateFlag(true)
-                                                    $("#combinationCreateModalRoomKey").prop("disabled", true)
-                                                    setTmpRoomKey("")
-                                                }
-                                                else {
-                                                    setTmpPrivateFlag(false)
-                                                    $("#combinationCreateModalRoomKey").prop("disabled", false)
-                                                }
-                                            }}>
-                                        </input>
-                                    </div>
-                                    <div className="input-group m-1 col-12">
-                                        <span className="input-group-text">Pass</span>
-                                        <input type="text" className="form-control" placeholder="Password" aria-label="pass"
-                                            id="combinationCreateModalRoomKey"
-                                            value={tmpRoomKey} onChange={(evt) => { setTmpRoomKey(evt.target.value) }} />
-                                    </div>
-                                </div>
-                                <div className="modal-footer d-flex">
-                                    <button type="button" className="btn btn-secondary me-auto" data-bs-dismiss="modal">
-                                        Close
-                                    </button>
-                                    {tmpCombination != "" && token != "" ? <div>
-                                        {tmpRoomKey == "" ?
-                                            <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
-                                                onClick={() => createCombination()}>
-                                                <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
-                                            </button> :
-                                            <button type="button" className="btn btn-outline-warning" data-bs-dismiss="modal"
-                                                onClick={() => {
-                                                    dispatch(accountSetState({ "roomKey": tmpRoomKey }))
-                                                    createCombination()
-                                                }}>
-                                                <i className="fa-solid fa-key mx-1" style={{ pointerEvents: "none" }} />作成
-                                            </button>
-                                        }</div> :
-                                        <button type="button" className="btn btn-outline-primary" disabled>
-                                            <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
-                                        </button>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )
-        }
-        return (
-            <div>
-                {combinationCreateModal()}
-                <div className="input-group d-flex justify-content-center align-items-center my-1">
-
-                    <button className="btn btn-outline-success btn-lg" type="button"
-                        onClick={() => { searchCombination() }}>
-                        <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
-                    </button>
-                    <input className="flex-fill form-control form-control-lg" type="text" placeholder="レシピ検索"
-                        value={tmpCombination} onChange={(evt: any) => { setTmpCombination(evt.target.value) }} />
-                    {token == "" ?
-                        <button className="btn btn-outline-info btn-lg" type="button"
-                            onClick={() => {
-                                HIModal("レシピ作成にはログインが必要")
-                            }}>
-                            <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
-                            レシピ作成
-                        </button> :
-                        <button className="btn btn-outline-primary btn-lg" type="button"
-                            onClick={() => {
-                                setTmpCombination("")
-                                $('#combinationCreateModal').modal('show');
-                            }}>
-                            <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
-                            レシピ作成
-                        </button>}
-                </div>
-            </div>)
-    }
-    const combinationTable = () => {
-        const combinationInterModal = () => {
-            return (
-                <div className="modal fade" id="combinationInterModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h1 className="modal-title fs-5">
-                                    <i className="fa-solid fa-lock mx-1" />パスワード入力
-                                </h1>
-                            </div>
-                            <div className="modal-body row">
-                                <div className="input-group m-1 col-12">
-                                    <span className="input-group-text">Pass</span>
-                                    <input type="text" className="form-control" placeholder="Password" aria-label="pass"
-                                        value={tmpRoomKey} onChange={(evt) => { setTmpRoomKey(evt.target.value) }} />
-                                </div>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" value={-1} id="combinationInterModalButton"
-                                    className="btn btn-secondary" data-bs-dismiss="modal">
-                                    Close
-                                </button>
-                                {tmpRoomKey != "" ?
-                                    <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
-                                        onClick={
-                                            () => {
-                                                // roomKey cannot be updated in time
-                                                dispatch(accountSetState({ roomKey: tmpRoomKey }))
-                                                fetchMaterial(Number(tmpTargetId), tmpRoomKey)
-                                            }}>
-                                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />閲覧
-                                    </button> :
-                                    <button type="button" className="btn btn-outline-primary" disabled>
-                                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />閲覧
-                                    </button>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )
-        }
-        const _tmpRecord = [];
-        if (0 < contents.length)
-            if (!satisfyDictKeys(contents[0], ["id", "name", "description", "userid", "user", "passhash", "timestamp", "contents"]))
-                return (<div className="row m-1">loading</div>)
-        for (var i = 0; i < contents.length; i++) {
-            if (contents[i]["name"].indexOf(tmpCombination) == -1) continue
-            const _tmpData = [];
-            var _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }
-            if (contents[i]["passhash"] != "") { _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.2))" } }
-            if (contents[i]["passhash"] == "0") { _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,150,0.2))" } }
-            _tmpData.push(
-                <div className="col-12 border d-flex" style={_style}>
-                    <h5 className="me-auto">
-                        <i className="fa-solid fa-jar mx-1"></i>{contents[i]["name"]}
-                    </h5>
-                    {contents[i]["passhash"] == "" ?
-                        <button className="btn btn-outline-primary rounded-pill"
-                            onClick={(evt: any) => { fetchMaterial(evt.target.value) }} value={contents[i]["id"]}>
-                            <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>閲覧
-                        </button> :
-                        <button className="btn btn-outline-dark rounded-pill"
-                            onClick={(evt: any) => {
-                                setTmpTargetId(evt.target.value)
-                                $('#combinationInterModal').modal('show')
-                            }} value={contents[i]["id"]}>
-                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>閲覧
-                        </button>
-                    }
-                    {contents[i]["userid"] == userId ?
-                        <button className="btn btn-outline-danger rounded-pill"
-                            onClick={(evt: any) => {
-                                setTmpTargetId(evt.target.value)
-                                $('#destroyCombinationModal').modal('show')
-                            }} value={contents[i]["id"]}>
-                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>破棄
-                        </button> : <div></div>
-                    }
-                </div>)
-            _tmpData.push(
-                <div className="col-12 col-md-10 p-1 d-flex justify-content-center align-items-center border">
-                    <div>
-                        {contents[i]["description"]}
-                    </div>
-                </div>)
-            _tmpData.push(
-                <div className="col-12 col-md-2 p-1 border"><div className="text-center">
-                    {Unixtime2String(Number(contents[i]["timestamp"]))}
-                </div></div>)
-            _tmpRecord.push(
-                <div className="col-12 col-md-6" style={{
-                    border: "1px inset silver", borderRadius: "5px", marginBottom: "3px", boxShadow: "2px 2px 1px rgba(60,60,60,0.2)"
-                }}>
-                    <div className="row p-1">{_tmpData}</div>
-                </div>
-            )
-        }
-        return (
-            <div>
-                {combinationInterModal()}
-                <div className="row m-1">{_tmpRecord}
-                </div>
-            </div>)
-    }
     const materialTable = () => {
         const materialTopForm = () => {
             return (
@@ -1034,29 +842,40 @@ export const AppMain = () => {
                 </div>
             </div>
         )
-    }
+    }*/
+    //<CTable/> 
     return (
         <div>
-            {combination["name"] == "" ?
+            {tableStatus == "CTable" ?
                 <div className="m-1">
-                    {combinationTopForm()}
-                    {combinationTable()}
+                    <CTable />
                 </div> :
-                <div className="m-1">
-                    {materialTable()}
-                    {exploreMaterialForm()}
-                    {exploreMaterialTable()}
-                </div>
+                <div></div>
             }
-            {deleteMaterialModal()}
-            {destroyCombinationModal()}
+            {tableStatus == "MTable" ?
+                <div className="m-1">
+                    <MTable />
+                    <EMTable />
+                </div> :
+                <div></div>
+            }
         </div>
+
     )
 };
 
 // titleLogo
 export const titleLogo = () => {
-    return (<div id="rotxin-2" style={{ fontFamily: "Impact", color: "black" }}>
-        <i className="fa-solid fa-book mx-1" style={{ pointerEvents: "none" }}></i>栄養計算
-    </div>)
+    const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
+    return (
+        <div>
+            <div className="rotxin-2 row" style={{ fontFamily: "Impact", color: "black" }}>
+                <div className="col-12 col-md-6">
+                    <i className="fa-solid fa-book mx-1" style={{ pointerEvents: "none" }}></i>栄養計算
+                </div>
+                <div className="col-12 col-md-6">
+                    {tableStatus}
+                </div>
+            </div>
+        </div>)
 }

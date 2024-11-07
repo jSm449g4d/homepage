@@ -1,15 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import React from 'react';
-import { createRoot } from "react-dom/client"
-import { Provider } from "react-redux"
-import { store } from "./store";
 
-require.context('../application/', true, /\.ts(x?)$/)
-
-
-interface accountSetStateInterface {
-  user: string, token: string, id: number, mail: string, roomKey: string
-}
 export const accountSlice = createSlice({
   name: 'account',
   initialState: {
@@ -26,10 +17,32 @@ export const accountSlice = createSlice({
       if ("mail" in action.payload) state.mail = action.payload.mail
       if ("roomKey" in action.payload) state.roomKey = action.payload.roomKey
     },
-    accountSetRoomKey: (state, action: { payload: string }) => {
-      state.roomKey = action.payload
+  },
+})
+export const { accountInit, accountSetState } = accountSlice.actions
+
+
+export const tskbSlice = createSlice({
+  name: 'tskb',
+  initialState: {
+    tableStatus: "",
+    combination:
+    {
+      "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
+      "timestamp": 0, "passhash": "", "contents": ""
+    },
+    material: {
+
+    },
+    tmpContents: [],
+  },
+  reducers: {
+    tskbSetState: (state, action: { payload: any }) => {
+      if ("tableStatus" in action.payload) state.tableStatus = action.payload.tableStatus
+      if ("combination" in action.payload) state.combination = action.payload.combination
+      if ("material" in action.payload) state.material = action.payload.material
+      if ("tmpContents" in action.payload) state.tmpContents = action.payload.tmpContents
     },
   },
 })
-
-export const { accountInit, accountSetState } = accountSlice.actions
+export const { tskbSetState } = tskbSlice.actions

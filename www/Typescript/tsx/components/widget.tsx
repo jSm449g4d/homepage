@@ -71,7 +71,7 @@ export const AppWidgetHead = () => {
                 CIModal("通信エラー")
                 console.error(error.message)
             });
-            _formInit()
+        _formInit()
     }
     const _signin = () => {
         const headers = new Headers();
@@ -424,7 +424,7 @@ export const AppWidgetHead = () => {
             const appMain = createRoot(document.getElementById("appMain"))
             appMain.render(<Provider store={store}><module.AppMain /></Provider>)
             const titlelogo = createRoot(document.getElementById("titlelogo"))
-            titlelogo.render(<module.titleLogo />)
+            titlelogo.render(<Provider store={store}><module.titleLogo /></Provider>)
         })
     }
     return (
@@ -442,7 +442,7 @@ export const AppWidgetHead = () => {
                                 <i className="far fa-comments mx-1" style={{ pointerEvents: "none" }}></i>チャット
                             </a></li>
                             <li><a className="dropdown-item btn-col" style={{ fontSize: "1.5em" }}
-                                onClick={() => { _switchApp("tskb") }}>
+                                onClick={() => { _switchApp("tskb/main") }}>
                                 <i className="fa-solid fa-book mx-1" style={{ pointerEvents: "none" }}></i>栄養計算※工事中
                             </a></li>
                         </ul>

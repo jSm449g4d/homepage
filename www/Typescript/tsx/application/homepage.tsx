@@ -86,7 +86,7 @@ export const AppMain = () => {
 
 //titleLogo
 export const titleLogo = () => {
-    return (<div id="rotxin-2" style={{ fontFamily: "Impact", color: "black" }} >
+    return (<div className="rotxin-2" style={{ fontFamily: "Impact", color: "black" }} >
         <i className="fas fa-home mx-1" style={{ pointerEvents: "none" }}></i>ホームページ
     </div>)
 }
