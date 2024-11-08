@@ -8,6 +8,7 @@ import { useAppSelector, useAppDispatch } from '../../components/store'
 import { CTable } from "./components/combinationTable"
 import { EMTable } from "./components/explorematerialtable"
 import { MTable } from "./components/materialtable"
+import { CMTable } from "./components/configmaterialtable"
 import "../../stylecheets/style.sass";
 
 export const AppMain = () => {
@@ -855,6 +856,13 @@ export const AppMain = () => {
             {tableStatus == "MTable" ?
                 <div className="m-1">
                     <MTable />
+                    <EMTable />
+                </div> :
+                <div></div>
+            }
+            {tableStatus == "CMTable" ?
+                <div className="m-1">
+                    <CMTable />
                     <EMTable />
                 </div> :
                 <div></div>

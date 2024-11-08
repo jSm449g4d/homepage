@@ -32,7 +32,7 @@ export const CTable = () => {
         setTmpCombination("")
         setTpDescription("")
         setTmpPrivateFlag(false)
-    }, [userId])
+    }, [tableStatus, userId])
     useEffect(() => { searchCombination() }, [])
 
     const stringForSend = (_additionalDict: {} = {}) => {
@@ -64,7 +64,7 @@ export const CTable = () => {
                 switch (resJ["message"]) {
                     case "processed": {
                         AppDispatch(tskbSetState({ tableStatus: "MTable" }));
-                        AppDispatch(tskbSetState({ token: resJ["combination"] }));
+                        AppDispatch(tskbSetState({ combination: resJ["combination"] }));
                         sortSetContents(resJ["materials"]);
                         AppDispatch(accountSetState({ token: resJ["token"] })); break;
                     }
@@ -311,7 +311,7 @@ export const CTable = () => {
         )
     }
     // app
-    const combinationTopForm = () => {
+    const topForm = () => {
         return (
             <div>
                 <div className="input-group d-flex justify-content-center align-items-center my-1">
@@ -404,7 +404,7 @@ export const CTable = () => {
             {combinationInterModal()}
             {combinationCreateModal()}
             {combinationDestroyModal()}
-            {combinationTopForm()}
+            {topForm()}
             <div className="row m-1">
                 {_tmpRecord}
             </div>

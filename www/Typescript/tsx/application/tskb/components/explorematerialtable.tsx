@@ -26,7 +26,7 @@ export const EMTable = () => {
         if (tableStatus == "MTable") exploreMaterial()
         setTmpeMaterial("")
         setTmpPrivateFlag(false)
-    }, [tableStatus,userId])
+    }, [tableStatus, userId])
     useEffect(() => { exploreMaterial() }, [])
 
     const stringForSend = (_additionalDict: {} = {}) => {
@@ -136,7 +136,7 @@ export const EMTable = () => {
         )
     }*/
     // app
-    const exploreMaterialForm = () => {
+    const topForm = () => {
         return (
             <div>
                 <div className="input-group d-flex justify-content-center align-items-center my-1">
@@ -165,7 +165,7 @@ export const EMTable = () => {
                             + 素材新規作成
                         </button> :
                         <button className="btn btn-outline-primary btn-lg" type="button"
-                            onClick={() => $("#materialCreateModal").modal("show")} >
+                            onClick={() => AppDispatch(tskbSetState({ tableStatus: "CMTable" }))} >
                             + 素材新規作成
                         </button>}
                 </div></div>)
@@ -299,7 +299,7 @@ export const EMTable = () => {
     }
     return (
         <div>
-            {exploreMaterialForm()}
+            {topForm()}
             <div className="row m-1">
                 {_tmpRecord}
             </div>

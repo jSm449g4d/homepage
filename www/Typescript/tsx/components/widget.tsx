@@ -396,9 +396,9 @@ export const AppWidgetHead = () => {
                             </button>
                         }
                     </div> :
-                    <div className="d-flex">
-                        <div className="me-auto"></div>
-                        <div className="d-flex justify-content-center align-items-center">
+                    <div className="d-flex justify-content-center align-items-center">
+                        <div className="me-md-auto"></div>
+                        <div className="d-flex">
                             <h5 className=""> {"ようこそ"}   </h5>
                             <h3 className="mx-2"> {user}</h3>
                         </div>
@@ -430,8 +430,8 @@ export const AppWidgetHead = () => {
     return (
         <div style={{ borderBottom: "3px double gray", background: "linear-gradient(rgba(60,60,60,0),rgba(60,60,60,0.1)" }}>
             <div className="my-1 mx-2 row">
-                <div className="col-12 col-md-6 d-flex">
-                    <div className="dropdown d-flex align-items-center">
+                <div className="col-12 col-md-7 d-flex align-items-center">
+                    <div className="dropdown">
                         <ul className="dropdown-menu ">
                             <li><a className="dropdown-item btn-col" style={{ fontSize: "1.5em" }}
                                 onClick={() => { _switchApp("homepage") }}>
@@ -451,11 +451,11 @@ export const AppWidgetHead = () => {
                             <i className="fa-solid fa-book mx-1" style={{ pointerEvents: "none" }} />アプリ一覧
                         </button>
                     </div>
-                    <h2 className="d-flex align-items-center mx-2">
+                    <h2 className="mx-2 flex-fill">
                         <div id="titlelogo">タイトル未設定</div>
                     </h2>
                 </div>
-                <div className="col-12 col-md-6">
+                <div className="col-12 col-md-5">
                     {_accountForm()}
                 </div>
             </div></div>

@@ -29,10 +29,19 @@ export const tskbSlice = createSlice({
     combination:
     {
       "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
-      "timestamp": 0, "passhash": "", "contents": ""
+      "passhash": "", "timestamp": 0, "contents": ""
     },
+    // "(id,name,tag,description,userid,user,passhash,timestamp,"
+    // "g,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
+    // "ca,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
     material: {
-
+      "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
+      "passhash": "", "timestamp": 0, "g": "", "cost": "", "carbo": "", "fiber": "",
+      "protein": "", "fat": "", "saturated_fat": "", "n3": "", "DHA_EPA": "", "n6": "",
+      "ca": "", "cr": "", "cu": "", "i": "", "fe": "", "mg": "", "mn": "",
+      "mo": "", "p": "", "k": "", "se": "", "na": "", "zn": "", "va": "",
+      "vb1": "", "vb2": "", "vb3": "", "vb5": "", "vb6": "", "vb7": "", "vb9": "",
+      "vb12": "", "vc": "", "vd": "", "ve": "", "vk": "", "colin": "", "kcal": "",
     },
     tmpContents: [],
   },

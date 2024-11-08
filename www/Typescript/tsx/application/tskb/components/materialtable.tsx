@@ -167,7 +167,7 @@ export const MTable = () => {
         )
     }
     // app
-    const materialTopForm = () => {
+    const topForm = () => {
         return (
             <div>
                 <div className="input-group d-flex justify-content-center align-items-center my-1">
@@ -260,7 +260,7 @@ export const MTable = () => {
     return (
         <div>
             {combinationDestroyModal1()}
-            {materialTopForm()}
+            {topForm()}
             <div style={{ overflow: "auto" }}>
                 <table className="table table-dark table-striped-columns table-bordered"
                     style={{ whiteSpace: "nowrap" }}>

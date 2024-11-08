@@ -274,7 +274,7 @@ def show(request):
                         {"message": "wrongPass", "text": "アクセス拒否"},
                         ensure_ascii=False,
                     )
-                for key, value in _dataDict["materialid"]:
+                for key, value in _dataDict["material"].item():
                     cur.execute(
                         "UPDATE tskb_material SET ? = ? WHERE id = ?;",
                         [key, value, _material["id"]],
