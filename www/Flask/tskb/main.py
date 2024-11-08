@@ -68,7 +68,7 @@ with closing(sqlite3.connect(db_dir)) as conn:
     # passhash="": public ,"0": private
     "(id,name,tag,description,userid,user,passhash,timestamp,"
     "g,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
-    "ca,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
+    "ca,cl,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_material(id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "name TEXT UNIQUE NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
@@ -77,7 +77,7 @@ with closing(sqlite3.connect(db_dir)) as conn:
         "carbo REAL DEFAULT 0,fiber REAL DEFAULT 0,"
         "protein REAL DEFAULT 0,fat REAL DEFAULT 0,saturated_fat REAL DEFAULT 0,"
         "n3 REAL DEFAULT 0,DHA_EPA REAL DEFAULT 0,"
-        "n6 REAL DEFAULT 0,ca REAL DEFAULT 0,cr REAL DEFAULT 0,"
+        "n6 REAL DEFAULT 0,ca REAL DEFAULT 0,cl REAL DEFAULT 0,cr REAL DEFAULT 0,"
         "cu REAL DEFAULT 0,i REAL DEFAULT 0,fe REAL DEFAULT 0,"
         "mg REAL DEFAULT 0,mn REAL DEFAULT 0,mo REAL DEFAULT 0,"
         "p REAL DEFAULT 0,k REAL DEFAULT 0,se REAL DEFAULT 0,"
@@ -222,19 +222,20 @@ def show(request):
                 return json.dumps(
                     {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
                 )
+            _material=_dataDict["material"]
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
-                _roompasshash = "" if _dataDict["privateFlag"] == False else "0"
+                _roompasshash = "" if _material["passhash"] == "" else "0"
                 # process start
                 # register material
-                if _dataDict["materialid"] == -1:
+                if _material["id"] == -1:
                     cur.execute(
                         "SELECT * FROM tskb_material WHERE name = ?;",
-                        [_dataDict["name"]],
+                        [_material["name"]],
                     )
-                    _material = cur.fetchone()
-                    if _material != None:
+                    _Cmaterial = cur.fetchone()
+                    if _Cmaterial != None:
                         return json.dumps(
                             {"message": "alreadyExisted", "text": "既存の名前"}
                         )
@@ -243,9 +244,9 @@ def show(request):
                         "(name,tag,description,userid,user,passhash,timestamp) "
                         "values(?,?,?,?,?,?,?)",
                         [
-                            _dataDict["name"],
+                            _material["name"],
                             ",".join([]),
-                            _dataDict["description"],
+                            _material["description"],
                             token["id"],
                             _dataDict["user"],
                             _roompasshash,
@@ -257,27 +258,27 @@ def show(request):
                 # update material
                 cur.execute(
                     "SELECT * FROM tskb_material WHERE id = ?;",
-                    [_dataDict["materialid"]],
+                    [_material["id"]],
                 )
-                _material = cur.fetchone()
-                if _material == None:
+                _Cmaterial = cur.fetchone()
+                if _Cmaterial == None:
                     return json.dumps(
                         {"message": "notExist", "text": "素材不明"}, ensure_ascii=False
                     )
-                elif _material["passhash"] not in ["", _roompasshash]:
+                elif _Cmaterial["passhash"] not in ["", _roompasshash]:
                     return json.dumps(
                         {"message": "wrongPass", "text": "アクセス拒否"},
                         ensure_ascii=False,
                     )
-                elif _material["passhash"] == "0" and _material["id"] != token["id"]:
+                elif _Cmaterial["passhash"] == "0" and _Cmaterial["id"] != token["id"]:
                     return json.dumps(
                         {"message": "wrongPass", "text": "アクセス拒否"},
                         ensure_ascii=False,
                     )
-                for key, value in _dataDict["material"].item():
+                for key, value in _material.item():
                     cur.execute(
                         "UPDATE tskb_material SET ? = ? WHERE id = ?;",
-                        [key, value, _material["id"]],
+                        [key, value, _Cmaterial["id"]],
                     )
                 conn.commit()
                 return json.dumps({"message": "processed"}, ensure_ascii=False)

@@ -856,6 +856,7 @@ export const AppMain = () => {
             {tableStatus == "MTable" ?
                 <div className="m-1">
                     <MTable />
+                    <div className="my-1"></div>
                     <EMTable />
                 </div> :
                 <div></div>
@@ -863,6 +864,7 @@ export const AppMain = () => {
             {tableStatus == "CMTable" ?
                 <div className="m-1">
                     <CMTable />
+                    <div className="my-1"></div>
                     <EMTable />
                 </div> :
                 <div></div>
