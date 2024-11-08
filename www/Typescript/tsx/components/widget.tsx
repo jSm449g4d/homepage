@@ -71,7 +71,7 @@ export const AppWidgetHead = () => {
                 CIModal("通信エラー")
                 console.error(error.message)
             });
-            _formInit()
+        _formInit()
     }
     const _signin = () => {
         const headers = new Headers();
@@ -91,7 +91,9 @@ export const AppWidgetHead = () => {
                     case "processed": {
                         dispatch(accountSetState({
                             user: resJ["user"], id: resJ["id"], mail: resJ["mail"], token: resJ["token"],
-                        })); break;
+                        }));
+                        HIModal("アカウント作成に成功しました")
+                        break;
                     }
                     case "alreadyExist": {
                         CIModal("既にアカウントが存在します"); break;
@@ -190,12 +192,18 @@ export const AppWidgetHead = () => {
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-headerrow">
-                                <h3 className="modal-title row-12 m-1">
-                                    <i className="fa-solid fa-pen text-primary mx-1" />SignIn
-                                </h3>
+                                <div className="modal-title d-flex m-2">
+                                    <h3 className="me-auto"><i className="fa-solid fa-pen text-primary mx-1" />SignIn</h3>
+                                    <button className="btn btn-info" type="button" data-bs-dismiss="modal"
+                                        onClick={() =>
+                                            HIModal("開発中",
+                                                "現在メール機能は開発中の為、操作できません")} >
+                                        <i className="fa-regular fa-envelope mx-1" style={{ pointerEvents: "none" }}></i>
+                                        パスワード再設定
+                                    </button>
+                                </div>
                             </div>
                             <div className="modal-body">
-
                                 <div className="row">
                                     <div className="input-group col-12 m-1">
                                         <span className="input-group-text" id="account-addon1">User</span>
@@ -226,26 +234,21 @@ export const AppWidgetHead = () => {
                                 </div>
                             </div>
                             <div className="modal-footer d-flex">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" className="btn btn-secondary me-auto" data-bs-dismiss="modal">
+                                    Close
+                                </button>
                                 {tmpUser == "" || tmpPass == "" ?
-                                    <button type="button" className="btn btn-info me-auto"
+                                    <button type="button" className="btn btn-info"
                                         onClick={() =>
                                             HIModal("サインイン情報を入力してください",
                                                 "※現在メール機能は開発中の為、操作できません")}>
                                         <i className="fa-solid fa-circle-info mx-1" />登録
                                     </button> :
-                                    <button type="button" className="btn btn-primary me-auto" data-bs-dismiss="modal"
+                                    <button type="button" className="btn btn-primary" data-bs-dismiss="modal"
                                         onClick={() => _signin()}>
                                         <i className="fa-solid fa-pen mx-1" style={{ pointerEvents: "none" }} />登録
                                     </button>
                                 }
-                                <button className="btn btn-info" type="button" data-bs-dismiss="modal"
-                                    onClick={() =>
-                                        HIModal("開発中",
-                                            "現在メール機能は開発中の為、操作できません")} >
-                                    <i className="fa-regular fa-envelope mx-1" style={{ pointerEvents: "none" }}></i>
-                                    パスワード再設定
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -396,9 +399,9 @@ export const AppWidgetHead = () => {
                             </button>
                         }
                     </div> :
-                    <div className="d-flex">
-                        <div className="me-auto"></div>
-                        <div className="d-flex justify-content-center align-items-center">
+                    <div className="d-flex justify-content-center align-items-center">
+                        <div className="me-md-auto"></div>
+                        <div className="d-flex">
                             <h5 className=""> {"ようこそ"}   </h5>
                             <h3 className="mx-2"> {user}</h3>
                         </div>
@@ -424,14 +427,14 @@ export const AppWidgetHead = () => {
             const appMain = createRoot(document.getElementById("appMain"))
             appMain.render(<Provider store={store}><module.AppMain /></Provider>)
             const titlelogo = createRoot(document.getElementById("titlelogo"))
-            titlelogo.render(<module.titleLogo />)
+            titlelogo.render(<Provider store={store}><module.titleLogo /></Provider>)
         })
     }
     return (
         <div style={{ borderBottom: "3px double gray", background: "linear-gradient(rgba(60,60,60,0),rgba(60,60,60,0.1)" }}>
             <div className="my-1 mx-2 row">
-                <div className="col-12 col-md-6 d-flex">
-                    <div className="dropdown d-flex align-items-center">
+                <div className="col-12 col-md-7 d-flex align-items-center">
+                    <div className="dropdown">
                         <ul className="dropdown-menu ">
                             <li><a className="dropdown-item btn-col" style={{ fontSize: "1.5em" }}
                                 onClick={() => { _switchApp("homepage") }}>
@@ -442,7 +445,7 @@ export const AppWidgetHead = () => {
                                 <i className="far fa-comments mx-1" style={{ pointerEvents: "none" }}></i>チャット
                             </a></li>
                             <li><a className="dropdown-item btn-col" style={{ fontSize: "1.5em" }}
-                                onClick={() => { _switchApp("tskb") }}>
+                                onClick={() => { _switchApp("tskb/main") }}>
                                 <i className="fa-solid fa-book mx-1" style={{ pointerEvents: "none" }}></i>栄養計算※工事中
                             </a></li>
                         </ul>
@@ -451,11 +454,11 @@ export const AppWidgetHead = () => {
                             <i className="fa-solid fa-book mx-1" style={{ pointerEvents: "none" }} />アプリ一覧
                         </button>
                     </div>
-                    <h2 className="d-flex align-items-center mx-2">
+                    <div className="mx-2 flex-fill">
                         <div id="titlelogo">タイトル未設定</div>
-                    </h2>
+                    </div>
                 </div>
-                <div className="col-12 col-md-6">
+                <div className="col-12 col-md-5">
                     {_accountForm()}
                 </div>
             </div></div>

@@ -5,9 +5,8 @@
 https://homepage-tlnesjcoqq-an.a.run.app/
 
 ### 本番環境(VPS)
-※オレオレ認証  
 ※テスト環境よりだいぶ古く、時々データをリセットしてます  
-https://160.248.2.165/
+https://huxiin.com/
 
 # ホームページと Web アプリ
 ホームページに、色々な Web アプリをどんどん追加する構成です
