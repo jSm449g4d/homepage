@@ -8,11 +8,7 @@ import { useAppSelector, useAppDispatch } from '../../../components/store'
 
 export const MTable = () => {
     const [contents, setContents] = useState([])
-    const [tmpRoomKey, setTmpRoomKey] = useState("")
     const [tmpTargetId, setTmpTargetId] = useState(-1)
-    const [tmpCombination, setTmpCombination] = useState("")
-    const [tmpDescription, setTpDescription] = useState("")
-    const [tmpPrivateFlag, setTmpPrivateFlag] = useState(false)
 
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
@@ -28,13 +24,8 @@ export const MTable = () => {
 
     useEffect(() => {
         if (tableStatus == "MTable") setContents(tmpContents)
-        setTmpRoomKey("")
         setTmpTargetId(-1)
-        setTmpCombination("")
-        setTpDescription("")
-        setTmpPrivateFlag(false)
     }, [tableStatus, userId])
-    useEffect(() => { }, [])
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(

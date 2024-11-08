@@ -91,7 +91,9 @@ export const AppWidgetHead = () => {
                     case "processed": {
                         dispatch(accountSetState({
                             user: resJ["user"], id: resJ["id"], mail: resJ["mail"], token: resJ["token"],
-                        })); break;
+                        }));
+                        HIModal("アカウント作成に成功しました")
+                        break;
                     }
                     case "alreadyExist": {
                         CIModal("既にアカウントが存在します"); break;
@@ -190,12 +192,18 @@ export const AppWidgetHead = () => {
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-headerrow">
-                                <h3 className="modal-title row-12 m-1">
-                                    <i className="fa-solid fa-pen text-primary mx-1" />SignIn
-                                </h3>
+                                <div className="modal-title d-flex m-2">
+                                    <h3 className="me-auto"><i className="fa-solid fa-pen text-primary mx-1" />SignIn</h3>
+                                    <button className="btn btn-info" type="button" data-bs-dismiss="modal"
+                                        onClick={() =>
+                                            HIModal("開発中",
+                                                "現在メール機能は開発中の為、操作できません")} >
+                                        <i className="fa-regular fa-envelope mx-1" style={{ pointerEvents: "none" }}></i>
+                                        パスワード再設定
+                                    </button>
+                                </div>
                             </div>
                             <div className="modal-body">
-
                                 <div className="row">
                                     <div className="input-group col-12 m-1">
                                         <span className="input-group-text" id="account-addon1">User</span>
@@ -226,26 +234,21 @@ export const AppWidgetHead = () => {
                                 </div>
                             </div>
                             <div className="modal-footer d-flex">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" className="btn btn-secondary me-auto" data-bs-dismiss="modal">
+                                    Close
+                                </button>
                                 {tmpUser == "" || tmpPass == "" ?
-                                    <button type="button" className="btn btn-info me-auto"
+                                    <button type="button" className="btn btn-info"
                                         onClick={() =>
                                             HIModal("サインイン情報を入力してください",
                                                 "※現在メール機能は開発中の為、操作できません")}>
                                         <i className="fa-solid fa-circle-info mx-1" />登録
                                     </button> :
-                                    <button type="button" className="btn btn-primary me-auto" data-bs-dismiss="modal"
+                                    <button type="button" className="btn btn-primary" data-bs-dismiss="modal"
                                         onClick={() => _signin()}>
                                         <i className="fa-solid fa-pen mx-1" style={{ pointerEvents: "none" }} />登録
                                     </button>
                                 }
-                                <button className="btn btn-info" type="button" data-bs-dismiss="modal"
-                                    onClick={() =>
-                                        HIModal("開発中",
-                                            "現在メール機能は開発中の為、操作できません")} >
-                                    <i className="fa-regular fa-envelope mx-1" style={{ pointerEvents: "none" }}></i>
-                                    パスワード再設定
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -451,9 +454,9 @@ export const AppWidgetHead = () => {
                             <i className="fa-solid fa-book mx-1" style={{ pointerEvents: "none" }} />アプリ一覧
                         </button>
                     </div>
-                    <h2 className="mx-2 flex-fill">
+                    <div className="mx-2 flex-fill">
                         <div id="titlelogo">タイトル未設定</div>
-                    </h2>
+                    </div>
                 </div>
                 <div className="col-12 col-md-5">
                     {_accountForm()}

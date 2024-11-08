@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import { HIModal, CIModal } from "../../../components/imodals";
 import { satisfyDictKeys, Unixtime2String } from "../../../components/util";
-import { accountSetState, tskbSetState } from '../../../components/slice'
+import { accountSetState, tskbSetState, startTable } from '../../../components/slice'
 import { useAppSelector, useAppDispatch } from '../../../components/store'
 
 
@@ -26,7 +26,7 @@ export const CTable = () => {
 
 
     useEffect(() => {
-        if (tableStatus == "CTable") setContents(tmpContents)
+        if (tableStatus == "CTable") searchCombination()
         setTmpRoomKey("")
         setTmpTargetId(-1)
         setTmpCombination("")
@@ -46,7 +46,7 @@ export const CTable = () => {
     const fetchMaterial = (_combinationid: number, _roomKey = roomKey) => {
         const sortSetContents = (_contents: any = []) => {
             const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
-            setContents(_contents.sort(_sortContents))
+            return _contents.sort(_sortContents)
         }
         const headers = new Headers();
         const formData = new FormData();
@@ -63,9 +63,11 @@ export const CTable = () => {
             .then(resJ => {
                 switch (resJ["message"]) {
                     case "processed": {
-                        AppDispatch(tskbSetState({ tableStatus: "MTable" }));
-                        AppDispatch(tskbSetState({ combination: resJ["combination"] }));
-                        sortSetContents(resJ["materials"]);
+                        AppDispatch(startTable({
+                            combination: resJ["combination"],
+                            tableStatus: "MTable",
+                            tmpContents: sortSetContents(resJ["materials"])
+                        }))
                         AppDispatch(accountSetState({ token: resJ["token"] })); break;
                     }
                     default: {
@@ -259,13 +261,14 @@ export const CTable = () => {
                         <div className="modal-body row">
                             <div className="input-group m-1 col-12">
                                 <span className="input-group-text">Pass</span>
-                                <input type="text" className="form-control" placeholder="Password" aria-label="pass"
+                                <input type="password" className="form-control" placeholder="Password" aria-label="pass"
                                     value={tmpRoomKey} onChange={(evt) => { setTmpRoomKey(evt.target.value) }} />
                             </div>
                         </div>
                         <div className="modal-footer">
-                            <button type="button" value={-1} id="combinationInterModalButton"
-                                className="btn btn-secondary" data-bs-dismiss="modal">
+                            <button type="button"
+                                className="btn btn-secondary" data-bs-dismiss="modal"
+                                onClick={() => { setTmpRoomKey("") }}>
                                 Close
                             </button>
                             {tmpRoomKey != "" ?
@@ -275,6 +278,7 @@ export const CTable = () => {
                                             // roomKey cannot be updated in time
                                             AppDispatch(accountSetState({ roomKey: tmpRoomKey }))
                                             fetchMaterial(Number(tmpTargetId), tmpRoomKey)
+                                            setTmpRoomKey("")
                                         }}>
                                     <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />閲覧
                                 </button> :

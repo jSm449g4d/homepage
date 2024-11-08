@@ -32,11 +32,11 @@ export const tskbSlice = createSlice({
       "passhash": "", "timestamp": 0, "contents": ""
     },
     material: {
-      //"(id,name,tag,description,userid,user,passhash,timestamp,"
-      //"g,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
+      //  "(id,name,tag,description,userid,user,passhash,timestamp,"
+      //"unit,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
       //"ca,cl,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
       "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
-      "passhash": "", "timestamp": 0, "g": "", "cost": "0", "carbo": "0", "fiber": "0",
+      "passhash": "", "timestamp": 0, "unit": "g", "cost": "0", "carbo": "0", "fiber": "0",
       "protein": "0", "fat": "0", "saturated_fat": "0", "n3": "0", "DHA_EPA": "0", "n6": "0",
       "ca": "0", "cl": "0", "cr": "0", "cu": "0", "i": "0", "fe": "0", "mg": "0", "mn": "0",
       "mo": "0", "p": "0", "k": "0", "se": "0", "na": "0", "zn": "0", "va": "0",
@@ -52,6 +52,29 @@ export const tskbSlice = createSlice({
       if ("material" in action.payload) state.material = action.payload.material
       if ("tmpContents" in action.payload) state.tmpContents = action.payload.tmpContents
     },
+    startTable: (state, action: { payload: any }) => {
+      if ("combination" in action.payload)
+        if (action.payload.combination == null) {
+          state.combination = {
+            "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
+            "passhash": "", "timestamp": 0, "contents": ""
+          }
+        } else state.combination = action.payload.combination
+      if ("material" in action.payload)
+        if (action.payload.material == null) {
+          state.material = {
+            "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
+            "passhash": "", "timestamp": 0, "unit": "g", "cost": "0", "carbo": "0", "fiber": "0",
+            "protein": "0", "fat": "0", "saturated_fat": "0", "n3": "0", "DHA_EPA": "0", "n6": "0",
+            "ca": "0", "cl": "0", "cr": "0", "cu": "0", "i": "0", "fe": "0", "mg": "0", "mn": "0",
+            "mo": "0", "p": "0", "k": "0", "se": "0", "na": "0", "zn": "0", "va": "0",
+            "vb1": "0", "vb2": "0", "vb3": "0", "vb5": "0", "vb6": "0", "vb7": "0", "vb9": "0",
+            "vb12": "0", "vc": "0", "vd": "0", "ve": "0", "vk": "0", "colin": "0", "kcal": "0",
+          }
+        } else state.material = action.payload.material
+      if ("tmpContents" in action.payload) state.tmpContents = action.payload.tmpContents
+      if ("tableStatus" in action.payload) state.tableStatus = action.payload.tableStatus
+    },
   },
 })
-export const { tskbSetState } = tskbSlice.actions
+export const { tskbSetState, startTable } = tskbSlice.actions

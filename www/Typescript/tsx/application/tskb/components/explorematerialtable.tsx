@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import { HIModal, CIModal } from "../../../components/imodals";
 import { satisfyDictKeys, Unixtime2String } from "../../../components/util";
-import { accountSetState, tskbSetState } from '../../../components/slice'
+import { accountSetState, tskbSetState, startTable } from '../../../components/slice'
 import { useAppSelector, useAppDispatch } from '../../../components/store'
 
 
@@ -26,8 +26,7 @@ export const EMTable = () => {
         if (tableStatus == "MTable") exploreMaterial()
         setTmpeMaterial("")
         setTmpPrivateFlag(false)
-    }, [tableStatus, userId])
-    useEffect(() => { exploreMaterial() }, [])
+    }, [tableStatus])
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
@@ -72,73 +71,13 @@ export const EMTable = () => {
             });
     }
     // modal
-    /** 
-    const materialCreateModal = () => {
-        return (
-            <div>
-                <div className="modal fade" id="materialCreateModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h3 className="modal-title fs-5">
-                                    <i className="fa-solid fa-lemon mx-1" />素材追加
-                                </h3>
-                            </div>
-                            <div className="modal-body row">
-                                <div className="input-group m-1 col-12">
-                                    <span className="input-group-text">素材名</span>
-                                    <input type="text" className="form-control" placeholder="Username" aria-label="user"
-                                        value={tmpMaterial} onChange={(evt) => { setTmpMaterial(evt.target.value) }} />
-                                </div>
-                                <div className="form-check form-switch m-1">
-                                    {tmpPrivateFlag == true ?
-                                        <label className="form-check-label">
-                                            <i className="fa-solid fa-lock mx-1" />非公開</label> :
-                                        <label className="form-check-label">
-                                            <i className="fa-solid fa-lock-open mx-1" />公開</label>
-                                    }
-                                    <input className="form-check-input" type="checkbox" role="switch" checked={tmpPrivateFlag}
-                                        style={{ transform: "rotate(90deg)" }}
-                                        onChange={(evt: any) => {
-                                            if (evt.target.checked == true) { setTmpPrivateFlag(true) }
-                                            else { setTmpPrivateFlag(false) }
-                                        }}>
-                                    </input>
-                                    <div className="m-1">
-                                        <label className="form-label">概説</label>
-                                        <textarea className="form-control" rows={3} value={tmpDescription}
-                                            onChange={(evt) => { setTmpDescription(evt.target.value) }}></textarea>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                {tmpMaterial != "" && token != "" ?
-                                    <div>
-                                        <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
-                                            onClick={() => registerMaterial(-1)}>
-                                            <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
-                                            作成
-                                        </button></div> :
-                                    <div>
-                                        <button className="btn btn-outline-info" type="button"
-                                            onClick={() => { HIModal("素材名を入力してください") }}>
-                                            <i className="fa-solid fa-circle-info  mx-1" style={{ pointerEvents: "none" }}></i>
-                                            作成
-                                        </button>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )
-    }*/
     // app
     const topForm = () => {
-        return (
-            <div>
+        return (<div>
+            <div className="my-1 d-flex justify-content-center">
+                <h3>素材フォーム</h3>
+            </div>
+            <div className="my-1">
                 <div className="input-group d-flex justify-content-center align-items-center my-1">
                     <button className="btn btn-outline-success btn-lg" type="button"
                         onClick={() => { exploreMaterial() }}>
@@ -158,95 +97,19 @@ export const EMTable = () => {
                     }
                     <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial}
                         placeholder="検索文字列"
-                        onChange={(evt: any) => setTmpeMaterial(evt.target.value)}>
-                    </input >
+                        onChange={(evt: any) => setTmpeMaterial(evt.target.value)} />
                     {token == "" ?
                         <button className="btn btn-outline-primary btn-lg" type="button" disabled >
                             + 素材新規作成
                         </button> :
                         <button className="btn btn-outline-primary btn-lg" type="button"
-                            onClick={() => AppDispatch(tskbSetState({ tableStatus: "CMTable" }))} >
+                            onClick={() =>
+                                AppDispatch(startTable({ material: null, tableStatus: "CMTable" }))
+                            } >
                             + 素材新規作成
                         </button>}
-                </div></div>)
+                </div></div></div>)
     }
-    {/** const materialConfigModal = () => {
-            return (
-                <div>
-                    <div className="modal fade" id="materialConfigModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                        <div className="modal-dialog">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h3 className="modal-title fs-5">
-                                        <i className="fa-solid fa-cheese mx-1" />素材編集
-                                    </h3>
-                                </div>
-                                <div className="modal-body row">
-                                    <div className="input-group m-1 col-12">
-                                        <span className="input-group-text">素材名</span>
-                                        <input type="text" className="form-control" placeholder="Username" aria-label="user"
-                                            value={tmpMaterial} onChange={(evt) => { setTmpMaterial(evt.target.value) }} />
-                                    </div>
-                                    <div className="form-check form-switch m-1">
-                                        {tmpPrivateFlag == true ?
-                                            <label className="form-check-label">
-                                                <i className="fa-solid fa-lock mx-1" />非公開</label> :
-                                            <label className="form-check-label">
-                                                <i className="fa-solid fa-lock-open mx-1" />公開</label>
-                                        }
-                                        <input className="form-check-input" type="checkbox" role="switch" checked={tmpPrivateFlag}
-                                            style={{ transform: "rotate(90deg)" }}
-                                            onChange={(evt: any) => {
-                                                if (evt.target.checked == true) {
-                                                    setTmpPrivateFlag(true)
-                                                }
-                                                else {
-                                                    setTmpPrivateFlag(false)
-                                                }
-                                            }}>
-                                        </input>
-                                    </div>
-                                </div>
-                                <div className="modal-footer d-flex">
-                                    <button type="button" className="btn btn-secondary me-auto" data-bs-dismiss="modal">Close</button>
-                                    {combination["userid"] == userId ?
-                                        <div>
-                                            <button type="button" className="btn btn-outline-primary"
-                                                onClick={() => { }}>
-                                                <i className="fa-solid fa-rotate-right mx-1" />更新
-                                            </button>
-                                            <button className="btn btn-outline-danger" type="button"
-                                                onClick={() => {
-                                                    $("#deleteMaterialModal").modal('show')
-                                                }}>
-                                                <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>
-                                                素材消去
-                                            </button>
-                                        </div> :
-                                        <div>
-                                            <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
-                                                onClick={() => { }}>
-                                                <i className="fa-solid fa-copy mx-1" style={{ pointerEvents: "none" }} />複製
-                                            </button>
-                                            <button className="btn btn-outline-info" type="button"
-                                                onClick={() => {
-                                                    HIModal("権限について",
-                                                        "レシピ及び素材のの作成や編集は作成者しかできません" +
-                                                        "代わりに公開設定のそれらは複製できます※(予定です)開発中")
-                                                }}>
-                                                <i className="fa-solid fa-circle-info  mx-1" style={{ pointerEvents: "none" }}></i>
-                                                権限の解説
-                                            </button>
-                                        </div>
-
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )
-        }*/}
     // if contents dont have enough element for example contents hold chat_data ,table need break
     if (0 < contents.length)
         if (!satisfyDictKeys(contents[0], ["id", "userid", "description", "passhash", "timestamp"]))
@@ -265,8 +128,10 @@ export const EMTable = () => {
                 {contents[i]["userid"] == userId ?
                     <button className="btn btn-outline-success rounded-pill"
                         onClick={(evt: any) => {
-                            AppDispatch(tskbSetState({ tableStatus: "CMTable" }));
-                            AppDispatch(tskbSetState({ material: contents[evt.target.value] }));
+                            AppDispatch(startTable({
+                                tableStatus: "CMTable",
+                                material: contents[evt.target.value]
+                            }))
                         }}
                         value={i}>
                         <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }}></i>編集
@@ -298,9 +163,11 @@ export const EMTable = () => {
         )
     }
     return (
-        <div>
+        <div style={{
+            background: "linear-gradient(45deg,rgba(240,150,110,0.2), rgba(60,60,60,0.0))"
+        }}>
             {topForm()}
-            <div className="row m-1">
+            <div className="row my-1">
                 {_tmpRecord}
             </div>
         </div>)

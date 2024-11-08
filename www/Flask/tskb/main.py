@@ -67,7 +67,7 @@ with closing(sqlite3.connect(db_dir)) as conn:
     )
     # passhash="": public ,"0": private
     "(id,name,tag,description,userid,user,passhash,timestamp,"
-    "g,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
+    "unit,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
     "ca,cl,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_material(id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -89,6 +89,15 @@ with closing(sqlite3.connect(db_dir)) as conn:
         "colin REAL DEFAULT 0,kcal REAL DEFAULT 0)"
     )
     conn.commit()
+
+
+def isfloat(_s):
+    try:
+        _f=float(_s)
+    except ValueError:
+        return 0
+    else:
+        return _f
 
 
 def show(request):
@@ -222,14 +231,15 @@ def show(request):
                 return json.dumps(
                     {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
                 )
-            _material=_dataDict["material"]
+            _material = _dataDict["material"]
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 _roompasshash = "" if _material["passhash"] == "" else "0"
+                _materialid = _material["id"]
                 # process start
                 # register material
-                if _material["id"] == -1:
+                if _materialid == -1:
                     cur.execute(
                         "SELECT * FROM tskb_material WHERE name = ?;",
                         [_material["name"]],
@@ -239,6 +249,7 @@ def show(request):
                         return json.dumps(
                             {"message": "alreadyExisted", "text": "既存の名前"}
                         )
+                    _timestamp = int(time.time())
                     cur.execute(
                         "INSERT INTO tskb_material "
                         "(name,tag,description,userid,user,passhash,timestamp) "
@@ -250,15 +261,20 @@ def show(request):
                             token["id"],
                             _dataDict["user"],
                             _roompasshash,
-                            int(time.time()),
+                            _timestamp,
                         ],
                     )
                     conn.commit()
-                    return json.dumps({"message": "processed"}, ensure_ascii=False)
+                    cur.execute(
+                        "SELECT * FROM tskb_material WHERE userid = ? AND timestamp = ?;",
+                        [token["id"], _timestamp],
+                    )
+                    _Cmaterial = cur.fetchone()
+                    _materialid = _Cmaterial["id"]
                 # update material
                 cur.execute(
                     "SELECT * FROM tskb_material WHERE id = ?;",
-                    [_material["id"]],
+                    [_materialid],
                 )
                 _Cmaterial = cur.fetchone()
                 if _Cmaterial == None:
@@ -270,18 +286,89 @@ def show(request):
                         {"message": "wrongPass", "text": "アクセス拒否"},
                         ensure_ascii=False,
                     )
-                elif _Cmaterial["passhash"] == "0" and _Cmaterial["id"] != token["id"]:
+                elif (
+                    _Cmaterial["passhash"] == "0"
+                    and _Cmaterial["userid"] != token["id"]
+                ):
                     return json.dumps(
                         {"message": "wrongPass", "text": "アクセス拒否"},
                         ensure_ascii=False,
                     )
-                for key, value in _material.item():
-                    cur.execute(
-                        "UPDATE tskb_material SET ? = ? WHERE id = ?;",
-                        [key, value, _Cmaterial["id"]],
-                    )
+                # for key, value in _material.items():
+                #    print(key), print(value)
+                #    cur.execute(
+                #        "UPDATE tskb_material SET ? = ? WHERE id = ?;",
+                #        [key, value, _Cmaterial["id"]],
+                #    )
+                cur.execute(
+                    "UPDATE tskb_material SET name = ?,description = ?,"
+                    "userid = ?,user = ?,passhash = ?,timestamp = ?,"
+                    "unit = ?,cost = ?,carbo = ?,fiber= ? ,protein = ?,"
+                    "fat = ?,saturated_fat = ?,n3 = ?,DHA_EPA = ?,n6 = ?,"
+                    "ca = ?,cl = ?,cr = ?,cu = ?,i = ?,fe = ?,mg = ?,mn = ?,"
+                    "mo = ?,p = ?,k = ?,se = ?,na = ?,zn = ?,va = ?,vb1 = ?,"
+                    "vb2 = ?,vb3 = ?,vb5 = ?,vb6 = ?,vb7 = ?,"
+                    "vb9 = ?,vb12 = ?,vc = ?,vd = ?,ve = ?,vk = ?,"
+                    "colin = ?,kcal = ? WHERE id = ?;",
+                    [
+                        _material["name"],
+                        _material["description"],
+                        token["id"],
+                        _dataDict["user"],
+                        _material["passhash"],
+                        _material["timestamp"],
+                        _material["unit"],
+                        str(isfloat(_material["cost"])),
+                        str(isfloat(_material["carbo"])),
+                        str(isfloat(_material["fiber"])),
+                        str(isfloat(_material["protein"])),
+                        str(isfloat(_material["fat"])),
+                        str(isfloat(_material["saturated_fat"])),
+                        str(isfloat(_material["n3"])),
+                        str(isfloat(_material["DHA_EPA"])),
+                        str(isfloat(_material["n6"])),
+                        str(isfloat(_material["ca"])),
+                        str(isfloat(_material["cl"])),
+                        str(isfloat(_material["cr"])),
+                        str(isfloat(_material["cu"])),
+                        str(isfloat(_material["i"])),
+                        str(isfloat(_material["fe"])),
+                        str(isfloat(_material["mg"])),
+                        str(isfloat(_material["mn"])),
+                        str(isfloat(_material["mo"])),
+                        str(isfloat(_material["p"])),
+                        str(isfloat(_material["k"])),
+                        str(isfloat(_material["se"])),
+                        str(isfloat(_material["na"])),
+                        str(isfloat(_material["zn"])),
+                        str(isfloat(_material["va"])),
+                        str(isfloat(_material["vb1"])),
+                        str(isfloat(_material["vb2"])),
+                        str(isfloat(_material["vb3"])),
+                        str(isfloat(_material["vb5"])),
+                        str(isfloat(_material["vb6"])),
+                        str(isfloat(_material["vb7"])),
+                        str(isfloat(_material["vb9"])),
+                        str(isfloat(_material["vb12"])),
+                        str(isfloat(_material["vc"])),
+                        str(isfloat(_material["vd"])),
+                        str(isfloat(_material["ve"])),
+                        str(isfloat(_material["vk"])),
+                        str(isfloat(_material["colin"])),
+                        str(isfloat(_material["kcal"])),
+                        _Cmaterial["id"],
+                    ],
+                )
                 conn.commit()
-                return json.dumps({"message": "processed"}, ensure_ascii=False)
+                cur.execute(
+                    "SELECT * FROM tskb_material WHERE id = ?;",
+                    [_materialid],
+                )
+                _Cmaterial = cur.fetchone()
+                return json.dumps(
+                    {"message": "processed", "material": dict(_Cmaterial)},
+                    ensure_ascii=False,
+                )
             return json.dumps({"message": "rejected", "text": "不明なエラー"})
 
         if "upload" in request.files:

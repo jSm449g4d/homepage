@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit'
-import { accountSlice,tskbSlice} from './slice'
+import { accountSlice, tskbSlice, } from './slice'
 
-import {  useSelector, useDispatch } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 
 export const store = configureStore({
   reducer: {

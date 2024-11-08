@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { jpclock, Unixtime2String, satisfyDictKeys } from "../../components/util";
-import { HIModal, CIModal } from "../../components/imodals";
-import { Provider } from "react-redux"
-import { accountSetState, tskbSetState } from '../../components/slice'
+import { tskbSetState } from '../../components/slice'
 import { useAppSelector, useAppDispatch } from '../../components/store'
 import { CTable } from "./components/combinationTable"
 import { EMTable } from "./components/explorematerialtable"
@@ -12,30 +9,9 @@ import { CMTable } from "./components/configmaterialtable"
 import "../../stylecheets/style.sass";
 
 export const AppMain = () => {
-    const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
-    const token = useAppSelector((state) => state.account.token)
-    const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
     const AppDispatch = useAppDispatch()
-    const xhrTimeout = 3000
-
-    const [room, setRoom] = useState({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" })
-    const [combination, setCombination] = useState({
-        "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
-        "timestamp": 0, "passhash": "", "contents": ""
-    })
-    const [tmpRoomKey, setTmpRoomKey] = useState("")
-    const [tmpCombination, setTmpCombination] = useState("")
-    const [tmpMaterial, setTmpMaterial] = useState("")
-    const [tmpnutrition, setTmpNutrition] = useState({})
-    const [tmpText, setTmpText] = useState("")
-    const [tmpDescription, setTmpDescription] = useState("")
-    const [tmpTargetId, setTmpTargetId] = useState(-1)
-    const [tmpPrivateFlag, setTmpPrivateFlag] = useState(false)
-    const [tmpExploreMaterial, setTmpExploreMaterial] = useState("")
-    const [contents, setContents] = useState([])
-    const [exploreContents, setExploreContents] = useState([])
 
     useEffect(() => {
         AppDispatch(tskbSetState({ "tableStatus": "CTable" }))
@@ -44,20 +20,6 @@ export const AppMain = () => {
         AppDispatch(tskbSetState({ "tableStatus": "CTable" }))
     }, [])
 
-    const _titleLogo = () => {
-        const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
-        return (
-            <div>
-                <div id="rotxin-2 row" style={{ fontFamily: "Impact", color: "black" }}>
-                    <div id="col-12 col-md-6">
-                        <i className="fa-solid fa-book mx-1" style={{ pointerEvents: "none" }}></i>栄養計算
-                    </div>
-                    <div id="col-12 col-md-6">
-                        {tableStatus}
-                    </div>
-                </div>
-            </div>)
-    }
     // jpclock (decoration)
     /** 
     const [jpclockNow, setJpclockNow] = useState("")
@@ -877,15 +839,21 @@ export const AppMain = () => {
 // titleLogo
 export const titleLogo = () => {
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
+    const [tmpSubtitle, setTmpSubtitle] = useState("")
+    useEffect(() => {
+        if (tableStatus == "CTable") setTmpSubtitle("レシピ検索")
+        if (tableStatus == "MTable") setTmpSubtitle("レシピ閲覧")
+        if (tableStatus == "CMTable") setTmpSubtitle("素材編集")
+    }, [tableStatus])
     return (
         <div>
             <div className="rotxin-2 row" style={{ fontFamily: "Impact", color: "black" }}>
-                <div className="col-12 col-md-6">
+                <h2 className="col-12 col-md-6">
                     <i className="fa-solid fa-book mx-1" style={{ pointerEvents: "none" }}></i>栄養計算
-                </div>
-                <div className="col-12 col-md-6">
-                    {tableStatus}
-                </div>
+                </h2>
+                <h4 className="col-12 col-md-6">
+                    {tmpSubtitle}
+                </h4>
             </div>
         </div>)
 }
