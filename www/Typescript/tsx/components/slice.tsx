@@ -29,7 +29,7 @@ export const tskbSlice = createSlice({
     combination: {
       // "(id,name,tag,description,userid,user,passhash,timestamp,contents)"
       "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
-      "passhash": "", "timestamp": 0, "contents": ""
+      "passhash": "", "timestamp": 0, "contents": {}
     },
     material: {
       //  "(id,name,tag,description,userid,user,passhash,timestamp,"
@@ -57,7 +57,7 @@ export const tskbSlice = createSlice({
         if (action.payload.combination == null) {
           state.combination = {
             "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
-            "passhash": "", "timestamp": 0, "contents": ""
+            "passhash": "", "timestamp": 0, "contents": {}
           }
         } else state.combination = action.payload.combination
       if ("material" in action.payload)

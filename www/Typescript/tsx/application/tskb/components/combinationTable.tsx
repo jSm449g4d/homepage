@@ -186,37 +186,26 @@ export const CTable = () => {
                                     <i className="fa-solid fa-hammer mx-1" />レシピ作成
                                 </h3>
                             </div>
-                            <div className="modal-body row">
-                                <div className="input-group m-1 col-12">
+                            <div className="modal-body d-flex justify-content-center">
+                                <div className="input-group m-1">
                                     <span className="input-group-text">レシピ名</span>
                                     <input type="text" className="form-control" placeholder="Username" aria-label="user"
                                         value={tmpCombination} onChange={(evt) => { setTmpCombination(evt.target.value) }} />
                                 </div>
-                                <div className="form-check form-switch m-1">
-                                    <label className="form-check-label">非公開設定</label>
-                                    <input className="form-check-input" type="checkbox" role="switch" checked={tmpPrivateFlag}
-                                        style={{ transform: "rotate(90deg)" }}
-                                        onChange={(evt: any) => {
-                                            if (evt.target.checked == true) {
-                                                setTmpPrivateFlag(true)
-                                                $("#combinationCreateModalRoomKey").prop("disabled", true)
-                                                setTmpRoomKey("")
-                                            }
-                                            else {
-                                                setTmpPrivateFlag(false)
-                                                $("#combinationCreateModalRoomKey").prop("disabled", false)
-                                                setTmpRoomKey("")
-                                            }
-                                        }}>
-                                    </input>
-                                </div>
-                                <div className="input-group m-1 col-12">
-                                    <span className="input-group-text">Pass</span>
-                                    <input type="text" className="form-control" placeholder="Password" aria-label="pass"
-                                        id="combinationCreateModalRoomKey"
-                                        value={tmpRoomKey} onChange={(evt) => { setTmpRoomKey(evt.target.value) }} />
-                                </div>
-                                <textarea className="form-control col-12 w-80" rows={4} value={tmpDescription}
+                                {tmpPrivateFlag == false ?
+                                    <button className="btn btn-outline-warning btn-lg" type="button"
+                                        onClick={() => { setTmpPrivateFlag(true) }}>
+                                        <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
+                                        公開&nbsp;&nbsp;
+                                    </button> :
+                                    <button className="btn btn-warning btn-lg" type="button"
+                                        onClick={() => { setTmpPrivateFlag(false) }}>
+                                        <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
+                                        非公開
+                                    </button>
+                                }
+                                <h4 className="mx-3">概説</h4>
+                                <textarea className="form-control w-80" rows={4} value={tmpDescription}
                                     onChange={(evt) => { setTpDescription(evt.target.value) }} />
                             </div>
                             <div className="modal-footer d-flex">
@@ -242,50 +231,6 @@ export const CTable = () => {
                                     </button>
                                 }
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-    const combinationInterModal = () => {
-        return (
-            <div className="modal fade" id="combinationInterModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div className="modal-dialog">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h1 className="modal-title fs-5">
-                                <i className="fa-solid fa-lock mx-1" />パスワード入力
-                            </h1>
-                        </div>
-                        <div className="modal-body row">
-                            <div className="input-group m-1 col-12">
-                                <span className="input-group-text">Pass</span>
-                                <input type="password" className="form-control" placeholder="Password" aria-label="pass"
-                                    value={tmpRoomKey} onChange={(evt) => { setTmpRoomKey(evt.target.value) }} />
-                            </div>
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button"
-                                className="btn btn-secondary" data-bs-dismiss="modal"
-                                onClick={() => { setTmpRoomKey("") }}>
-                                Close
-                            </button>
-                            {tmpRoomKey != "" ?
-                                <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
-                                    onClick={
-                                        () => {
-                                            // roomKey cannot be updated in time
-                                            AppDispatch(accountSetState({ roomKey: tmpRoomKey }))
-                                            fetchMaterial(Number(tmpTargetId), tmpRoomKey)
-                                            setTmpRoomKey("")
-                                        }}>
-                                    <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />閲覧
-                                </button> :
-                                <button type="button" className="btn btn-outline-primary" disabled>
-                                    <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />閲覧
-                                </button>
-                            }
                         </div>
                     </div>
                 </div>
@@ -366,11 +311,8 @@ export const CTable = () => {
                         onClick={(evt: any) => { fetchMaterial(evt.target.value) }} value={contents[i]["id"]}>
                         <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>閲覧
                     </button> :
-                    <button className="btn btn-outline-dark rounded-pill"
-                        onClick={(evt: any) => {
-                            setTmpTargetId(evt.target.value)
-                            $('#combinationInterModal').modal('show')
-                        }} value={contents[i]["id"]}>
+                    <button className="btn btn-outline-primary rounded-pill"
+                        onClick={(evt: any) => { fetchMaterial(evt.target.value) }} value={contents[i]["id"]}>
                         <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>閲覧
                     </button>
                 }
@@ -404,12 +346,13 @@ export const CTable = () => {
         )
     }
     return (
-        <div>
-            {combinationInterModal()}
+        <div style={{
+            background: "linear-gradient(45deg,rgba(250,200,200,0.2), rgba(60,60,60,0.0))"
+        }}>
             {combinationCreateModal()}
             {combinationDestroyModal()}
             {topForm()}
-            <div className="row m-1">
+            <div className="row">
                 {_tmpRecord}
             </div>
         </div>)

@@ -4,6 +4,7 @@ import { HIModal, CIModal } from "../../../components/imodals";
 import { satisfyDictKeys, Unixtime2String } from "../../../components/util";
 import { accountSetState, tskbSetState, startTable } from '../../../components/slice'
 import { useAppSelector, useAppDispatch } from '../../../components/store'
+import { string } from 'prop-types';
 
 
 export const EMTable = () => {
@@ -24,6 +25,7 @@ export const EMTable = () => {
 
     useEffect(() => {
         if (tableStatus == "MTable") exploreMaterial()
+        if (tableStatus == "CMTable") exploreMaterial()
         setTmpeMaterial("")
         setTmpPrivateFlag(false)
     }, [tableStatus])
@@ -139,9 +141,12 @@ export const EMTable = () => {
                 }
                 {combination["userid"] == userId ?
                     <button className="btn btn-outline-primary rounded-pill"
-                        onClick={(evt: any) => { }} value={contents[i]["id"]}>
+                        onClick={(evt: any) => {
+
+                        }
+                        } value={contents[i]["id"]} >
                         + レシピに追加
-                    </button> : <div></div>
+                    </button > : <div></div>
                 }
             </div >)
         _tmpData.push(
@@ -155,7 +160,7 @@ export const EMTable = () => {
                 {Unixtime2String(Number(contents[i]["timestamp"]))}
             </div></div>)
         _tmpRecord.push(
-            <div className="col-12 col-md-6" style={{
+            <div className="col-12 col-md-6 p-1" style={{
                 border: "1px inset silver", borderRadius: "5px", marginBottom: "3px", boxShadow: "2px 2px 1px rgba(60,60,60,0.2)"
             }}>
                 <div className="row p-1">{_tmpData}</div>
@@ -167,7 +172,7 @@ export const EMTable = () => {
             background: "linear-gradient(45deg,rgba(240,150,110,0.2), rgba(60,60,60,0.0))"
         }}>
             {topForm()}
-            <div className="row my-1">
+            <div className="row">
                 {_tmpRecord}
             </div>
         </div>)

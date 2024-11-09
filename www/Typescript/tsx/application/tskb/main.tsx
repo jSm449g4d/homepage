@@ -818,19 +818,23 @@ export const AppMain = () => {
             {tableStatus == "MTable" ?
                 <div className="m-1">
                     <MTable />
-                    <div className="my-1"></div>
-                    <EMTable />
                 </div> :
                 <div></div>
             }
             {tableStatus == "CMTable" ?
                 <div className="m-1">
                     <CMTable />
-                    <div className="my-1"></div>
+                </div> :
+                <div></div>
+            }
+            <div className="my-1"></div>
+            {tableStatus != "CTable" ?
+                <div className="m-1">
                     <EMTable />
                 </div> :
                 <div></div>
             }
+
         </div>
 
     )

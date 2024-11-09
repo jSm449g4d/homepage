@@ -23,7 +23,7 @@ export const MTable = () => {
 
 
     useEffect(() => {
-        if (tableStatus == "MTable") setContents(tmpContents)
+        if (tableStatus == "MTable") fetchMaterial()
         setTmpTargetId(-1)
     }, [tableStatus, userId])
 
@@ -197,18 +197,47 @@ export const MTable = () => {
             return (<div className="row m-1">loading</div>)
     const _tmpElementColumn = [];
     _tmpElementColumn.push(
-        <tr className="sticky-top">
-            <th scope="col">操作</th><th scope="col">名称</th><th scope="col">量</th><th scope="col">単価</th>
-            <th scope="col">炭水化物</th><th scope="col">食物繊維</th><th scope="col">タンパク質</th><th scope="col">熱量</th>
-            <th scope="col">脂質</th><th scope="col">飽和脂肪酸</th><th scope="col">n-3脂肪酸</th>
-            <th scope="col">DHA-EPA</th><th scope="col">n-6脂肪酸</th><th scope="col">カルシウム</th>
-            <th scope="col">クロム</th><th scope="col">銅</th><th scope="col">ヨウ素</th><th scope="col">鉄</th>
-            <th scope="col">マグネシウム</th><th scope="col">マンガン</th><th scope="col">モリブデン</th>
-            <th scope="col">リン</th><th scope="col">カリウム</th><th scope="col">セレン</th><th scope="col">ナトリウム</th>
-            <th scope="col">亜鉛</th><th scope="col">VA</th><th scope="col">VB1</th><th scope="col">VB2</th>
-            <th scope="col">vb3</th><th scope="col">vb5</th><th scope="col">vb6</th><th scope="col">vb7</th>
-            <th scope="col">vb9</th><th scope="col">vb12</th><th scope="col">vc</th><th scope="col">vd</th>
-            <th scope="col">ve</th><th scope="col">vk</th><th scope="col">コリン</th>
+        <tr className="sticky-top d-flex justify-content-center">
+            <th scope="col">操作</th>
+            <th scope="col">名称</th>
+            <th scope="col">量</th>
+            <th scope="col">単価<br />円</th>
+            <th scope="col">熱量<br />kcal</th>
+            <th scope="col">炭水化物<br />g</th>
+            <th scope="col">タンパク質<br />g	</th>
+            <th scope="col">脂質<br />g</th>
+            <th scope="col">単価<br />円</th>
+            <th scope="col">熱量<br />kcal</th>
+            <th scope="col">炭水化物<br />g</th>
+            <th scope="col">タンパク質<br />g	</th>
+            <th scope="col">脂質<br />g</th>
+            <th scope="col">カルシウム<br />mg</th>
+            <th scope="col">塩素<br />mg</th>
+            <th scope="col">クロム<br />μg</th>
+            <th scope="col">銅<br />μg</th>
+            <th scope="col">ヨウ素<br />μg</th>
+            <th scope="col">鉄<br />mg</th>
+            <th scope="col">マグネシウム<br />mg</th>
+            <th scope="col">マンガン<br />mg</th>
+            <th scope="col">モリブデン<br />μg</th>
+            <th scope="col">リン<br />mg</th>
+            <th scope="col">カリウム<br />mg</th>
+            <th scope="col">セレン<br />μg</th>
+            <th scope="col">ナトリウム<br />mg</th>
+            <th scope="col">亜鉛<br />mg</th>
+            <th scope="col">VA<br />μgRE</th>
+            <th scope="col">VB1<br />mg</th>
+            <th scope="col">VB2<br />mg</th>
+            <th scope="col">VB3<br />mgNE</th>
+            <th scope="col">VB5<br />mg</th>
+            <th scope="col">VB6<br />mg</th>
+            <th scope="col">VB7<br />μg</th>
+            <th scope="col">VB9<br />μg</th>
+            <th scope="col">VB12<br />μg</th>
+            <th scope="col">VC<br />mg</th>
+            <th scope="col">VD<br />μg</th>
+            <th scope="col">VE<br />mg</th>
+            <th scope="col">VK<br />μg</th>
         </tr>
     )
     const _tmpRecord = [];
@@ -222,34 +251,94 @@ export const MTable = () => {
         </th>)
     _tmpRecord.push(
         <tr>
-            {_testColumn}<th>名称1</th><th>量</th><th>単価</th>
-            <th>炭水化物</th><th>食物繊維</th><th>タンパク質</th><th>熱量</th>
-            <th>脂質</th><th>飽和脂肪酸</th><th>n-3脂肪酸</th>
-            <th>DHA-EPA</th><th>n-6脂肪酸</th><th>カルシウム</th>
-            <th>クロム</th><th>銅</th><th>ヨウ素</th><th>鉄</th>
-            <th>マグネシウム</th><th>マンガン</th><th>モリブデン</th>
-            <th>リン</th><th>カリウム</th><th>セレン</th><th>ナトリウム</th>
-            <th>亜鉛</th><th>VA</th><th>VB1</th><th>VB2</th>
-            <th>vb3</th><th>vb5</th><th>vb6</th><th>vb7</th>
-            <th>vb9</th><th>vb12</th><th>vc</th><th>vd</th>
-            <th>ve</th><th>vk</th><th>コリン</th>
+            <th>{_testColumn}</th>
+            <th>名称</th>
+            <th>量</th>
+            <th>単価<br />円</th>
+            <th>熱量<br />kcal</th>
+            <th>炭水化物<br />g</th>
+            <th>タンパク質<br />g	</th>
+            <th>脂質<br />g</th>
+            <th>単価<br />円</th>
+            <th>熱量<br />kcal</th>
+            <th>炭水化物<br />g</th>
+            <th>タンパク質<br />g	</th>
+            <th>脂質<br />g</th>
+            <th>カルシウム<br />mg</th>
+            <th>塩素<br />mg</th>
+            <th>クロム<br />μg</th>
+            <th>銅<br />μg</th>
+            <th>ヨウ素<br />μg</th>
+            <th>鉄<br />mg</th>
+            <th>マグネシウム<br />mg</th>
+            <th>マンガン<br />mg</th>
+            <th>モリブデン<br />μg</th>
+            <th>リン<br />mg</th>
+            <th>カリウム<br />mg</th>
+            <th>セレン<br />μg</th>
+            <th>ナトリウム<br />mg</th>
+            <th>亜鉛<br />mg</th>
+            <th>VA<br />μgRE</th>
+            <th>VB1<br />mg</th>
+            <th>VB2<br />mg</th>
+            <th>VB3<br />mgNE</th>
+            <th>VB5<br />mg</th>
+            <th>VB6<br />mg</th>
+            <th>VB7<br />μg</th>
+            <th>VB9<br />μg</th>
+            <th>VB12<br />μg</th>
+            <th>VC<br />mg</th>
+            <th>VD<br />μg</th>
+            <th>VE<br />mg</th>
+            <th>VK<br />μg</th>
         </tr>)
     _tmpRecord.push(
         <tr>
-            {_testColumn}<th>目標</th><th>量</th><th>単価</th>
-            <th>炭水化物</th><th>食物繊維</th><th>タンパク質</th><th>熱量</th>
-            <th>脂質</th><th>飽和脂肪酸</th><th>n-3脂肪酸</th>
-            <th>DHA-EPA</th><th>n-6脂肪酸</th><th>カルシウム</th>
-            <th>クロム</th><th>銅</th><th>ヨウ素</th><th>鉄</th>
-            <th>マグネシウム</th><th>マンガン</th><th>モリブデン</th>
-            <th>リン</th><th>カリウム</th><th>セレン</th><th>ナトリウム</th>
-            <th>亜鉛</th><th>VA</th><th>VB1</th><th>VB2</th>
-            <th>vb3</th><th>vb5</th><th>vb6</th><th>vb7</th>
-            <th>vb9</th><th>vb12</th><th>vc</th><th>vd</th>
-            <th>ve</th><th>vk</th><th>コリン</th>
+            <th>{_testColumn}</th>
+            <th>総計</th>
+            <th>量</th>
+            <th>単価<br />円</th>
+            <th>熱量<br />kcal</th>
+            <th>炭水化物<br />g</th>
+            <th>タンパク質<br />g	</th>
+            <th>脂質<br />g</th>
+            <th>単価<br />円</th>
+            <th>熱量<br />kcal</th>
+            <th>炭水化物<br />g</th>
+            <th>タンパク質<br />g	</th>
+            <th>脂質<br />g</th>
+            <th>カルシウム<br />mg</th>
+            <th>塩素<br />mg</th>
+            <th>クロム<br />μg</th>
+            <th>銅<br />μg</th>
+            <th>ヨウ素<br />μg</th>
+            <th>鉄<br />mg</th>
+            <th>マグネシウム<br />mg</th>
+            <th>マンガン<br />mg</th>
+            <th>モリブデン<br />μg</th>
+            <th>リン<br />mg</th>
+            <th>カリウム<br />mg</th>
+            <th>セレン<br />μg</th>
+            <th>ナトリウム<br />mg</th>
+            <th>亜鉛<br />mg</th>
+            <th>VA<br />μgRE</th>
+            <th>VB1<br />mg</th>
+            <th>VB2<br />mg</th>
+            <th>VB3<br />mgNE</th>
+            <th>VB5<br />mg</th>
+            <th>VB6<br />mg</th>
+            <th>VB7<br />μg</th>
+            <th>VB9<br />μg</th>
+            <th>VB12<br />μg</th>
+            <th>VC<br />mg</th>
+            <th>VD<br />μg</th>
+            <th>VE<br />mg</th>
+            <th>VK<br />μg</th>
         </tr>)
     return (
-        <div>
+        <div style={{
+            background: "linear-gradient(45deg,rgba(60,160,250,0.2), rgba(60,60,60,0.0))"
+        }}>
             {combinationDestroyModal1()}
             {topForm()}
             <div style={{ overflow: "auto" }}>
