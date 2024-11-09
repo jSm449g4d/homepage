@@ -47,18 +47,9 @@ if os.path.exists(key_dir):
 
 with closing(sqlite3.connect(db_dir)) as conn:
     cur = conn.cursor()
-    cur.execute(
-        "CREATE TABLE IF NOT EXISTS tptef_chat(id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "user TEXT NOT NULL,userid INTEGER NOT NULL,roomid INTEGER NOT NULL,"
-        "text TEXT NOT NULL,mode TEXT NOT NULL,timestamp INTEGER NOT NULL)"
-    )
-    cur.execute(
-        "CREATE TABLE IF NOT EXISTS tptef_room(id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "user TEXT NOT NULL,userid INTEGER NOT NULL,room TEXT UNIQUE NOT NULL,"
-        "passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL)"
-    )
     "(id,name,tag,description,userid,user,passhash,timestamp,contents)"
     # contents={material_id:amount}
+    # passhash="": public ,"0": private
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_combination(id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "name TEXT UNIQUE NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
@@ -93,7 +84,7 @@ with closing(sqlite3.connect(db_dir)) as conn:
 
 def isfloat(_s):
     try:
-        _f=float(_s)
+        _f = float(_s)
     except ValueError:
         return 0
     else:
@@ -125,7 +116,6 @@ def show(request):
                 pyJWT_pass,
                 algorithm="HS256",
             )
-
         if "explore" in request.form:
             _dataDict.update(json.loads(request.form["explore"]))
             with closing(sqlite3.connect(db_dir)) as conn:
@@ -175,11 +165,6 @@ def show(request):
 
         if "fetch" in request.form:
             _dataDict.update(json.loads(request.form["fetch"]))
-            _roompasshash = _dataDict["roomKey"]
-            if _dataDict["roomKey"] not in ["", "0"]:
-                _roompasshash = hashlib.sha256(
-                    _dataDict["roomKey"].encode()
-                ).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -198,10 +183,12 @@ def show(request):
                         {"message": "notExist", "text": "レシピが不明"},
                         ensure_ascii=False,
                     )
-                elif _combination["passhash"] not in ["", _roompasshash]:
-                    return json.dumps({"message": "wrongPass", "text": "アクセス拒否"})
-                elif _combination["passhash"] == "0" and _combination["id"] != _userid:
-                    return json.dumps({"message": "wrongPass", "text": "アクセス拒否"})
+                if _combination["passhash"] != "":
+                    if _combination["userid"] != token["id"]:
+                        return json.dumps(
+                            {"message": "wrongPass", "text": "アクセス拒否"},
+                            ensure_ascii=False,
+                        )
                 # select material
                 _contents = json.loads(_combination["contents"])
                 _materials = []
@@ -210,7 +197,7 @@ def show(request):
                     _material = cur.fetchone()
                     if _material == None:
                         continue
-                    if _material["passhash"] == "0":
+                    if _material["passhash"] != "":
                         if _material["userid"] != token["id"]:
                             continue
                     _materials.append(dict(_material))
@@ -235,7 +222,6 @@ def show(request):
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
-                _roompasshash = "" if _material["passhash"] == "" else "0"
                 _materialid = _material["id"]
                 # process start
                 # register material
@@ -260,7 +246,7 @@ def show(request):
                             _material["description"],
                             token["id"],
                             _dataDict["user"],
-                            _roompasshash,
+                            _material["passhash"],
                             _timestamp,
                         ],
                     )
@@ -281,19 +267,12 @@ def show(request):
                     return json.dumps(
                         {"message": "notExist", "text": "素材不明"}, ensure_ascii=False
                     )
-                elif _Cmaterial["passhash"] not in ["", _roompasshash]:
-                    return json.dumps(
-                        {"message": "wrongPass", "text": "アクセス拒否"},
-                        ensure_ascii=False,
-                    )
-                elif (
-                    _Cmaterial["passhash"] == "0"
-                    and _Cmaterial["userid"] != token["id"]
-                ):
-                    return json.dumps(
-                        {"message": "wrongPass", "text": "アクセス拒否"},
-                        ensure_ascii=False,
-                    )
+                if _Cmaterial["passhash"] != "":
+                    if _Cmaterial["userid"] != token["id"]:
+                        return json.dumps(
+                            {"message": "wrongPass", "text": "アクセス拒否"},
+                            ensure_ascii=False,
+                        )
                 # for key, value in _material.items():
                 #    print(key), print(value)
                 #    cur.execute(
@@ -371,105 +350,8 @@ def show(request):
                 )
             return json.dumps({"message": "rejected", "text": "不明なエラー"})
 
-        if "upload" in request.files:
-            _roompasshash = _dataDict["roomKey"]
-            if _dataDict["roomKey"] not in ["", "0"]:
-                _roompasshash = hashlib.sha256(
-                    _dataDict["roomKey"].encode()
-                ).hexdigest()
-            if _dataDict["token"] == "":
-                return json.dumps(
-                    {"message": "tokenNothing", "text": "トークン未提出"},
-                    ensure_ascii=False,
-                )
-            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
-            _roompasshash = ""
-            if _dataDict["roomKey"] != "":
-                _roompasshash = hashlib.sha256(
-                    _dataDict["roomKey"].encode()
-                ).hexdigest()
-            with closing(sqlite3.connect(db_dir)) as conn:
-                conn.row_factory = sqlite3.Row
-                cur = conn.cursor()
-                # duplication and roomKey check
-                cur.execute(
-                    "SELECT * FROM tptef_room WHERE id = ?;", [_dataDict["roomid"]]
-                )
-                _room = cur.fetchone()
-                if _room == None:
-                    return json.dumps({"message": "notExist"}, ensure_ascii=False)
-                if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
-                    return json.dumps({"message": "wrongPass"})
-                # process start
-                _timestamp = int(time.time())
-                cur.execute(
-                    "INSERT INTO tptef_chat(user,userid,roomid,text,mode,timestamp) values(?,?,?,?,?,?)",
-                    [
-                        _dataDict["user"],
-                        token["id"],
-                        _room["id"],
-                        request.files["upload"].filename,
-                        "attachment",
-                        _timestamp,
-                    ],
-                )
-                conn.commit()
-                cur.execute(
-                    "SELECT * FROM tptef_chat WHERE userid = ? AND timestamp = ? AND mode = ?;",
-                    [token["id"], _timestamp, "attachment"],
-                )
-                _chat = cur.fetchone()
-                if _chat == None:
-                    return json.dumps({"message": "unknownError"}, ensure_ascii=False)
-                request.files["upload"].save(
-                    os.path.normpath(os.path.join(tmp_dir, str(_chat["id"])))
-                )
-                return json.dumps({"message": "processed"}, ensure_ascii=False)
-            return json.dumps({"message": "rejected"})
-
-        if "download" in request.form:
-            _dataDict.update(json.loads(request.form["download"]))
-            _roompasshash = _dataDict["roomKey"]
-            if _dataDict["roomKey"] not in ["", "0"]:
-                _roompasshash = hashlib.sha256(
-                    _dataDict["roomKey"].encode()
-                ).hexdigest()
-            with closing(sqlite3.connect(db_dir)) as conn:
-                conn.row_factory = sqlite3.Row
-                cur = conn.cursor()
-                # duplication and roomKey check
-                cur.execute(
-                    "SELECT * FROM tptef_room WHERE id = ?;", [_dataDict["roomid"]]
-                )
-                _room = cur.fetchone()
-                if _room == None:
-                    return json.dumps({"message": "notExist"}, ensure_ascii=False)
-                if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
-                    return json.dumps({"message": "wrongPass"})
-                # process start
-                cur.execute(
-                    "SELECT * FROM tptef_chat WHERE id = ? ;",
-                    [_dataDict["chatid"]],
-                )
-                _chat = cur.fetchone()
-                if _chat == None:
-                    return json.dumps({"message": "rejected"}, ensure_ascii=False)
-                _target_file = os.path.normpath(os.path.join(tmp_dir, str(_chat["id"])))
-                if os.path.exists(_target_file):
-                    return flask.send_file(
-                        _target_file,
-                        as_attachment=True,
-                        download_name=_chat["text"],
-                    )
-                return json.dumps({"message": "notExist"})
-            return json.dumps({"message": "rejected"})
-
         if "delete" in request.form:
             _dataDict.update(json.loads(request.form["delete"]))
-            if _dataDict["token"] == "":
-                return json.dumps(
-                    {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
-                )
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -483,11 +365,6 @@ def show(request):
             return json.dumps({"message": "rejected", "text": "不明なエラー"})
 
         if "search" in request.form:
-            _roompasshash = _dataDict["roomKey"]
-            if _dataDict["roomKey"] not in ["", "0"]:
-                _roompasshash = hashlib.sha256(
-                    _dataDict["roomKey"].encode()
-                ).hexdigest()
             _dataDict.update(json.loads(request.form["search"]))
             _userid = -1
             if token != "":
@@ -496,7 +373,7 @@ def show(request):
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 cur.execute(
-                    "SELECT * FROM tskb_combination where passhash != '0' OR "
+                    "SELECT * FROM tskb_combination where passhash == '' OR "
                     "userid = ?;",
                     [_userid],
                 )
@@ -516,18 +393,10 @@ def show(request):
 
         if "create" in request.form:
             _dataDict.update(json.loads(request.form["create"]))
-            _roompasshash = _dataDict["roomKey"]
-            if _dataDict["roomKey"] not in ["", "0"]:
-                _roompasshash = hashlib.sha256(
-                    _dataDict["roomKey"].encode()
-                ).hexdigest()
-            if _dataDict["token"] == "":
-                return json.dumps(
-                    {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
-                )
+            _passhash = ""
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             if _dataDict["privateFlag"] == True:
-                _roompasshash = "0"
+                _passhash = "0"
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -552,7 +421,7 @@ def show(request):
                         _dataDict["description"],
                         token["id"],
                         _dataDict["user"],
-                        _roompasshash,
+                        _passhash,
                         int(time.time()),
                         json.dumps({}, ensure_ascii=False),
                     ],
@@ -564,12 +433,100 @@ def show(request):
                 )
             return json.dumps({"message": "rejected"})
 
+        if "combine" in request.form:
+            _dataDict.update(json.loads(request.form["combine"]))
+            _combination = _dataDict["combination"]
+            with closing(sqlite3.connect(db_dir)) as conn:
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                # check duplication
+                cur.execute(
+                    "SELECT * FROM tskb_combination WHERE id = ?;",
+                    [_combination["id"]],
+                )
+                _Ccombination = cur.fetchone()
+                if _Ccombination == None:
+                    return json.dumps(
+                        {"message": "alreadyExisted", "text": "存在しません"},
+                        ensure_ascii=False,
+                    )
+                if _Ccombination["passhash"] != "":
+                    if _Ccombination["userid"] != token["id"]:
+                        return json.dumps(
+                            {"message": "wrongPass", "text": "アクセス拒否"},
+                            ensure_ascii=False,
+                        )
+                _contents = json.loads(_Ccombination["contents"])
+                if "add_material" in _dataDict:
+                    _contents.update({_dataDict["add_material"]: 0})
+                if "del_material" in _dataDict:
+                    _contents.pop(_dataDict["del_material"])
+                cur.execute(
+                    "UPDATE tskb_combination SET " "contents = ? WHERE id = ?;",
+                    [
+                        json.dumps(_contents, ensure_ascii=False),
+                        _combination["id"],
+                    ],
+                )
+                conn.commit()
+                cur.execute(
+                    "SELECT * FROM tskb_combination WHERE id = ?;",
+                    [_combination["id"]],
+                )
+                _Ccombination = cur.fetchone()
+                return json.dumps(
+                    {"message": "processed", "combination": dict(_Ccombination)},
+                    ensure_ascii=False,
+                )
+            return json.dumps({"message": "rejected"})
+
+        if "update" in request.form:
+            _dataDict.update(json.loads(request.form["update"]))
+            _combination = _dataDict["combination"]
+            with closing(sqlite3.connect(db_dir)) as conn:
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                # check duplication
+                cur.execute(
+                    "SELECT * FROM tskb_combination WHERE id = ?;",
+                    [_combination["id"]],
+                )
+                _Ccombination = cur.fetchone()
+                if _Ccombination == None:
+                    return json.dumps(
+                        {"message": "alreadyExisted", "text": "存在しません"},
+                        ensure_ascii=False,
+                    )
+                if _Ccombination["passhash"] != "":
+                    if _Ccombination["userid"] != token["id"]:
+                        return json.dumps(
+                            {"message": "wrongPass", "text": "アクセス拒否"},
+                            ensure_ascii=False,
+                        )
+                _contents = json.loads(_Ccombination["contents"])
+                cur.execute(
+                    "UPDATE tskb_combination SET name = ?, description = ?,"
+                    "passhash = ? WHERE id = ?;",
+                    [
+                        _combination["name"],
+                        _combination["description"],
+                        _combination["passhash"],
+                        _combination["id"],
+                    ],
+                )
+                conn.commit()
+                cur.execute(
+                    "SELECT * FROM tskb_combination WHERE id = ?;",
+                    [_combination["id"]],
+                )
+                _Ccombination = cur.fetchone()
+                return json.dumps(
+                    {"message": "processed", "combination": dict(_Ccombination)},
+                    ensure_ascii=False,
+                )
+            return json.dumps({"message": "rejected"})
+
         if "destroy" in request.form:
-            _roompasshash = _dataDict["roomKey"]
-            if _dataDict["roomKey"] not in ["", "0"]:
-                _roompasshash = hashlib.sha256(
-                    _dataDict["roomKey"].encode()
-                ).hexdigest()
             _dataDict.update(json.loads(request.form["destroy"]))
             if _dataDict["token"] == "":
                 return json.dumps(
@@ -590,14 +547,9 @@ def show(request):
                         {"message": "notExist", "text": "レシピ不明"},
                         ensure_ascii=False,
                     )
-                if _combination["userid"] != token["id"]:
-                    return json.dumps(
-                        {"message": "youerntOwner", "text": "所有権無"},
-                        ensure_ascii=False,
-                    )
                 cur.execute(
-                    "DELETE FROM tskb_combination WHERE userid = ? AND id = ? ;",
-                    [token["id"], _dataDict["combination_id"]],
+                    "DELETE FROM tskb_combination WHERE id = ? AND userid = ?;",
+                    [_dataDict["combination_id"], token["id"]],
                 )
                 conn.commit()
                 return json.dumps({"message": "processed"}, ensure_ascii=False)

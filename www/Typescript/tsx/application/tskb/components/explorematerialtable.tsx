@@ -4,12 +4,12 @@ import { HIModal, CIModal } from "../../../components/imodals";
 import { satisfyDictKeys, Unixtime2String } from "../../../components/util";
 import { accountSetState, tskbSetState, startTable } from '../../../components/slice'
 import { useAppSelector, useAppDispatch } from '../../../components/store'
+import { string } from 'prop-types';
 
 
 export const EMTable = () => {
     const [contents, setContents] = useState([])
     const [tmpMaterial, setTmpeMaterial] = useState("")
-    const [tmpPrivateFlag, setTmpPrivateFlag] = useState(false)
 
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
@@ -24,9 +24,9 @@ export const EMTable = () => {
 
     useEffect(() => {
         if (tableStatus == "MTable") exploreMaterial()
+        if (tableStatus == "CMTable") exploreMaterial()
         setTmpeMaterial("")
-        setTmpPrivateFlag(false)
-    }, [tableStatus])
+    }, [tableStatus, userId])
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
@@ -36,7 +36,7 @@ export const EMTable = () => {
         return (JSON.stringify(_sendDict))
     }
     // fetchAPI
-    const exploreMaterial = (_tmpPrivateFlag = tmpPrivateFlag) => {
+    const exploreMaterial = (_tmpPrivateFlag = false) => {
         const sortSetExploreContents = (_contents: any = []) => {
             const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
             setContents(_contents.sort(_sortContents))
@@ -70,6 +70,37 @@ export const EMTable = () => {
                 console.error(error.message)
             });
     }
+    const combineMaterial = (_tmpTargetId: string) => {
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("combine", JSON.stringify({
+            "combination": combination,
+            "add_material": _tmpTargetId
+        }))
+        const request = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed": {
+                        break;
+                    }
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]); break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
     // modal
     // app
     const topForm = () => {
@@ -87,12 +118,12 @@ export const EMTable = () => {
                     {token == "" ?
                         <button className="btn btn-outline-primary btn-lg" type="button" disabled>
                             <i className="fa-solid fa-book-open mx-1" style={{ pointerEvents: "none" }} />
-                            自作素材
+                            非公開一覧
                         </button> :
                         <button className="btn btn-outline-primary btn-lg" type="button"
-                            onClick={() => { setTmpPrivateFlag(true); exploreMaterial(true); }}>
+                            onClick={() => { exploreMaterial(true); }}>
                             <i className="fa-solid fa-book-open mx-1" style={{ pointerEvents: "none" }} />
-                            自作素材
+                            非公開一覧
                         </button>
                     }
                     <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial}
@@ -100,13 +131,13 @@ export const EMTable = () => {
                         onChange={(evt: any) => setTmpeMaterial(evt.target.value)} />
                     {token == "" ?
                         <button className="btn btn-outline-primary btn-lg" type="button" disabled >
-                            + 素材新規作成
+                            + 新規作成
                         </button> :
                         <button className="btn btn-outline-primary btn-lg" type="button"
                             onClick={() =>
                                 AppDispatch(startTable({ material: null, tableStatus: "CMTable" }))
                             } >
-                            + 素材新規作成
+                            + 新規作成
                         </button>}
                 </div></div></div>)
     }
@@ -130,18 +161,21 @@ export const EMTable = () => {
                         onClick={(evt: any) => {
                             AppDispatch(startTable({
                                 tableStatus: "CMTable",
-                                material: contents[evt.target.value]
+                                material: JSON.parse(evt.target.value)
                             }))
                         }}
-                        value={i}>
+                        value={JSON.stringify(contents[i])}>
                         <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }}></i>編集
                     </button> : <div></div>
                 }
                 {combination["userid"] == userId ?
                     <button className="btn btn-outline-primary rounded-pill"
-                        onClick={(evt: any) => { }} value={contents[i]["id"]}>
+                        onClick={(evt: any) => {
+                            combineMaterial(evt.target.value)
+                        }
+                        } value={contents[i]["id"]} >
                         + レシピに追加
-                    </button> : <div></div>
+                    </button > : <div></div>
                 }
             </div >)
         _tmpData.push(
@@ -158,16 +192,17 @@ export const EMTable = () => {
             <div className="col-12 col-md-6" style={{
                 border: "1px inset silver", borderRadius: "5px", marginBottom: "3px", boxShadow: "2px 2px 1px rgba(60,60,60,0.2)"
             }}>
-                <div className="row p-1">{_tmpData}</div>
+                <div className="row">{_tmpData}</div>
             </div>
         )
     }
     return (
-        <div style={{
+        <div className="p-1" style={{
+            border: "3px double silver",
             background: "linear-gradient(45deg,rgba(240,150,110,0.2), rgba(60,60,60,0.0))"
         }}>
             {topForm()}
-            <div className="row my-1">
+            <div className="row m-1">
                 {_tmpRecord}
             </div>
         </div>)

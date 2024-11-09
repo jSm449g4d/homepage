@@ -29,14 +29,12 @@ export const CMTable = () => {
         }
         setTmpMaterial(_copy)
     }
-    const [tmpDescription, setTmpDescription] = useState("")
 
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
     const token = useAppSelector((state) => state.account.token)
     const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
-    const combination = useAppSelector((state) => state.tskb.combination)
     const material = useAppSelector((state) => state.tskb.material)
     const AppDispatch = useAppDispatch()
     const xhrTimeout = 3000
@@ -44,10 +42,11 @@ export const CMTable = () => {
 
 
     useEffect(() => {
-        if (tableStatus == "CMTable") setTmpMaterial(material)
         setTmpTargetId(-1)
-        setTmpDescription("")
     }, [tableStatus, userId])
+    useEffect(() => {
+        if (tableStatus == "CMTable") setTmpMaterial(material)
+    }, [material])
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
@@ -279,18 +278,17 @@ export const CMTable = () => {
     }
     const _tmpTable = (
         <div style={{ overflow: "auto" }}>
-            <table className="table table-dark table-striped-columns table-bordered"
-                style={{ whiteSpace: "nowrap" }}>
+            <table className="table table-dark table-striped-columns table-bordered">
                 <tbody>
-                    <tr >
+                    <tr>
                         <th scope="col"><h4>基本</h4></th>
-                        <th scope="col">単価&nbsp;円</th>
-                        <th scope="col">熱量&nbsp;&nbsp;kcal</th>
-                        <th scope="col">炭水化物&nbsp;g</th>
-                        <th scope="col">タンパク質&nbsp;g	</th>
-                        <th scope="col">脂質&nbsp;g</th>
+                        <th scope="col">単価<br />円</th>
+                        <th scope="col">熱量<br />kcal</th>
+                        <th scope="col">炭水化物<br />g</th>
+                        <th scope="col">タンパク質<br />g</th>
+                        <th scope="col">脂質<br />g</th>
                     </tr>
-                    <tr >
+                    <tr>
                         <th><button className="btn btn-success" type="button"
                             onClick={() => {
                                 reSetTmpMaterialDict(
@@ -309,16 +307,16 @@ export const CMTable = () => {
                         <th><input type="text" size={4} value={tmpMaterial["fat"]}
                             onChange={(evt: any) => { setTmpMaterialDict("fat", evt.target.value) }} /></th>
                     </tr>
-                    <tr >
+                    <tr>
                         <th scope="col"><h4>詳細</h4></th>
-                        <th scope="col">食物繊維&nbsp;g</th>
-                        <th scope="col">飽和脂肪酸&nbsp;g</th>
-                        <th scope="col">n-3脂肪酸&nbsp;g</th>
-                        <th scope="col">DHA-EPA&nbsp;g</th>
-                        <th scope="col">n-6脂肪酸&nbsp;g</th>
-                        <th scope="col">コリン&nbsp;mg</th>
+                        <th scope="col">飽和脂肪酸<br />g</th>
+                        <th scope="col">n-3脂肪酸<br />g</th>
+                        <th scope="col">DHA-EPA<br />g</th>
+                        <th scope="col">n-6脂肪酸<br />g</th>
+                        <th scope="col">食物繊維<br />g</th>
+                        <th scope="col">コリン<br />mg</th>
                     </tr>
-                    <tr >
+                    <tr>
                         <th><button className="btn btn-success" type="button"
                             onClick={() => {
                                 reSetTmpMaterialDict(
@@ -326,8 +324,6 @@ export const CMTable = () => {
                             }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button></th>
-                        <th><input type="text" size={4} value={tmpMaterial["fiber"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("fiber", evt.target.value) }} /></th>
                         <th><input type="text" size={4} value={tmpMaterial["saturated_fat"]}
                             onChange={(evt: any) => { setTmpMaterialDict("saturated_fat", evt.target.value) }} /></th>
                         <th><input type="text" size={4} value={tmpMaterial["n3"]}
@@ -336,27 +332,29 @@ export const CMTable = () => {
                             onChange={(evt: any) => { setTmpMaterialDict("DHA_EPA", evt.target.value) }} /></th>
                         <th><input type="text" size={4} value={tmpMaterial["n6"]}
                             onChange={(evt: any) => { setTmpMaterialDict("n6", evt.target.value) }} /></th>
+                        <th><input type="text" size={4} value={tmpMaterial["fiber"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("fiber", evt.target.value) }} /></th>
                         <th><input type="text" size={4} value={tmpMaterial["colin"]}
                             onChange={(evt: any) => { setTmpMaterialDict("colin", evt.target.value) }} /></th>
                     </tr>
-                    <tr >
+                    <tr>
                         <th scope="col"><h4>ミネラル</h4></th>
-                        <th scope="col">カルシウム&nbsp;mg</th>
-                        <th scope="col">塩素&nbsp;mg</th>
-                        <th scope="col">クロム&nbsp;μg</th>
-                        <th scope="col">銅&nbsp;μg</th>
-                        <th scope="col">ヨウ素&nbsp;μg</th>
-                        <th scope="col">鉄&nbsp;mg</th>
-                        <th scope="col">マグネシウム&nbsp;mg</th>
-                        <th scope="col">マンガン&nbsp;mg</th>
-                        <th scope="col">モリブデン&nbsp;μg</th>
-                        <th scope="col">リン&nbsp;mg</th>
-                        <th scope="col">カリウム&nbsp;mg</th>
-                        <th scope="col">セレン&nbsp;μg</th>
-                        <th scope="col">ナトリウム&nbsp;mg</th>
-                        <th scope="col">亜鉛&nbsp;mg</th>
+                        <th scope="col">カルシウム<br />mg</th>
+                        <th scope="col">塩素<br />mg</th>
+                        <th scope="col">クロム<br />μg</th>
+                        <th scope="col">銅<br />μg</th>
+                        <th scope="col">ヨウ素<br />μg</th>
+                        <th scope="col">鉄<br />mg</th>
+                        <th scope="col">マグネシウム<br />mg</th>
+                        <th scope="col">マンガン<br />mg</th>
+                        <th scope="col">モリブデン<br />μg</th>
+                        <th scope="col">リン<br />mg</th>
+                        <th scope="col">カリウム<br />mg</th>
+                        <th scope="col">セレン<br />μg</th>
+                        <th scope="col">ナトリウム<br />mg</th>
+                        <th scope="col">亜鉛<br />mg</th>
                     </tr>
-                    <tr >
+                    <tr>
                         <th><button className="btn btn-success" type="button"
                             onClick={() => {
                                 reSetTmpMaterialDict(
@@ -393,23 +391,23 @@ export const CMTable = () => {
                         <th><input type="text" size={4} value={tmpMaterial["zn"]}
                             onChange={(evt: any) => { setTmpMaterialDict("zn", evt.target.value) }} /></th>
                     </tr>
-                    <tr >
+                    <tr>
                         <th scope="col"><h4>ビタミン</h4></th>
-                        <th scope="col">VA&nbsp;μgRE</th>
-                        <th scope="col">VB1&nbsp;mg</th>
-                        <th scope="col">VB2&nbsp;mg</th>
-                        <th scope="col">VB3&nbsp;mgNE</th>
-                        <th scope="col">VB5&nbsp;mg</th>
-                        <th scope="col">VB6&nbsp;mg</th>
-                        <th scope="col">VB7&nbsp;μg</th>
-                        <th scope="col">VB9&nbsp;μg</th>
-                        <th scope="col">VB12&nbsp;μg</th>
-                        <th scope="col">VC&nbsp;mg</th>
-                        <th scope="col">VD&nbsp;μg</th>
-                        <th scope="col">VE&nbsp;mg</th>
-                        <th scope="col">VK&nbsp;μg</th>
+                        <th scope="col">VA<br />μgRE</th>
+                        <th scope="col">VB1<br />mg</th>
+                        <th scope="col">VB2<br />mg</th>
+                        <th scope="col">VB3<br />mgNE</th>
+                        <th scope="col">VB5<br />mg</th>
+                        <th scope="col">VB6<br />mg</th>
+                        <th scope="col">VB7<br />μg</th>
+                        <th scope="col">VB9<br />μg</th>
+                        <th scope="col">VB12<br />μg</th>
+                        <th scope="col">VC<br />mg</th>
+                        <th scope="col">VD<br />μg</th>
+                        <th scope="col">VE<br />mg</th>
+                        <th scope="col">VK<br />μg</th>
                     </tr>
-                    <tr >
+                    <tr>
                         <th><button className="btn btn-success" type="button"
                             onClick={() => {
                                 reSetTmpMaterialDict(
@@ -450,7 +448,9 @@ export const CMTable = () => {
     )
 
     return (
-        <div className="m-1">
+        <div className="p-1" style={{
+            background: "linear-gradient(45deg,rgba(180,230,240,0.2), rgba(60,60,60,0.0))"
+        }}>
             {CMTMaterialDeleteModal()}
             {topForm()}
             {_tmpTable}
