@@ -462,16 +462,66 @@ def show(request):
                 if "del_material" in _dataDict:
                     _contents.pop(_dataDict["del_material"])
                 cur.execute(
-                    "UPDATE tskb_combination SET contents = ?, passhash = ? WHERE id = ?;",
+                    "UPDATE tskb_combination SET " "contents = ? WHERE id = ?;",
                     [
                         json.dumps(_contents, ensure_ascii=False),
+                        _combination["id"],
+                    ],
+                )
+                conn.commit()
+                cur.execute(
+                    "SELECT * FROM tskb_combination WHERE id = ?;",
+                    [_combination["id"]],
+                )
+                _Ccombination = cur.fetchone()
+                return json.dumps(
+                    {"message": "processed", "combination": dict(_Ccombination)},
+                    ensure_ascii=False,
+                )
+            return json.dumps({"message": "rejected"})
+
+        if "update" in request.form:
+            _dataDict.update(json.loads(request.form["update"]))
+            _combination = _dataDict["combination"]
+            with closing(sqlite3.connect(db_dir)) as conn:
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                # check duplication
+                cur.execute(
+                    "SELECT * FROM tskb_combination WHERE id = ?;",
+                    [_combination["id"]],
+                )
+                _Ccombination = cur.fetchone()
+                if _Ccombination == None:
+                    return json.dumps(
+                        {"message": "alreadyExisted", "text": "存在しません"},
+                        ensure_ascii=False,
+                    )
+                if _Ccombination["passhash"] != "":
+                    if _Ccombination["userid"] != token["id"]:
+                        return json.dumps(
+                            {"message": "wrongPass", "text": "アクセス拒否"},
+                            ensure_ascii=False,
+                        )
+                _contents = json.loads(_Ccombination["contents"])
+                cur.execute(
+                    "UPDATE tskb_combination SET name = ?, description = ?,"
+                    "passhash = ? WHERE id = ?;",
+                    [
+                        _combination["name"],
+                        _combination["description"],
                         _combination["passhash"],
                         _combination["id"],
                     ],
                 )
                 conn.commit()
+                cur.execute(
+                    "SELECT * FROM tskb_combination WHERE id = ?;",
+                    [_combination["id"]],
+                )
+                _Ccombination = cur.fetchone()
                 return json.dumps(
-                    {"message": "processed"},
+                    {"message": "processed", "combination": dict(_Ccombination)},
                     ensure_ascii=False,
                 )
             return json.dumps({"message": "rejected"})

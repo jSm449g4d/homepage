@@ -2,13 +2,28 @@ import React, { useState, useEffect } from 'react';
 
 import { HIModal, CIModal } from "../../../components/imodals";
 import { satisfyDictKeys, Unixtime2String } from "../../../components/util";
-import { accountSetState, tskbSetState } from '../../../components/slice'
+import { accountSetState, tskbSetState, startTable } from '../../../components/slice'
 import { useAppSelector, useAppDispatch } from '../../../components/store'
 
 
 export const MTable = () => {
     const [contents, setContents] = useState([])
-    const [tmpTargetId, setTmpTargetId] = useState(-1)
+    const [tmpCombination, setTmpCombination] = useState({
+        "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
+        "passhash": "", "timestamp": 0, "contents": "{}"
+    })
+    const setTmpConbinationDict = (_key: string, _value: any) => {
+        let _copy = JSON.parse(JSON.stringify(tmpCombination))
+        _copy[_key] = _value
+        setTmpCombination(_copy)
+    }
+    const reSetTmpConbinationDict = (_keys: any[]) => {
+        let _copy = JSON.parse(JSON.stringify(tmpCombination))
+        for (let i = 0; i < _keys.length; i++) {
+            _copy[_keys[i]] = JSON.parse(JSON.stringify(combination))[_keys[i]]
+        }
+        setTmpCombination(_copy)
+    }
 
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
@@ -23,8 +38,10 @@ export const MTable = () => {
 
     useEffect(() => {
         if (tableStatus == "MTable") fetchMaterial()
-        setTmpTargetId(-1)
     }, [tableStatus, userId])
+    useEffect(() => {
+        setTmpCombination(combination)
+    }, [combination])
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
@@ -54,7 +71,6 @@ export const MTable = () => {
             .then(resJ => {
                 switch (resJ["message"]) {
                     case "processed": {
-                        AppDispatch(tskbSetState({ tableStatus: "MTable" }));
                         AppDispatch(tskbSetState({ combination: resJ["combination"] }));
                         sortSetContents(resJ["materials"]);
                         AppDispatch(accountSetState({ token: resJ["token"] })); break;
@@ -70,8 +86,7 @@ export const MTable = () => {
                 console.error(error.message)
             });
     }
-
-    const combineMaterial = (_tmpTargetId: string) => {
+    const combineCombination = (_tmpTargetId: string) => {
         const sortSetExploreContents = (_contents: any = []) => {
             const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
             setContents(_contents.sort(_sortContents))
@@ -80,7 +95,7 @@ export const MTable = () => {
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("combine", JSON.stringify({
-            "combination": combination,
+            "combination": tmpCombination,
             "del_material": _tmpTargetId
         }))
         const request = new Request("/tskb/main.py", {
@@ -94,7 +109,40 @@ export const MTable = () => {
             .then(resJ => {
                 switch (resJ["message"]) {
                     case "processed": {
-                        sortSetExploreContents(resJ["materials"]); break;
+                        sortSetExploreContents(resJ["materials"]);
+                        AppDispatch(tskbSetState({ combination: resJ["combination"] }));
+                        break;
+                    }
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]); break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
+    const updateCombination = () => {
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("update", JSON.stringify({
+            "combination": tmpCombination,
+        }))
+        const request = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed": {
+                        AppDispatch(tskbSetState({ combination: resJ["combination"] }));
+                        break;
                     }
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]); break;
@@ -126,7 +174,7 @@ export const MTable = () => {
             .then(resJ => {
                 switch (resJ["message"]) {
                     case "processed": {
-                        AppDispatch(tskbSetState({ tableStatus: "CTable" }));
+                        AppDispatch(startTable({ tableStatus: "CTable", combitation: null }))
                         sortSetContentsRev(resJ["combinations"]);
                         AppDispatch(accountSetState({ token: resJ["token"] })); break;
                     }
@@ -145,7 +193,7 @@ export const MTable = () => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("destroy", JSON.stringify({ "combination_id": tmpTargetId }))
+        formData.append("destroy", JSON.stringify({ "combination_id": tmpCombination["id"] }))
         const request = new Request("/tskb/main.py", {
             method: 'POST',
             headers: headers,
@@ -157,10 +205,12 @@ export const MTable = () => {
             .then(resJ => {
                 switch (resJ["message"]) {
                     case "processed":
-                        setTimeout(() => { searchCombination(); }, xhrDelay); break;
+                        AppDispatch(startTable({ tableStatus: "CTable", combitation: null }))
+                        break;
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]);
-                        searchCombination(); break;
+                        AppDispatch(startTable({ tableStatus: "CTable", combitation: null }))
+                        break;
                     }
                 }
             })
@@ -212,6 +262,37 @@ export const MTable = () => {
                     <input className="flex-fill form-control form-control-lg" type="text" value={combination["name"]}
                         disabled>
                     </input >
+                </div></div>)
+    }
+    const bottomForm = () => {
+        return (
+            <div>
+                <div className="d-flex justify-content-between align-items-center my-1">
+                    {tmpCombination["passhash"] == "" ?
+                        <button className="btn btn-outline-warning btn-lg" type="button"
+                            onClick={() => { setTmpConbinationDict("passhash", "0") }}>
+                            <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
+                            公開&nbsp;&nbsp;
+                        </button> :
+                        <button className="btn btn-warning btn-lg" type="button"
+                            onClick={() => { setTmpConbinationDict("passhash", "") }}>
+                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
+                            非公開
+                        </button>
+                    }
+                    {tmpCombination["name"] == "" ?
+                        <button className="btn btn-outline-primary btn-lg" type="button" disabled>
+                            <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
+                            レシピ名を入力してください
+                        </button> :
+                        <div>
+                            <button className="btn btn-outline-success btn-lg" type="button"
+                                onClick={() => { updateCombination() }}>
+                                <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
+                                更新
+                            </button>
+                        </div>
+                    }
                     {combination["userid"] == userId ?
                         <button className="btn btn-outline-danger btn-lg" type="button"
                             onClick={() => { $("#combinationDestroyModal1").modal('show') }}>
@@ -222,7 +303,8 @@ export const MTable = () => {
                             <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>レシピ破棄
                         </button>
                     }
-                </div></div>)
+                </div>
+            </div>)
     }
     "(id,name,tag,description,userid,user,passhash,timestamp,"
     "g,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
@@ -286,7 +368,7 @@ export const MTable = () => {
         const _button = (
             <th>
                 <button type="button" className="btn btn-outline-warning rounded-pill"
-                    onClick={(evt: any) => { combineMaterial(evt.target.value) }}
+                    onClick={(evt: any) => { combineCombination(evt.target.value) }}
                     value={contents[i]["id"]}>
                     <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
                 </button>
@@ -305,12 +387,13 @@ export const MTable = () => {
                 <th>{_button}</th>
                 <th>{contents[i]["name"]}</th>
                 <th>{amount}</th>
-                <th>{contents[i]["cost"]}</th>
-                <th>{contents[i]["kcal"]}</th>
-                <th>{contents[i]["carbo"]}</th>
-                <th>{contents[i]["protein"]}</th>
-                <th>{contents[i]["fat"]}</th>
-                <th>{contents[i]["saturated_fat"]}</th>
+                <th><input type="text" size={4} id={"MTamount_" + i} pattern="[0-9]{6}" /></th>
+                <th>{contents[i]["cost"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
+                <th>{contents[i]["kcal"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
+                <th>{contents[i]["carbo"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
+                <th>{contents[i]["protein"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
+                <th>{contents[i]["fat"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
+                <th>{contents[i]["saturated_fat"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
                 <th>{contents[i]["n3"]}</th>
                 <th>{contents[i]["DHA_EPA"]}</th>
                 <th>{contents[i]["n6"]}</th>
@@ -360,5 +443,6 @@ export const MTable = () => {
                     <tbody>{_tmpRecord}</tbody>
                 </table>
             </div>
+            {bottomForm()}
         </div>)
 }
