@@ -22,12 +22,14 @@ export const IModalsRender = () => {
                             <h4 className="modal-title">
                                 <i className="fa-solid fa-circle-info text-info mx-1" />
                             </h4>
-                            <h4 className="modal-title" id="helpInfoModalTitle">help</h4>
+                            <h4 className="modal-title" id="helpInfoModalTitle">
+                                help
+                            </h4>
                         </div>
                         <div className="modal-body" id="helpInfoModalText"></div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-outline-secondary" data-bs-dismiss="modal">
-                                <i className="fa-solid fa-otter mx-1" style={{ pointerEvents: "none" }}></i>Close
+                                <i className="fa-solid fa-otter mx-1" style={{ pointerEvents: "none" }} />Close
                             </button>
                         </div>
                     </div>
@@ -44,12 +46,14 @@ export const IModalsRender = () => {
                             <h4 className="modal-title">
                                 <i className="fa-solid fa-circle-exclamation text-warning mx-1" />
                             </h4>
-                            <h4 className="modal-title" id="cautionInfoModalTitle">caution</h4>
+                            <h4 className="modal-title" id="cautionInfoModalTitle">
+                                caution
+                            </h4>
                         </div>
                         <div className="modal-body" id="cautionInfoModalText"></div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-outline-secondary" data-bs-dismiss="modal">
-                                <i className="fa-solid fa-otter mx-1" style={{ pointerEvents: "none" }}></i>Close
+                                <i className="fa-solid fa-otter mx-1" style={{ pointerEvents: "none" }} />Close
                             </button>
                         </div>
                     </div>

@@ -8,7 +8,6 @@ import { useAppSelector, useAppDispatch } from '../../../components/store'
 
 export const CTable = () => {
     const [contents, setContents] = useState([])
-    const [tmpRoomKey, setTmpRoomKey] = useState("")
     const [tmpTargetId, setTmpTargetId] = useState(-1)
     const [tmpCombination, setTmpCombination] = useState("")
     const [tmpDescription, setTpDescription] = useState("")
@@ -19,7 +18,6 @@ export const CTable = () => {
     const token = useAppSelector((state) => state.account.token)
     const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
-    const tmpContents = useAppSelector((state) => state.tskb.tmpContents)
     const AppDispatch = useAppDispatch()
     const xhrTimeout = 3000
     const xhrDelay = 100
@@ -27,13 +25,11 @@ export const CTable = () => {
 
     useEffect(() => {
         if (tableStatus == "CTable") searchCombination()
-        setTmpRoomKey("")
         setTmpTargetId(-1)
         setTmpCombination("")
         setTpDescription("")
         setTmpPrivateFlag(false)
     }, [tableStatus, userId])
-    useEffect(() => { searchCombination() }, [])
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
@@ -43,44 +39,6 @@ export const CTable = () => {
         return (JSON.stringify(_sendDict))
     }
     // fetchAPI
-    const fetchMaterial = (_combinationid: number, _roomKey = roomKey) => {
-        const sortSetContents = (_contents: any = []) => {
-            const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
-            return _contents.sort(_sortContents)
-        }
-        const headers = new Headers();
-        const formData = new FormData();
-        formData.append("info", stringForSend())
-        formData.append("fetch", JSON.stringify({ "combinationid": _combinationid, "roomKey": _roomKey }))
-        const request = new Request("/tskb/main.py", {
-            method: 'POST',
-            headers: headers,
-            body: formData,
-            signal: AbortSignal.timeout(xhrTimeout)
-        });
-        fetch(request)
-            .then(response => response.json())
-            .then(resJ => {
-                switch (resJ["message"]) {
-                    case "processed": {
-                        AppDispatch(startTable({
-                            combination: resJ["combination"],
-                            tableStatus: "MTable",
-                            tmpContents: sortSetContents(resJ["materials"])
-                        }))
-                        AppDispatch(accountSetState({ token: resJ["token"] })); break;
-                    }
-                    default: {
-                        if ("text" in resJ) CIModal(resJ["text"]);
-                        searchCombination(); break;
-                    }
-                }
-            })
-            .catch(error => {
-                CIModal("通信エラー")
-                console.error(error.message)
-            });
-    }
     const searchCombination = () => {
         const sortSetContentsRev = (_contents: any = []) => {
             const _sortContentsRev = (a: any, b: any) => { return b["timestamp"] - a["timestamp"] }
@@ -121,7 +79,7 @@ export const CTable = () => {
         formData.append("info", stringForSend())
         formData.append("create", JSON.stringify({
             "name": tmpCombination, "description": tmpDescription,
-            "roomKey": tmpRoomKey, "privateFlag": tmpPrivateFlag,
+            "privateFlag": tmpPrivateFlag,
         }))
         const request = new Request("/tskb/main.py", {
             method: 'POST',
@@ -213,19 +171,11 @@ export const CTable = () => {
                                     Close
                                 </button>
                                 {tmpCombination != "" && token != "" ? <div>
-                                    {tmpRoomKey == "" ?
-                                        <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
-                                            onClick={() => createCombination()}>
-                                            <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
-                                        </button> :
-                                        <button type="button" className="btn btn-outline-warning" data-bs-dismiss="modal"
-                                            onClick={() => {
-                                                AppDispatch(accountSetState({ "roomKey": tmpRoomKey }))
-                                                createCombination()
-                                            }}>
-                                            <i className="fa-solid fa-key mx-1" style={{ pointerEvents: "none" }} />作成
-                                        </button>
-                                    }</div> :
+                                    <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
+                                        onClick={() => createCombination()}>
+                                        <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
+                                    </button>
+                                </div> :
                                     <button type="button" className="btn btn-outline-primary" disabled>
                                         <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
                                     </button>
@@ -306,16 +256,15 @@ export const CTable = () => {
                 <h5 className="me-auto">
                     <i className="fa-solid fa-jar mx-1"></i>{contents[i]["name"]}
                 </h5>
-                {contents[i]["passhash"] == "" ?
-                    <button className="btn btn-outline-primary rounded-pill"
-                        onClick={(evt: any) => { fetchMaterial(evt.target.value) }} value={contents[i]["id"]}>
-                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>閲覧
-                    </button> :
-                    <button className="btn btn-outline-primary rounded-pill"
-                        onClick={(evt: any) => { fetchMaterial(evt.target.value) }} value={contents[i]["id"]}>
-                        <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>閲覧
-                    </button>
-                }
+                <button className="btn btn-outline-primary rounded-pill"
+                    onClick={(evt: any) => {
+                        AppDispatch(startTable({
+                            tableStatus: "MTable",
+                            combination: JSON.parse(evt.target.value)
+                        }))
+                    }} value={JSON.stringify(contents[i])}>
+                    <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>閲覧
+                </button>
                 {contents[i]["userid"] == userId ?
                     <button className="btn btn-outline-danger rounded-pill"
                         onClick={(evt: any) => {
@@ -346,13 +295,13 @@ export const CTable = () => {
         )
     }
     return (
-        <div style={{
+        <div className="p-1" style={{
             background: "linear-gradient(45deg,rgba(250,200,200,0.2), rgba(60,60,60,0.0))"
         }}>
             {combinationCreateModal()}
             {combinationDestroyModal()}
             {topForm()}
-            <div className="row">
+            <div className="row m-1">
                 {_tmpRecord}
             </div>
         </div>)

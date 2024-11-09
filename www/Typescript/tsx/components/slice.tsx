@@ -29,7 +29,7 @@ export const tskbSlice = createSlice({
     combination: {
       // "(id,name,tag,description,userid,user,passhash,timestamp,contents)"
       "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
-      "passhash": "", "timestamp": 0, "contents": {}
+      "passhash": "", "timestamp": 0, "contents": "{}"
     },
     material: {
       //  "(id,name,tag,description,userid,user,passhash,timestamp,"
@@ -43,21 +43,19 @@ export const tskbSlice = createSlice({
       "vb1": "0", "vb2": "0", "vb3": "0", "vb5": "0", "vb6": "0", "vb7": "0", "vb9": "0",
       "vb12": "0", "vc": "0", "vd": "0", "ve": "0", "vk": "0", "colin": "0", "kcal": "0",
     },
-    tmpContents: [],
   },
   reducers: {
     tskbSetState: (state, action: { payload: any }) => {
       if ("tableStatus" in action.payload) state.tableStatus = action.payload.tableStatus
       if ("combination" in action.payload) state.combination = action.payload.combination
       if ("material" in action.payload) state.material = action.payload.material
-      if ("tmpContents" in action.payload) state.tmpContents = action.payload.tmpContents
     },
     startTable: (state, action: { payload: any }) => {
       if ("combination" in action.payload)
         if (action.payload.combination == null) {
           state.combination = {
             "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
-            "passhash": "", "timestamp": 0, "contents": {}
+            "passhash": "", "timestamp": 0, "contents": "{}"
           }
         } else state.combination = action.payload.combination
       if ("material" in action.payload)
@@ -72,7 +70,6 @@ export const tskbSlice = createSlice({
             "vb12": "0", "vc": "0", "vd": "0", "ve": "0", "vk": "0", "colin": "0", "kcal": "0",
           }
         } else state.material = action.payload.material
-      if ("tmpContents" in action.payload) state.tmpContents = action.payload.tmpContents
       if ("tableStatus" in action.payload) state.tableStatus = action.payload.tableStatus
     },
   },

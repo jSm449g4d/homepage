@@ -28,7 +28,7 @@ export const EMTable = () => {
         if (tableStatus == "CMTable") exploreMaterial()
         setTmpeMaterial("")
         setTmpPrivateFlag(false)
-    }, [tableStatus])
+    }, [tableStatus, userId])
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
@@ -48,6 +48,41 @@ export const EMTable = () => {
         formData.append("info", stringForSend())
         formData.append("explore", JSON.stringify({
             "keyword": tmpMaterial, "privateFlag": _tmpPrivateFlag
+        }))
+        const request = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed": {
+                        sortSetExploreContents(resJ["materials"]); break;
+                    }
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]); break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
+    const combineMaterial = (_tmpTargetId: string) => {
+        const sortSetExploreContents = (_contents: any = []) => {
+            const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
+            setContents(_contents.sort(_sortContents))
+        }
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("combine", JSON.stringify({
+            "combination": combination,
+            "add_material": _tmpTargetId
         }))
         const request = new Request("/tskb/main.py", {
             method: 'POST',
@@ -132,17 +167,17 @@ export const EMTable = () => {
                         onClick={(evt: any) => {
                             AppDispatch(startTable({
                                 tableStatus: "CMTable",
-                                material: contents[evt.target.value]
+                                material: JSON.parse(evt.target.value)
                             }))
                         }}
-                        value={i}>
+                        value={JSON.stringify(contents[i])}>
                         <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }}></i>編集
                     </button> : <div></div>
                 }
                 {combination["userid"] == userId ?
                     <button className="btn btn-outline-primary rounded-pill"
                         onClick={(evt: any) => {
-
+                            combineMaterial(evt.target.value)
                         }
                         } value={contents[i]["id"]} >
                         + レシピに追加
@@ -160,19 +195,20 @@ export const EMTable = () => {
                 {Unixtime2String(Number(contents[i]["timestamp"]))}
             </div></div>)
         _tmpRecord.push(
-            <div className="col-12 col-md-6 p-1" style={{
+            <div className="col-12 col-md-6" style={{
                 border: "1px inset silver", borderRadius: "5px", marginBottom: "3px", boxShadow: "2px 2px 1px rgba(60,60,60,0.2)"
             }}>
-                <div className="row p-1">{_tmpData}</div>
+                <div className="row">{_tmpData}</div>
             </div>
         )
     }
     return (
-        <div style={{
+        <div className="p-1" style={{
+            border: "3px double silver",
             background: "linear-gradient(45deg,rgba(240,150,110,0.2), rgba(60,60,60,0.0))"
         }}>
             {topForm()}
-            <div className="row">
+            <div className="row m-1">
                 {_tmpRecord}
             </div>
         </div>)

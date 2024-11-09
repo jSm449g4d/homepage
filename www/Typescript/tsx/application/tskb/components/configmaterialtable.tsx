@@ -29,14 +29,12 @@ export const CMTable = () => {
         }
         setTmpMaterial(_copy)
     }
-    const [tmpDescription, setTmpDescription] = useState("")
 
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
     const token = useAppSelector((state) => state.account.token)
     const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
-    const combination = useAppSelector((state) => state.tskb.combination)
     const material = useAppSelector((state) => state.tskb.material)
     const AppDispatch = useAppDispatch()
     const xhrTimeout = 3000
@@ -44,10 +42,11 @@ export const CMTable = () => {
 
 
     useEffect(() => {
-        if (tableStatus == "CMTable") setTmpMaterial(material)
         setTmpTargetId(-1)
-        setTmpDescription("")
-    }, [tableStatus, userId, material])
+    }, [tableStatus, userId])
+    useEffect(() => {
+        if (tableStatus == "CMTable") setTmpMaterial(material)
+    }, [material])
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
@@ -279,8 +278,7 @@ export const CMTable = () => {
     }
     const _tmpTable = (
         <div style={{ overflow: "auto" }}>
-            <table className="table table-dark table-striped-columns table-bordered"
-                style={{ whiteSpace: "nowrap" }}>
+            <table className="table table-dark table-striped-columns table-bordered">
                 <tbody>
                     <tr>
                         <th scope="col"><h4>基本</h4></th>
@@ -311,11 +309,11 @@ export const CMTable = () => {
                     </tr>
                     <tr>
                         <th scope="col"><h4>詳細</h4></th>
-                        <th scope="col">食物繊維<br />g</th>
                         <th scope="col">飽和脂肪酸<br />g</th>
                         <th scope="col">n-3脂肪酸<br />g</th>
                         <th scope="col">DHA-EPA<br />g</th>
                         <th scope="col">n-6脂肪酸<br />g</th>
+                        <th scope="col">食物繊維<br />g</th>
                         <th scope="col">コリン<br />mg</th>
                     </tr>
                     <tr>
@@ -326,8 +324,6 @@ export const CMTable = () => {
                             }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button></th>
-                        <th><input type="text" size={4} value={tmpMaterial["fiber"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("fiber", evt.target.value) }} /></th>
                         <th><input type="text" size={4} value={tmpMaterial["saturated_fat"]}
                             onChange={(evt: any) => { setTmpMaterialDict("saturated_fat", evt.target.value) }} /></th>
                         <th><input type="text" size={4} value={tmpMaterial["n3"]}
@@ -336,6 +332,8 @@ export const CMTable = () => {
                             onChange={(evt: any) => { setTmpMaterialDict("DHA_EPA", evt.target.value) }} /></th>
                         <th><input type="text" size={4} value={tmpMaterial["n6"]}
                             onChange={(evt: any) => { setTmpMaterialDict("n6", evt.target.value) }} /></th>
+                        <th><input type="text" size={4} value={tmpMaterial["fiber"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("fiber", evt.target.value) }} /></th>
                         <th><input type="text" size={4} value={tmpMaterial["colin"]}
                             onChange={(evt: any) => { setTmpMaterialDict("colin", evt.target.value) }} /></th>
                     </tr>
@@ -450,7 +448,7 @@ export const CMTable = () => {
     )
 
     return (
-        <div style={{
+        <div className="p-1" style={{
             background: "linear-gradient(45deg,rgba(180,230,240,0.2), rgba(60,60,60,0.0))"
         }}>
             {CMTMaterialDeleteModal()}

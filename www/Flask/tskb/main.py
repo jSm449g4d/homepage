@@ -434,7 +434,7 @@ def show(request):
             return json.dumps({"message": "rejected"})
 
         if "combine" in request.form:
-            _dataDict.update(json.loads(request.form["create"]))
+            _dataDict.update(json.loads(request.form["combine"]))
             _combination = _dataDict["combination"]
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
@@ -456,15 +456,15 @@ def show(request):
                             {"message": "wrongPass", "text": "アクセス拒否"},
                             ensure_ascii=False,
                         )
-                _contents = _Ccombination["contents"]
+                _contents = json.loads(_Ccombination["contents"])
                 if "add_material" in _dataDict:
-                    _contents.update(_dataDict["add_material"])
+                    _contents.update({_dataDict["add_material"]: 0})
                 if "del_material" in _dataDict:
                     _contents.pop(_dataDict["del_material"])
                 cur.execute(
-                    "UPDATE tskb_combination SET contents = ?,passhash = ?,WHERE id = ?;",
+                    "UPDATE tskb_combination SET contents = ?, passhash = ? WHERE id = ?;",
                     [
-                        _contents,
+                        json.dumps(_contents, ensure_ascii=False),
                         _combination["passhash"],
                         _combination["id"],
                     ],

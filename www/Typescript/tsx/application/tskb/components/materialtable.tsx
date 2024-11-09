@@ -15,7 +15,6 @@ export const MTable = () => {
     const token = useAppSelector((state) => state.account.token)
     const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
-    const tmpContents = useAppSelector((state) => state.tskb.tmpContents)
     const combination = useAppSelector((state) => state.tskb.combination)
     const AppDispatch = useAppDispatch()
     const xhrTimeout = 3000
@@ -56,13 +55,49 @@ export const MTable = () => {
                 switch (resJ["message"]) {
                     case "processed": {
                         AppDispatch(tskbSetState({ tableStatus: "MTable" }));
-                        AppDispatch(tskbSetState({ token: resJ["combination"] }));
+                        AppDispatch(tskbSetState({ combination: resJ["combination"] }));
                         sortSetContents(resJ["materials"]);
                         AppDispatch(accountSetState({ token: resJ["token"] })); break;
                     }
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]);
                         searchCombination(); break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
+
+    const combineMaterial = (_tmpTargetId: string) => {
+        const sortSetExploreContents = (_contents: any = []) => {
+            const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
+            setContents(_contents.sort(_sortContents))
+        }
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("combine", JSON.stringify({
+            "combination": combination,
+            "del_material": _tmpTargetId
+        }))
+        const request = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed": {
+                        sortSetExploreContents(resJ["materials"]); break;
+                    }
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]); break;
                     }
                 }
             })
@@ -197,7 +232,7 @@ export const MTable = () => {
             return (<div className="row m-1">loading</div>)
     const _tmpElementColumn = [];
     _tmpElementColumn.push(
-        <tr className="sticky-top d-flex justify-content-center">
+        <tr>
             <th scope="col">操作</th>
             <th scope="col">名称</th>
             <th scope="col">量</th>
@@ -206,11 +241,12 @@ export const MTable = () => {
             <th scope="col">炭水化物<br />g</th>
             <th scope="col">タンパク質<br />g	</th>
             <th scope="col">脂質<br />g</th>
-            <th scope="col">単価<br />円</th>
-            <th scope="col">熱量<br />kcal</th>
-            <th scope="col">炭水化物<br />g</th>
-            <th scope="col">タンパク質<br />g	</th>
-            <th scope="col">脂質<br />g</th>
+            <th scope="col">飽和脂肪酸<br />g</th>
+            <th scope="col">n-3脂肪酸<br />g</th>
+            <th scope="col">DHA-EPA<br />g</th>
+            <th scope="col">n-6脂肪酸<br />g</th>
+            <th scope="col">食物繊維<br />g</th>
+            <th scope="col">コリン<br />mg</th>
             <th scope="col">カルシウム<br />mg</th>
             <th scope="col">塩素<br />mg</th>
             <th scope="col">クロム<br />μg</th>
@@ -241,102 +277,78 @@ export const MTable = () => {
         </tr>
     )
     const _tmpRecord = [];
-    const _testColumn = [];
-    _testColumn.push(
-        <th>
-            <button type="button" className="btn btn-primary" data-bs-dismiss="modal"
-                onClick={() => { }}>
-                <i className="fa-solid fa-wrench" style={{ pointerEvents: "none" }} />
-            </button>
-        </th>)
     _tmpRecord.push(
-        <tr>
-            <th>{_testColumn}</th>
-            <th>名称</th>
-            <th>量</th>
-            <th>単価<br />円</th>
-            <th>熱量<br />kcal</th>
-            <th>炭水化物<br />g</th>
-            <th>タンパク質<br />g	</th>
-            <th>脂質<br />g</th>
-            <th>単価<br />円</th>
-            <th>熱量<br />kcal</th>
-            <th>炭水化物<br />g</th>
-            <th>タンパク質<br />g	</th>
-            <th>脂質<br />g</th>
-            <th>カルシウム<br />mg</th>
-            <th>塩素<br />mg</th>
-            <th>クロム<br />μg</th>
-            <th>銅<br />μg</th>
-            <th>ヨウ素<br />μg</th>
-            <th>鉄<br />mg</th>
-            <th>マグネシウム<br />mg</th>
-            <th>マンガン<br />mg</th>
-            <th>モリブデン<br />μg</th>
-            <th>リン<br />mg</th>
-            <th>カリウム<br />mg</th>
-            <th>セレン<br />μg</th>
-            <th>ナトリウム<br />mg</th>
-            <th>亜鉛<br />mg</th>
-            <th>VA<br />μgRE</th>
-            <th>VB1<br />mg</th>
-            <th>VB2<br />mg</th>
-            <th>VB3<br />mgNE</th>
-            <th>VB5<br />mg</th>
-            <th>VB6<br />mg</th>
-            <th>VB7<br />μg</th>
-            <th>VB9<br />μg</th>
-            <th>VB12<br />μg</th>
-            <th>VC<br />mg</th>
-            <th>VD<br />μg</th>
-            <th>VE<br />mg</th>
-            <th>VK<br />μg</th>
-        </tr>)
-    _tmpRecord.push(
-        <tr>
-            <th>{_testColumn}</th>
-            <th>総計</th>
-            <th>量</th>
-            <th>単価<br />円</th>
-            <th>熱量<br />kcal</th>
-            <th>炭水化物<br />g</th>
-            <th>タンパク質<br />g	</th>
-            <th>脂質<br />g</th>
-            <th>単価<br />円</th>
-            <th>熱量<br />kcal</th>
-            <th>炭水化物<br />g</th>
-            <th>タンパク質<br />g	</th>
-            <th>脂質<br />g</th>
-            <th>カルシウム<br />mg</th>
-            <th>塩素<br />mg</th>
-            <th>クロム<br />μg</th>
-            <th>銅<br />μg</th>
-            <th>ヨウ素<br />μg</th>
-            <th>鉄<br />mg</th>
-            <th>マグネシウム<br />mg</th>
-            <th>マンガン<br />mg</th>
-            <th>モリブデン<br />μg</th>
-            <th>リン<br />mg</th>
-            <th>カリウム<br />mg</th>
-            <th>セレン<br />μg</th>
-            <th>ナトリウム<br />mg</th>
-            <th>亜鉛<br />mg</th>
-            <th>VA<br />μgRE</th>
-            <th>VB1<br />mg</th>
-            <th>VB2<br />mg</th>
-            <th>VB3<br />mgNE</th>
-            <th>VB5<br />mg</th>
-            <th>VB6<br />mg</th>
-            <th>VB7<br />μg</th>
-            <th>VB9<br />μg</th>
-            <th>VB12<br />μg</th>
-            <th>VC<br />mg</th>
-            <th>VD<br />μg</th>
-            <th>VE<br />mg</th>
-            <th>VK<br />μg</th>
-        </tr>)
+        <tr className="">
+        </tr>
+    )
+    const _ccontents = JSON.parse(combination.contents)
+    for (let i = 0; i < contents.length; i++) {
+        const _button = (
+            <th>
+                <button type="button" className="btn btn-outline-warning rounded-pill"
+                    onClick={(evt: any) => { combineMaterial(evt.target.value) }}
+                    value={contents[i]["id"]}>
+                    <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
+                </button>
+            </th>)
+        if (contents[i]["id"] in _ccontents == false) {
+            _tmpRecord.push(
+                <tr>
+                    <th>{_button}</th>
+                    <th>素材にアクセスできませんでした</th>
+                </tr>)
+            continue
+        }
+        const amount = _ccontents[contents[i]["id"]]
+        _tmpRecord.push(
+            <tr>
+                <th>{_button}</th>
+                <th>{contents[i]["name"]}</th>
+                <th>{amount}</th>
+                <th>{contents[i]["cost"]}</th>
+                <th>{contents[i]["kcal"]}</th>
+                <th>{contents[i]["carbo"]}</th>
+                <th>{contents[i]["protein"]}</th>
+                <th>{contents[i]["fat"]}</th>
+                <th>{contents[i]["saturated_fat"]}</th>
+                <th>{contents[i]["n3"]}</th>
+                <th>{contents[i]["DHA_EPA"]}</th>
+                <th>{contents[i]["n6"]}</th>
+                <th>{contents[i]["fiber"]}</th>
+                <th>{contents[i]["colin"]}</th>
+                <th>{contents[i]["ca"]}</th>
+                <th>{contents[i]["cl"]}</th>
+                <th>{contents[i]["cr"]}</th>
+                <th>{contents[i]["cu"]}</th>
+                <th>{contents[i]["i"]}</th>
+                <th>{contents[i]["fe"]}</th>
+                <th>{contents[i]["mg"]}</th>
+                <th>{contents[i]["mn"]}</th>
+                <th>{contents[i]["mo"]}</th>
+                <th>{contents[i]["p"]}</th>
+                <th>{contents[i]["k"]}</th>
+                <th>{contents[i]["se"]}</th>
+                <th>{contents[i]["na"]}</th>
+                <th>{contents[i]["zn"]}</th>
+                <th>{contents[i]["va"]}</th>
+                <th>{contents[i]["vb1"]}</th>
+                <th>{contents[i]["vb2"]}</th>
+                <th>{contents[i]["vb3"]}</th>
+                <th>{contents[i]["vb5"]}</th>
+                <th>{contents[i]["vb6"]}</th>
+                <th>{contents[i]["vb7"]}</th>
+                <th>{contents[i]["vb9"]}</th>
+                <th>{contents[i]["vb12"]}</th>
+                <th>{contents[i]["vc"]}</th>
+                <th>{contents[i]["vd"]}</th>
+                <th>{contents[i]["ve"]}</th>
+                <th>{contents[i]["vk"]}</th>
+            </tr>
+        )
+
+    }
     return (
-        <div style={{
+        <div className="p-1" style={{
             background: "linear-gradient(45deg,rgba(60,160,250,0.2), rgba(60,60,60,0.0))"
         }}>
             {combinationDestroyModal1()}
