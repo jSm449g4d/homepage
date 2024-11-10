@@ -44,8 +44,9 @@ export const MTable = () => {
 
 
     useEffect(() => {
+        if (reloadFlag == false) return
         if (tableStatus == "MTable") fetchMaterial()
-    }, [reloadFlag, userId])
+    }, [reloadFlag])
     useEffect(() => {
         setTmpCombination(combination)
     }, [combination])
@@ -374,8 +375,9 @@ export const MTable = () => {
         for (let _i = 1; _i < contents.length; _i++) {
             if (contents[_i]["id"] in _ccontents == false) continue
             for (let _ii = 0; _ii < contents.length; _ii++) {
-                _nutrition[_ii] += parseFloat(
-                    "0" + (contents[_i][_ii] * _ccontents[contents[_i]["id"]]))
+                _nutrition[_ii] +=
+                    parseFloat("0" + (contents[_i][_ii]) *
+                        parseFloat("0" + _ccontents[contents[_i]["id"]]))
             }
         }
         _tmpRecord.push(

@@ -25,9 +25,10 @@ export const CTable = () => {
 
 
     useEffect(() => {
+        if (reloadFlag == false) return
         if (tableStatus == "CTable") searchCombination()
         initTmps()
-    }, [reloadFlag, userId])
+    }, [reloadFlag])
 
     const initTmps = () => {
         setTmpTargetId(-1)

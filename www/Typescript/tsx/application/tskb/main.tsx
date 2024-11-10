@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { tskbSetState } from '../../components/slice'
+import { startTable, tskbSetState } from '../../components/slice'
 import { useAppSelector, useAppDispatch } from '../../components/store'
 import { CTable } from "./components/combinationTable"
 import { EMTable } from "./components/explorematerialtable"
@@ -14,10 +14,10 @@ export const AppMain = () => {
     const AppDispatch = useAppDispatch()
 
     useEffect(() => {
-        AppDispatch(tskbSetState({ "tableStatus": "CTable" }))
+        AppDispatch(startTable({ "tableStatus": "CTable" }))
     }, [userId])
     useEffect(() => {
-        AppDispatch(tskbSetState({ "tableStatus": "CTable" }))
+        AppDispatch(startTable({ "tableStatus": "CTable" }))
     }, [])
     //<CTable/> 
     return (

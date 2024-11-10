@@ -43,8 +43,9 @@ export const CMTable = () => {
 
 
     useEffect(() => {
+        if (reloadFlag == false) return
         setTmpTargetId(-1)
-    }, [reloadFlag, userId])
+    }, [reloadFlag])
     useEffect(() => {
         if (tableStatus == "CMTable") setTmpMaterial(material)
     }, [material])

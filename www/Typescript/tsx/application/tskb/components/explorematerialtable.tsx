@@ -24,10 +24,11 @@ export const EMTable = () => {
 
 
     useEffect(() => {
+        if (reloadFlag == false) return
         if (tableStatus == "MTable") exploreMaterial()
         if (tableStatus == "CMTable") exploreMaterial()
         setTmpeMaterial("")
-    }, [reloadFlag, userId])
+    }, [reloadFlag])
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
@@ -90,6 +91,7 @@ export const EMTable = () => {
             .then(resJ => {
                 switch (resJ["message"]) {
                     case "processed": {
+                        AppDispatch(startTable({ tableStatus: "MTable" }))
                         break;
                     }
                     default: {
