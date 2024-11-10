@@ -64,7 +64,7 @@ with closing(sqlite3.connect(db_dir)) as conn:
         "CREATE TABLE IF NOT EXISTS tskb_material(id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "name TEXT UNIQUE NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
         "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
-        "unit TEXT DEFAULT 'g',cost REAL DEFAULT 0,"
+        "unit REAL DEFAULT 100,cost REAL DEFAULT 0,"
         "carbo REAL DEFAULT 0,fiber REAL DEFAULT 0,"
         "protein REAL DEFAULT 0,fat REAL DEFAULT 0,saturated_fat REAL DEFAULT 0,"
         "n3 REAL DEFAULT 0,DHA_EPA REAL DEFAULT 0,"
@@ -223,9 +223,11 @@ def show(request):
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 _materialid = _material["id"]
+                _timestamp = _material["timestamp"]
                 # process start
                 # register material
                 if _materialid == -1:
+                    _timestamp = int(time.time())
                     cur.execute(
                         "SELECT * FROM tskb_material WHERE name = ?;",
                         [_material["name"]],
@@ -235,7 +237,6 @@ def show(request):
                         return json.dumps(
                             {"message": "alreadyExisted", "text": "既存の名前"}
                         )
-                    _timestamp = int(time.time())
                     cur.execute(
                         "INSERT INTO tskb_material "
                         "(name,tag,description,userid,user,passhash,timestamp) "
@@ -272,12 +273,8 @@ def show(request):
                         {"message": "wrongPass", "text": "アクセス拒否"},
                         ensure_ascii=False,
                     )
-                # for key, value in _material.items():
-                #    print(key), print(value)
-                #    cur.execute(
-                #        "UPDATE tskb_material SET ? = ? WHERE id = ?;",
-                #        [key, value, _Cmaterial["id"]],
-                #    )
+                if isfloat(_material["unit"]) < 1:
+                    _material["unit"] = 1
                 cur.execute(
                     "UPDATE tskb_material SET name = ?,description = ?,"
                     "userid = ?,user = ?,passhash = ?,timestamp = ?,"
@@ -294,46 +291,46 @@ def show(request):
                         token["id"],
                         _dataDict["user"],
                         _material["passhash"],
-                        _material["timestamp"],
-                        _material["unit"],
-                        str(isfloat(_material["cost"])),
-                        str(isfloat(_material["carbo"])),
-                        str(isfloat(_material["fiber"])),
-                        str(isfloat(_material["protein"])),
-                        str(isfloat(_material["fat"])),
-                        str(isfloat(_material["saturated_fat"])),
-                        str(isfloat(_material["n3"])),
-                        str(isfloat(_material["DHA_EPA"])),
-                        str(isfloat(_material["n6"])),
-                        str(isfloat(_material["ca"])),
-                        str(isfloat(_material["cl"])),
-                        str(isfloat(_material["cr"])),
-                        str(isfloat(_material["cu"])),
-                        str(isfloat(_material["i"])),
-                        str(isfloat(_material["fe"])),
-                        str(isfloat(_material["mg"])),
-                        str(isfloat(_material["mn"])),
-                        str(isfloat(_material["mo"])),
-                        str(isfloat(_material["p"])),
-                        str(isfloat(_material["k"])),
-                        str(isfloat(_material["se"])),
-                        str(isfloat(_material["na"])),
-                        str(isfloat(_material["zn"])),
-                        str(isfloat(_material["va"])),
-                        str(isfloat(_material["vb1"])),
-                        str(isfloat(_material["vb2"])),
-                        str(isfloat(_material["vb3"])),
-                        str(isfloat(_material["vb5"])),
-                        str(isfloat(_material["vb6"])),
-                        str(isfloat(_material["vb7"])),
-                        str(isfloat(_material["vb9"])),
-                        str(isfloat(_material["vb12"])),
-                        str(isfloat(_material["vc"])),
-                        str(isfloat(_material["vd"])),
-                        str(isfloat(_material["ve"])),
-                        str(isfloat(_material["vk"])),
-                        str(isfloat(_material["colin"])),
-                        str(isfloat(_material["kcal"])),
+                        _timestamp,
+                        isfloat(_material["unit"]),
+                        isfloat(_material["cost"]),
+                        isfloat(_material["carbo"]),
+                        isfloat(_material["fiber"]),
+                        isfloat(_material["protein"]),
+                        isfloat(_material["fat"]),
+                        isfloat(_material["saturated_fat"]),
+                        isfloat(_material["n3"]),
+                        isfloat(_material["DHA_EPA"]),
+                        isfloat(_material["n6"]),
+                        isfloat(_material["ca"]),
+                        isfloat(_material["cl"]),
+                        isfloat(_material["cr"]),
+                        isfloat(_material["cu"]),
+                        isfloat(_material["i"]),
+                        isfloat(_material["fe"]),
+                        isfloat(_material["mg"]),
+                        isfloat(_material["mn"]),
+                        isfloat(_material["mo"]),
+                        isfloat(_material["p"]),
+                        isfloat(_material["k"]),
+                        isfloat(_material["se"]),
+                        isfloat(_material["na"]),
+                        isfloat(_material["zn"]),
+                        isfloat(_material["va"]),
+                        isfloat(_material["vb1"]),
+                        isfloat(_material["vb2"]),
+                        isfloat(_material["vb3"]),
+                        isfloat(_material["vb5"]),
+                        isfloat(_material["vb6"]),
+                        isfloat(_material["vb7"]),
+                        isfloat(_material["vb9"]),
+                        isfloat(_material["vb12"]),
+                        isfloat(_material["vc"]),
+                        isfloat(_material["vd"]),
+                        isfloat(_material["ve"]),
+                        isfloat(_material["vk"]),
+                        isfloat(_material["colin"]),
+                        isfloat(_material["kcal"]),
                         _Cmaterial["id"],
                     ],
                 )

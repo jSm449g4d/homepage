@@ -70,6 +70,25 @@ export const AppMain = () => {
                             </a>
                         </div>
                     </div>
+                    <div className="col-sm-6 col-md-4 p-1 fadein-4">
+                        <div className="btn-col" style={{ background: "rgba(255,255,255,0.6)" }}>
+                            <a className="a-nolink" href='/?application=tskb/main' >
+                                <div className="d-flex flex-column" style={{ height: "380px" }}>
+                                    <h5>栄養計算アプリ(β版)</h5>
+                                    <div className="d-flex flex-column flex-grow-1">
+                                        <img className="img-fluid" src="/static/img/tskbtitle.png" style={{ height: 150, objectFit: "contain" }} />
+                                        データが更新されなかったら<br />緑色のリロードボタンを押してください
+                                        <ul>
+                                            <li>開発中</li>
+                                            <li>素材/食材を登録</li>
+                                            <li>レシピを登録</li>
+                                            <li>栄養素計算</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         )

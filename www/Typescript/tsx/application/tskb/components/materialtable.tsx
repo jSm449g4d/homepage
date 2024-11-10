@@ -457,7 +457,7 @@ export const MTable = () => {
     for (let i = 0; i < contents.length; i++) {
         const _button = (
             <td>
-                <button type="button" className="btn btn-outline-warning rounded-pill"
+                <button type="button" className="btn btn-outline-danger rounded-pill"
                     onClick={(evt: any) => { combineCombination(evt.target.value) }}
                     value={contents[i]["id"]}>
                     <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
@@ -471,55 +471,56 @@ export const MTable = () => {
                 </tr>)
             continue
         }
-        const amount = _ccontents[contents[i]["id"]]
+        const _amount = parseFloat("0" + _ccontents[contents[i]["id"]])
+        const _unit = _amount / parseFloat("0" + contents[i]["unit"])
         _ccontents[contents[i]["id"]]
         _tmpRecord.push(
             <tr>
                 <td>{_button}</td>
                 <td>{contents[i]["name"]}</td>
-                <td><input type="text" size={4} value={amount}
+                <td><input type="text" size={4} value={_amount}
                     onChange={(evt: any) => {
                         setTmpCombinationContents(evt.target.name, parseFloat("0" + evt.target.value))
                     }}
                     id={"MTamount_" + i} name={String(contents[i]["id"])} pattern="[0-9|.]{6}" /></td>
-                <td>{contents[i]["cost"] * amount}</td>
-                <td>{contents[i]["kcal"] * amount}</td>
-                <td>{contents[i]["carbo"] * amount}</td>
-                <td>{contents[i]["protein"] * amount}</td>
-                <td>{contents[i]["fat"] * amount}</td>
-                <td>{contents[i]["saturated_fat"] * amount}</td>
-                <td>{contents[i]["n3"] * amount}</td>
-                <td>{contents[i]["DHA_EPA"] * amount}</td>
-                <td>{contents[i]["n6"] * amount}</td>
-                <td>{contents[i]["fiber"] * amount}</td>
-                <td>{contents[i]["colin"] * amount}</td>
-                <td>{contents[i]["ca"] * amount}</td>
-                <td>{contents[i]["cl"] * amount}</td>
-                <td>{contents[i]["cr"] * amount}</td>
-                <td>{contents[i]["cu"] * amount}</td>
-                <td>{contents[i]["i"] * amount}</td>
-                <td>{contents[i]["fe"] * amount}</td>
-                <td>{contents[i]["mg"] * amount}</td>
-                <td>{contents[i]["mn"] * amount}</td>
-                <td>{contents[i]["mo"] * amount}</td>
-                <td>{contents[i]["p"] * amount}</td>
-                <td>{contents[i]["k"] * amount}</td>
-                <td>{contents[i]["se"] * amount}</td>
-                <td>{contents[i]["na"] * amount}</td>
-                <td>{contents[i]["zn"] * amount}</td>
-                <td>{contents[i]["va"] * amount}</td>
-                <td>{contents[i]["vb1"] * amount}</td>
-                <td>{contents[i]["vb2"] * amount}</td>
-                <td>{contents[i]["vb3"] * amount}</td>
-                <td>{contents[i]["vb5"] * amount}</td>
-                <td>{contents[i]["vb6"] * amount}</td>
-                <td>{contents[i]["vb7"] * amount}</td>
-                <td>{contents[i]["vb9"] * amount}</td>
-                <td>{contents[i]["vb12"] * amount}</td>
-                <td>{contents[i]["vc"] * amount}</td>
-                <td>{contents[i]["vd"] * amount}</td>
-                <td>{contents[i]["ve"] * amount}</td>
-                <td>{contents[i]["vk"] * amount}</td>
+                <td>{contents[i]["cost"] * _unit}</td>
+                <td>{contents[i]["kcal"] * _unit}</td>
+                <td>{contents[i]["carbo"] * _unit}</td>
+                <td>{contents[i]["protein"] * _unit}</td>
+                <td>{contents[i]["fat"] * _unit}</td>
+                <td>{contents[i]["saturated_fat"] * _unit}</td>
+                <td>{contents[i]["n3"] * _unit}</td>
+                <td>{contents[i]["DHA_EPA"] * _unit}</td>
+                <td>{contents[i]["n6"] * _unit}</td>
+                <td>{contents[i]["fiber"] * _unit}</td>
+                <td>{contents[i]["colin"] * _unit}</td>
+                <td>{contents[i]["ca"] * _unit}</td>
+                <td>{contents[i]["cl"] * _unit}</td>
+                <td>{contents[i]["cr"] * _unit}</td>
+                <td>{contents[i]["cu"] * _unit}</td>
+                <td>{contents[i]["i"] * _unit}</td>
+                <td>{contents[i]["fe"] * _unit}</td>
+                <td>{contents[i]["mg"] * _unit}</td>
+                <td>{contents[i]["mn"] * _unit}</td>
+                <td>{contents[i]["mo"] * _unit}</td>
+                <td>{contents[i]["p"] * _unit}</td>
+                <td>{contents[i]["k"] * _unit}</td>
+                <td>{contents[i]["se"] * _unit}</td>
+                <td>{contents[i]["na"] * _unit}</td>
+                <td>{contents[i]["zn"] * _unit}</td>
+                <td>{contents[i]["va"] * _unit}</td>
+                <td>{contents[i]["vb1"] * _unit}</td>
+                <td>{contents[i]["vb2"] * _unit}</td>
+                <td>{contents[i]["vb3"] * _unit}</td>
+                <td>{contents[i]["vb5"] * _unit}</td>
+                <td>{contents[i]["vb6"] * _unit}</td>
+                <td>{contents[i]["vb7"] * _unit}</td>
+                <td>{contents[i]["vb9"] * _unit}</td>
+                <td>{contents[i]["vb12"] * _unit}</td>
+                <td>{contents[i]["vc"] * _unit}</td>
+                <td>{contents[i]["vd"] * _unit}</td>
+                <td>{contents[i]["ve"] * _unit}</td>
+                <td>{contents[i]["vk"] * _unit}</td>
             </tr>
         )
 

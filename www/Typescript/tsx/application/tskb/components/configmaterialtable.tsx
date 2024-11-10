@@ -300,6 +300,14 @@ export const CMTable = () => {
                 <tbody>
                     <tr>
                         <th scope="col"><h4>基本</h4></th>
+                        <th scope="col">単位数量<br />
+                            <i className="text-info fa-solid fa-circle-question"
+                                onClick={() => {
+                                    HIModal("単位となる数量", "基本的に素材100[g]当たりの栄養価\n" +
+                                        "サプリ等は1[個]当たりの栄養価")
+                                }}>
+                            </i>
+                        </th>
                         <th scope="col">単価<br />円</th>
                         <th scope="col">熱量<br />kcal</th>
                         <th scope="col">炭水化物<br />g</th>
@@ -310,10 +318,12 @@ export const CMTable = () => {
                         <td><button className="btn btn-success" type="button"
                             onClick={() => {
                                 reSetTmpMaterialDict(
-                                    ["cost", "kcal", "carbo", "protein", "fat"])
+                                    ["unit", "cost", "kcal", "carbo", "protein", "fat"])
                             }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button></td>
+                        <td><input type="text" size={4} value={tmpMaterial["unit"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("unit", evt.target.value) }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["cost"]}
                             onChange={(evt: any) => { setTmpMaterialDict("cost", evt.target.value) }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["kcal"]}

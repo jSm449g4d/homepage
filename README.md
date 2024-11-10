@@ -3,18 +3,26 @@
 ### テスト環境(Dev ブランチ ⇒CloudRun)
 ※サーバーレスなので暫くするとデータは揮発します  
 https://homepage-tlnesjcoqq-an.a.run.app/
+- 栄養計算アプリ(α版)  
+https://homepage-tlnesjcoqq-an.a.run.app/?application=tskb/main
+- チャットアプリ(α版)  
+https://homepage-tlnesjcoqq-an.a.run.app/?application=tptef
 
 ### 本番環境(VPS)
 ※テスト環境よりだいぶ古く、時々データをリセットしてます  
 https://huxiin.com/
+- 栄養計算アプリ(α版)  
+https://huxiin.com/?application=tskb/main
+- チャットアプリ(α版)  
+https://huxiin.com/?application=tptef
 
 # ホームページと Web アプリ
 ホームページに、色々な Web アプリをどんどん追加する構成です
 現在栄養計算アプリを開発中
 
 ## アプリ一覧
-- チャットアプリ
-- 栄養計算アプリ(開発中)
+- チャットアプリ(α版)
+- 栄養計算アプリ(α版)
 
 ## 使用技術
 ### インフラ
