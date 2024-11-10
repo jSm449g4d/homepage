@@ -25,12 +25,15 @@ export const CTable = () => {
 
     useEffect(() => {
         if (tableStatus == "CTable") searchCombination()
+        initTmps()
+    }, [tableStatus, userId])
+
+    const initTmps=()=>{
         setTmpTargetId(-1)
         setTmpCombination("")
         setTpDescription("")
         setTmpPrivateFlag(false)
-    }, [tableStatus, userId])
-
+    }
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
@@ -147,7 +150,7 @@ export const CTable = () => {
                             <div className="modal-body d-flex justify-content-center">
                                 <div className="input-group m-1">
                                     <span className="input-group-text">レシピ名</span>
-                                    <input type="text" className="form-control" placeholder="Username" aria-label="user"
+                                    <input type="text" className="form-control" placeholder="レシピ名" aria-label="user"
                                         value={tmpCombination} onChange={(evt) => { setTmpCombination(evt.target.value) }} />
                                 </div>
                                 {tmpPrivateFlag == false ?
@@ -231,7 +234,7 @@ export const CTable = () => {
                         </button> :
                         <button className="btn btn-outline-primary btn-lg" type="button"
                             onClick={() => {
-                                setTmpCombination("")
+                                initTmps()
                                 $('#combinationCreateModal').modal('show');
                             }}>
                             <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />

@@ -447,7 +447,7 @@ def show(request):
                 _Ccombination = cur.fetchone()
                 if _Ccombination == None:
                     return json.dumps(
-                        {"message": "alreadyExisted", "text": "存在しません"},
+                        {"message": "notExist", "text": "存在しません"},
                         ensure_ascii=False,
                     )
                 if _Ccombination["passhash"] != "":
@@ -458,13 +458,25 @@ def show(request):
                         )
                 _contents = json.loads(_Ccombination["contents"])
                 if "add_material" in _dataDict:
+                    if _dataDict["add_material"] in _contents:
+                        return json.dumps(
+                            {"message": "alreadyExisted", "text": "既存です"},
+                            ensure_ascii=False,
+                        )
+
                     _contents.update({_dataDict["add_material"]: 0})
                 if "del_material" in _dataDict:
                     _contents.pop(_dataDict["del_material"])
                 cur.execute(
-                    "UPDATE tskb_combination SET " "contents = ? WHERE id = ?;",
+                    "UPDATE tskb_combination SET userid = ?, user = ?,"
+                    "contents = ? WHERE id = ?;",
                     [
-                        json.dumps(_contents, ensure_ascii=False),
+                        token["id"],
+                        _dataDict["user"],
+                        json.dumps(
+                            _contents,
+                            ensure_ascii=False,
+                        ),
                         _combination["id"],
                     ],
                 )
@@ -506,10 +518,12 @@ def show(request):
                 _contents = json.loads(_Ccombination["contents"])
                 cur.execute(
                     "UPDATE tskb_combination SET name = ?, description = ?,"
-                    "passhash = ? WHERE id = ?;",
+                    " userid = ?, user = ?, passhash = ? WHERE id = ?;",
                     [
                         _combination["name"],
                         _combination["description"],
+                        token["id"],
+                        _dataDict["user"],
                         _combination["passhash"],
                         _combination["id"],
                     ],

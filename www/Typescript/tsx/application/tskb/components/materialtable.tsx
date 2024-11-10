@@ -12,10 +12,16 @@ export const MTable = () => {
         "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
         "passhash": "", "timestamp": 0, "contents": "{}"
     })
-    const setTmpConbinationDict = (_key: string, _value: any) => {
+    const setTmpCombinationDict = (_key: string, _value: any) => {
         let _copy = JSON.parse(JSON.stringify(tmpCombination))
         _copy[_key] = _value
         setTmpCombination(_copy)
+    }
+    const setTmpCombinationContents = (_key: string, _value: Number) => {
+        let _copy = JSON.parse(tmpCombination.contents)
+        _copy[_key] = _value
+        _copy = JSON.stringify(_copy)
+        setTmpCombinationDict("contents", _copy)
     }
     const reSetTmpConbinationDict = (_keys: any[]) => {
         let _copy = JSON.parse(JSON.stringify(tmpCombination))
@@ -141,6 +147,7 @@ export const MTable = () => {
             .then(resJ => {
                 switch (resJ["message"]) {
                     case "processed": {
+                        HIModal("更新完了")
                         AppDispatch(tskbSetState({ combination: resJ["combination"] }));
                         break;
                     }
@@ -259,8 +266,8 @@ export const MTable = () => {
                         disabled>
                         <i className="far fa-user mx-1"></i>{combination["user"]}
                     </button>
-                    <input className="flex-fill form-control form-control-lg" type="text" value={combination["name"]}
-                        disabled>
+                    <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
+                        onChange={(evt: any) => { setTmpCombinationDict("name", evt.target.value) }}>
                     </input >
                 </div></div>)
     }
@@ -270,12 +277,12 @@ export const MTable = () => {
                 <div className="d-flex justify-content-between align-items-center my-1">
                     {tmpCombination["passhash"] == "" ?
                         <button className="btn btn-outline-warning btn-lg" type="button"
-                            onClick={() => { setTmpConbinationDict("passhash", "0") }}>
+                            onClick={() => { setTmpCombinationDict("passhash", "0") }}>
                             <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
                             公開&nbsp;&nbsp;
                         </button> :
                         <button className="btn btn-warning btn-lg" type="button"
-                            onClick={() => { setTmpConbinationDict("passhash", "") }}>
+                            onClick={() => { setTmpCombinationDict("passhash", "") }}>
                             <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
                             非公開
                         </button>
@@ -363,7 +370,7 @@ export const MTable = () => {
         <tr className="">
         </tr>
     )
-    const _ccontents = JSON.parse(combination.contents)
+    const _ccontents = JSON.parse(tmpCombination.contents)
     for (let i = 0; i < contents.length; i++) {
         const _button = (
             <th>
@@ -382,50 +389,54 @@ export const MTable = () => {
             continue
         }
         const amount = _ccontents[contents[i]["id"]]
+        _ccontents[contents[i]["id"]]
         _tmpRecord.push(
             <tr>
                 <th>{_button}</th>
                 <th>{contents[i]["name"]}</th>
-                <th>{amount}</th>
-                <th><input type="text" size={4} id={"MTamount_" + i} pattern="[0-9]{6}" /></th>
-                <th>{contents[i]["cost"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
-                <th>{contents[i]["kcal"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
-                <th>{contents[i]["carbo"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
-                <th>{contents[i]["protein"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
-                <th>{contents[i]["fat"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
-                <th>{contents[i]["saturated_fat"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
-                <th>{contents[i]["n3"]}</th>
-                <th>{contents[i]["DHA_EPA"]}</th>
-                <th>{contents[i]["n6"]}</th>
-                <th>{contents[i]["fiber"]}</th>
-                <th>{contents[i]["colin"]}</th>
-                <th>{contents[i]["ca"]}</th>
-                <th>{contents[i]["cl"]}</th>
-                <th>{contents[i]["cr"]}</th>
-                <th>{contents[i]["cu"]}</th>
-                <th>{contents[i]["i"]}</th>
-                <th>{contents[i]["fe"]}</th>
-                <th>{contents[i]["mg"]}</th>
-                <th>{contents[i]["mn"]}</th>
-                <th>{contents[i]["mo"]}</th>
-                <th>{contents[i]["p"]}</th>
-                <th>{contents[i]["k"]}</th>
-                <th>{contents[i]["se"]}</th>
-                <th>{contents[i]["na"]}</th>
-                <th>{contents[i]["zn"]}</th>
-                <th>{contents[i]["va"]}</th>
-                <th>{contents[i]["vb1"]}</th>
-                <th>{contents[i]["vb2"]}</th>
-                <th>{contents[i]["vb3"]}</th>
-                <th>{contents[i]["vb5"]}</th>
-                <th>{contents[i]["vb6"]}</th>
-                <th>{contents[i]["vb7"]}</th>
-                <th>{contents[i]["vb9"]}</th>
-                <th>{contents[i]["vb12"]}</th>
-                <th>{contents[i]["vc"]}</th>
-                <th>{contents[i]["vd"]}</th>
-                <th>{contents[i]["ve"]}</th>
-                <th>{contents[i]["vk"]}</th>
+                <th><input type="text" size={4} value={amount}
+                    onChange={(evt: any) => {
+                        setTmpCombinationContents(evt.target.name, parseFloat("0" + evt.target.value))
+                    }}
+                    id={"MTamount_" + i} name={String(contents[i]["id"])} pattern="[0-9|.]{6}" /></th>
+                <th>{contents[i]["cost"] * amount}</th>
+                <th>{contents[i]["kcal"] * amount}</th>
+                <th>{contents[i]["carbo"] * amount}</th>
+                <th>{contents[i]["protein"] * amount}</th>
+                <th>{contents[i]["fat"] * amount}</th>
+                <th>{contents[i]["saturated_fat"] * amount}</th>
+                <th>{contents[i]["n3"] * amount}</th>
+                <th>{contents[i]["DHA_EPA"] * amount}</th>
+                <th>{contents[i]["n6"] * amount}</th>
+                <th>{contents[i]["fiber"] * amount}</th>
+                <th>{contents[i]["colin"] * amount}</th>
+                <th>{contents[i]["ca"] * amount}</th>
+                <th>{contents[i]["cl"] * amount}</th>
+                <th>{contents[i]["cr"] * amount}</th>
+                <th>{contents[i]["cu"] * amount}</th>
+                <th>{contents[i]["i"] * amount}</th>
+                <th>{contents[i]["fe"] * amount}</th>
+                <th>{contents[i]["mg"] * amount}</th>
+                <th>{contents[i]["mn"] * amount}</th>
+                <th>{contents[i]["mo"] * amount}</th>
+                <th>{contents[i]["p"] * amount}</th>
+                <th>{contents[i]["k"] * amount}</th>
+                <th>{contents[i]["se"] * amount}</th>
+                <th>{contents[i]["na"] * amount}</th>
+                <th>{contents[i]["zn"] * amount}</th>
+                <th>{contents[i]["va"] * amount}</th>
+                <th>{contents[i]["vb1"] * amount}</th>
+                <th>{contents[i]["vb2"] * amount}</th>
+                <th>{contents[i]["vb3"] * amount}</th>
+                <th>{contents[i]["vb5"] * amount}</th>
+                <th>{contents[i]["vb6"] * amount}</th>
+                <th>{contents[i]["vb7"] * amount}</th>
+                <th>{contents[i]["vb9"] * amount}</th>
+                <th>{contents[i]["vb12"] * amount}</th>
+                <th>{contents[i]["vc"] * amount}</th>
+                <th>{contents[i]["vd"] * amount}</th>
+                <th>{contents[i]["ve"] * amount}</th>
+                <th>{contents[i]["vk"] * amount}</th>
             </tr>
         )
 
