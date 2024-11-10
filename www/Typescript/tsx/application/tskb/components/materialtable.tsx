@@ -44,7 +44,6 @@ export const MTable = () => {
 
 
     useEffect(() => {
-        if (reloadFlag == false) return
         AppDispatch(tskbSetState({}));
         if (tableStatus == "MTable") setTimeout(() => fetchMaterial(), xhrDelay)
     }, [reloadFlag])
@@ -482,7 +481,7 @@ export const MTable = () => {
                     onChange={(evt: any) => {
                         setTmpCombinationContents(evt.target.name, parseFloat("0" + evt.target.value))
                     }}
-                    id={"MTamount_" + i} name={String(contents[i]["id"])} pattern="[0-9|.]{6}" /></td>
+                    id={"MTamount_" + i} name={String(contents[i]["id"])} pattern="[0-9]{6}" /></td>
                 <td>{contents[i]["cost"] * _unit}</td>
                 <td>{contents[i]["kcal"] * _unit}</td>
                 <td>{contents[i]["carbo"] * _unit}</td>
