@@ -36,6 +36,7 @@ export const CMTable = () => {
     const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
     const material = useAppSelector((state) => state.tskb.material)
+    const reloadFlag = useAppSelector((state) => state.tskb.reloadFlag)
     const AppDispatch = useAppDispatch()
     const xhrTimeout = 3000
     const xhrDelay = 100
@@ -43,7 +44,7 @@ export const CMTable = () => {
 
     useEffect(() => {
         setTmpTargetId(-1)
-    }, [tableStatus, userId])
+    }, [reloadFlag, userId])
     useEffect(() => {
         if (tableStatus == "CMTable") setTmpMaterial(material)
     }, [material])
@@ -114,7 +115,7 @@ export const CMTable = () => {
                 switch (resJ["message"]) {
                     case "processed":
                         HIModal("登録完了")
-                        AppDispatch(tskbSetState({ material: resJ["material"] }));
+                        AppDispatch(startTable({ tableStatus: "MTable", material: resJ["material"] }));
                         break;
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]);
@@ -296,15 +297,15 @@ export const CMTable = () => {
                             }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button></th>
-                        <th><input type="text" size={4} value={tmpMaterial["cost"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["cost"]}
                             onChange={(evt: any) => { setTmpMaterialDict("cost", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["kcal"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["kcal"]}
                             onChange={(evt: any) => { setTmpMaterialDict("kcal", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["carbo"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["carbo"]}
                             onChange={(evt: any) => { setTmpMaterialDict("carbo", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["protein"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["protein"]}
                             onChange={(evt: any) => { setTmpMaterialDict("protein", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["fat"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["fat"]}
                             onChange={(evt: any) => { setTmpMaterialDict("fat", evt.target.value) }} /></th>
                     </tr>
                     <tr>
@@ -324,17 +325,17 @@ export const CMTable = () => {
                             }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button></th>
-                        <th><input type="text" size={4} value={tmpMaterial["saturated_fat"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["saturated_fat"]}
                             onChange={(evt: any) => { setTmpMaterialDict("saturated_fat", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["n3"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["n3"]}
                             onChange={(evt: any) => { setTmpMaterialDict("n3", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["DHA_EPA"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["DHA_EPA"]}
                             onChange={(evt: any) => { setTmpMaterialDict("DHA_EPA", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["n6"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["n6"]}
                             onChange={(evt: any) => { setTmpMaterialDict("n6", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["fiber"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["fiber"]}
                             onChange={(evt: any) => { setTmpMaterialDict("fiber", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["colin"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["colin"]}
                             onChange={(evt: any) => { setTmpMaterialDict("colin", evt.target.value) }} /></th>
                     </tr>
                     <tr>
@@ -362,33 +363,33 @@ export const CMTable = () => {
                             }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button></th>
-                        <th><input type="text" size={4} value={tmpMaterial["ca"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["ca"]}
                             onChange={(evt: any) => { setTmpMaterialDict("ca", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["cl"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["cl"]}
                             onChange={(evt: any) => { setTmpMaterialDict("cl", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["cr"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["cr"]}
                             onChange={(evt: any) => { setTmpMaterialDict("cr", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["cu"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["cu"]}
                             onChange={(evt: any) => { setTmpMaterialDict("cu", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["i"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["i"]}
                             onChange={(evt: any) => { setTmpMaterialDict("i", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["fe"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["fe"]}
                             onChange={(evt: any) => { setTmpMaterialDict("fe", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["mg"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["mg"]}
                             onChange={(evt: any) => { setTmpMaterialDict("mg", evt.target.value) }} />
-                        </th><th><input type="text" size={4} value={tmpMaterial["mn"]} pattern="[0-9|.]{6}"
+                        </th><th><input type="text" size={4} value={tmpMaterial["mn"]}
                             onChange={(evt: any) => { setTmpMaterialDict("mn", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["mo"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["mo"]}
                             onChange={(evt: any) => { setTmpMaterialDict("mo", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["p"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["p"]}
                             onChange={(evt: any) => { setTmpMaterialDict("p", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["ca"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["ca"]}
                             onChange={(evt: any) => { setTmpMaterialDict("ca", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["se"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["se"]}
                             onChange={(evt: any) => { setTmpMaterialDict("se", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["na"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["na"]}
                             onChange={(evt: any) => { setTmpMaterialDict("na", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["zn"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["zn"]}
                             onChange={(evt: any) => { setTmpMaterialDict("zn", evt.target.value) }} /></th>
                     </tr>
                     <tr>
@@ -415,31 +416,31 @@ export const CMTable = () => {
                             }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button></th>
-                        <th><input type="text" size={4} value={tmpMaterial["va"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["va"]}
                             onChange={(evt: any) => { setTmpMaterialDict("va", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vb1"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["vb1"]}
                             onChange={(evt: any) => { setTmpMaterialDict("vb", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vb2"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["vb2"]}
                             onChange={(evt: any) => { setTmpMaterialDict("vb2", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vb3"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["vb3"]}
                             onChange={(evt: any) => { setTmpMaterialDict("vb3", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vb5"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["vb5"]}
                             onChange={(evt: any) => { setTmpMaterialDict("vb5", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vb6"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["vb6"]}
                             onChange={(evt: any) => { setTmpMaterialDict("vb6", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vb7"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["vb7"]}
                             onChange={(evt: any) => { setTmpMaterialDict("vb7", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vb9"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["vb9"]}
                             onChange={(evt: any) => { setTmpMaterialDict("vb9", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vb12"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["vb12"]}
                             onChange={(evt: any) => { setTmpMaterialDict("vb12", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vc"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["vc"]}
                             onChange={(evt: any) => { setTmpMaterialDict("vc", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vd"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["vd"]}
                             onChange={(evt: any) => { setTmpMaterialDict("vd", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["ve"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["ve"]}
                             onChange={(evt: any) => { setTmpMaterialDict("ve", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vk"]} pattern="[0-9|.]{6}"
+                        <th><input type="text" size={4} value={tmpMaterial["vk"]}
                             onChange={(evt: any) => { setTmpMaterialDict("vk", evt.target.value) }} /></th>
                     </tr>
                 </tbody>

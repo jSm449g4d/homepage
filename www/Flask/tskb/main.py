@@ -171,7 +171,7 @@ def show(request):
                 # process start
                 # select combination
                 _userid = -1
-                if "id" in token:
+                if token != "":
                     _userid = token["id"]
                 cur.execute(
                     "SELECT * FROM tskb_combination WHERE id = ?;",
@@ -184,7 +184,7 @@ def show(request):
                         ensure_ascii=False,
                     )
                 if _combination["passhash"] != "":
-                    if _combination["userid"] != token["id"]:
+                    if _combination["userid"] != _userid:
                         return json.dumps(
                             {"message": "wrongPass", "text": "アクセス拒否"},
                             ensure_ascii=False,
@@ -198,7 +198,7 @@ def show(request):
                     if _material == None:
                         continue
                     if _material["passhash"] != "":
-                        if _material["userid"] != token["id"]:
+                        if _material["userid"] != _userid:
                             continue
                     _materials.append(dict(_material))
                 return json.dumps(
@@ -267,12 +267,11 @@ def show(request):
                     return json.dumps(
                         {"message": "notExist", "text": "素材不明"}, ensure_ascii=False
                     )
-                if _Cmaterial["passhash"] != "":
-                    if _Cmaterial["userid"] != token["id"]:
-                        return json.dumps(
-                            {"message": "wrongPass", "text": "アクセス拒否"},
-                            ensure_ascii=False,
-                        )
+                if _Cmaterial["userid"] != token["id"]:
+                    return json.dumps(
+                        {"message": "wrongPass", "text": "アクセス拒否"},
+                        ensure_ascii=False,
+                    )
                 # for key, value in _material.items():
                 #    print(key), print(value)
                 #    cur.execute(
@@ -352,6 +351,10 @@ def show(request):
 
         if "delete" in request.form:
             _dataDict.update(json.loads(request.form["delete"]))
+            if token == "":
+                return json.dumps(
+                    {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
+                )
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -393,6 +396,10 @@ def show(request):
 
         if "create" in request.form:
             _dataDict.update(json.loads(request.form["create"]))
+            if token == "":
+                return json.dumps(
+                    {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
+                )
             _passhash = ""
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             if _dataDict["privateFlag"] == True:
@@ -435,6 +442,10 @@ def show(request):
 
         if "combine" in request.form:
             _dataDict.update(json.loads(request.form["combine"]))
+            if token == "":
+                return json.dumps(
+                    {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
+                )
             _combination = _dataDict["combination"]
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
@@ -450,12 +461,11 @@ def show(request):
                         {"message": "notExist", "text": "存在しません"},
                         ensure_ascii=False,
                     )
-                if _Ccombination["passhash"] != "":
-                    if _Ccombination["userid"] != token["id"]:
-                        return json.dumps(
-                            {"message": "wrongPass", "text": "アクセス拒否"},
-                            ensure_ascii=False,
-                        )
+                if _Ccombination["userid"] != token["id"]:
+                    return json.dumps(
+                        {"message": "wrongPass", "text": "アクセス拒否"},
+                        ensure_ascii=False,
+                    )
                 _contents = json.loads(_Ccombination["contents"])
                 if "add_material" in _dataDict:
                     if _dataDict["add_material"] in _contents:
@@ -494,6 +504,10 @@ def show(request):
 
         if "update" in request.form:
             _dataDict.update(json.loads(request.form["update"]))
+            if token == "":
+                return json.dumps(
+                    {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
+                )
             _combination = _dataDict["combination"]
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
@@ -509,22 +523,22 @@ def show(request):
                         {"message": "alreadyExisted", "text": "存在しません"},
                         ensure_ascii=False,
                     )
-                if _Ccombination["passhash"] != "":
-                    if _Ccombination["userid"] != token["id"]:
-                        return json.dumps(
-                            {"message": "wrongPass", "text": "アクセス拒否"},
-                            ensure_ascii=False,
-                        )
+                if _Ccombination["userid"] != token["id"]:
+                    return json.dumps(
+                        {"message": "wrongPass", "text": "アクセス拒否"},
+                        ensure_ascii=False,
+                    )
                 _contents = json.loads(_Ccombination["contents"])
                 cur.execute(
                     "UPDATE tskb_combination SET name = ?, description = ?,"
-                    " userid = ?, user = ?, passhash = ? WHERE id = ?;",
+                    " userid = ?, user = ?, passhash = ? ,contents = ? WHERE id = ?;",
                     [
                         _combination["name"],
                         _combination["description"],
                         token["id"],
                         _dataDict["user"],
                         _combination["passhash"],
+                        _combination["contents"],
                         _combination["id"],
                     ],
                 )
@@ -542,11 +556,10 @@ def show(request):
 
         if "destroy" in request.form:
             _dataDict.update(json.loads(request.form["destroy"]))
-            if _dataDict["token"] == "":
+            if token == "":
                 return json.dumps(
                     {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
                 )
-            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()

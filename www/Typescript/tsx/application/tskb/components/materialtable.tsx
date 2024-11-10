@@ -37,6 +37,7 @@ export const MTable = () => {
     const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
     const combination = useAppSelector((state) => state.tskb.combination)
+    const reloadFlag = useAppSelector((state) => state.tskb.reloadFlag)
     const AppDispatch = useAppDispatch()
     const xhrTimeout = 3000
     const xhrDelay = 100
@@ -44,7 +45,7 @@ export const MTable = () => {
 
     useEffect(() => {
         if (tableStatus == "MTable") fetchMaterial()
-    }, [tableStatus, userId])
+    }, [reloadFlag, userId])
     useEffect(() => {
         setTmpCombination(combination)
     }, [combination])
@@ -366,25 +367,81 @@ export const MTable = () => {
         </tr>
     )
     const _tmpRecord = [];
+    const _ccontents = JSON.parse(tmpCombination.contents)
+    if (0 < contents.length) {
+        let _nutrition = contents[0]
+        for (let _ii = 0; _ii < contents.length; _ii++) { _nutrition[_ii] = 0 }
+        for (let _i = 1; _i < contents.length; _i++) {
+            if (contents[_i]["id"] in _ccontents == false) continue
+            for (let _ii = 0; _ii < contents.length; _ii++) {
+                _nutrition[_ii] += parseFloat(
+                    "0" + (contents[_i][_ii] * _ccontents[contents[_i]["id"]]))
+            }
+        }
+        _tmpRecord.push(
+            <tr>
+                <td></td>
+                <td>総計</td>
+                <td></td>
+                <td>{_nutrition["cost"]}</td>
+                <td>{_nutrition["kcal"]}</td>
+                <td>{_nutrition["carbo"]}</td>
+                <td>{_nutrition["protein"]}</td>
+                <td>{_nutrition["fat"]}</td>
+                <td>{_nutrition["saturated_fat"]}</td>
+                <td>{_nutrition["n3"]}</td>
+                <td>{_nutrition["DHA_EPA"]}</td>
+                <td>{_nutrition["n6"]}</td>
+                <td>{_nutrition["fiber"]}</td>
+                <td>{_nutrition["colin"]}</td>
+                <td>{_nutrition["ca"]}</td>
+                <td>{_nutrition["cl"]}</td>
+                <td>{_nutrition["cr"]}</td>
+                <td>{_nutrition["cu"]}</td>
+                <td>{_nutrition["i"]}</td>
+                <td>{_nutrition["fe"]}</td>
+                <td>{_nutrition["mg"]}</td>
+                <td>{_nutrition["mn"]}</td>
+                <td>{_nutrition["mo"]}</td>
+                <td>{_nutrition["p"]}</td>
+                <td>{_nutrition["k"]}</td>
+                <td>{_nutrition["se"]}</td>
+                <td>{_nutrition["na"]}</td>
+                <td>{_nutrition["zn"]}</td>
+                <td>{_nutrition["va"]}</td>
+                <td>{_nutrition["vb1"]}</td>
+                <td>{_nutrition["vb2"]}</td>
+                <td>{_nutrition["vb3"]}</td>
+                <td>{_nutrition["vb5"]}</td>
+                <td>{_nutrition["vb6"]}</td>
+                <td>{_nutrition["vb7"]}</td>
+                <td>{_nutrition["vb9"]}</td>
+                <td>{_nutrition["vb12"]}</td>
+                <td>{_nutrition["vc"]}</td>
+                <td>{_nutrition["vd"]}</td>
+                <td>{_nutrition["ve"]}</td>
+                <td>{_nutrition["vk"]}</td>
+            </tr>
+        )
+    }
     _tmpRecord.push(
         <tr className="">
         </tr>
     )
-    const _ccontents = JSON.parse(tmpCombination.contents)
     for (let i = 0; i < contents.length; i++) {
         const _button = (
-            <th>
+            <td>
                 <button type="button" className="btn btn-outline-warning rounded-pill"
                     onClick={(evt: any) => { combineCombination(evt.target.value) }}
                     value={contents[i]["id"]}>
                     <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
                 </button>
-            </th>)
+            </td>)
         if (contents[i]["id"] in _ccontents == false) {
             _tmpRecord.push(
                 <tr>
-                    <th>{_button}</th>
-                    <th>素材にアクセスできませんでした</th>
+                    <td>{_button}</td>
+                    <td>素材にアクセスできませんでした</td>
                 </tr>)
             continue
         }
@@ -392,51 +449,51 @@ export const MTable = () => {
         _ccontents[contents[i]["id"]]
         _tmpRecord.push(
             <tr>
-                <th>{_button}</th>
-                <th>{contents[i]["name"]}</th>
-                <th><input type="text" size={4} value={amount}
+                <td>{_button}</td>
+                <td>{contents[i]["name"]}</td>
+                <td><input type="text" size={4} value={amount}
                     onChange={(evt: any) => {
                         setTmpCombinationContents(evt.target.name, parseFloat("0" + evt.target.value))
                     }}
-                    id={"MTamount_" + i} name={String(contents[i]["id"])} pattern="[0-9|.]{6}" /></th>
-                <th>{contents[i]["cost"] * amount}</th>
-                <th>{contents[i]["kcal"] * amount}</th>
-                <th>{contents[i]["carbo"] * amount}</th>
-                <th>{contents[i]["protein"] * amount}</th>
-                <th>{contents[i]["fat"] * amount}</th>
-                <th>{contents[i]["saturated_fat"] * amount}</th>
-                <th>{contents[i]["n3"] * amount}</th>
-                <th>{contents[i]["DHA_EPA"] * amount}</th>
-                <th>{contents[i]["n6"] * amount}</th>
-                <th>{contents[i]["fiber"] * amount}</th>
-                <th>{contents[i]["colin"] * amount}</th>
-                <th>{contents[i]["ca"] * amount}</th>
-                <th>{contents[i]["cl"] * amount}</th>
-                <th>{contents[i]["cr"] * amount}</th>
-                <th>{contents[i]["cu"] * amount}</th>
-                <th>{contents[i]["i"] * amount}</th>
-                <th>{contents[i]["fe"] * amount}</th>
-                <th>{contents[i]["mg"] * amount}</th>
-                <th>{contents[i]["mn"] * amount}</th>
-                <th>{contents[i]["mo"] * amount}</th>
-                <th>{contents[i]["p"] * amount}</th>
-                <th>{contents[i]["k"] * amount}</th>
-                <th>{contents[i]["se"] * amount}</th>
-                <th>{contents[i]["na"] * amount}</th>
-                <th>{contents[i]["zn"] * amount}</th>
-                <th>{contents[i]["va"] * amount}</th>
-                <th>{contents[i]["vb1"] * amount}</th>
-                <th>{contents[i]["vb2"] * amount}</th>
-                <th>{contents[i]["vb3"] * amount}</th>
-                <th>{contents[i]["vb5"] * amount}</th>
-                <th>{contents[i]["vb6"] * amount}</th>
-                <th>{contents[i]["vb7"] * amount}</th>
-                <th>{contents[i]["vb9"] * amount}</th>
-                <th>{contents[i]["vb12"] * amount}</th>
-                <th>{contents[i]["vc"] * amount}</th>
-                <th>{contents[i]["vd"] * amount}</th>
-                <th>{contents[i]["ve"] * amount}</th>
-                <th>{contents[i]["vk"] * amount}</th>
+                    id={"MTamount_" + i} name={String(contents[i]["id"])} pattern="[0-9|.]{6}" /></td>
+                <td>{contents[i]["cost"] * amount}</td>
+                <td>{contents[i]["kcal"] * amount}</td>
+                <td>{contents[i]["carbo"] * amount}</td>
+                <td>{contents[i]["protein"] * amount}</td>
+                <td>{contents[i]["fat"] * amount}</td>
+                <td>{contents[i]["saturated_fat"] * amount}</td>
+                <td>{contents[i]["n3"] * amount}</td>
+                <td>{contents[i]["DHA_EPA"] * amount}</td>
+                <td>{contents[i]["n6"] * amount}</td>
+                <td>{contents[i]["fiber"] * amount}</td>
+                <td>{contents[i]["colin"] * amount}</td>
+                <td>{contents[i]["ca"] * amount}</td>
+                <td>{contents[i]["cl"] * amount}</td>
+                <td>{contents[i]["cr"] * amount}</td>
+                <td>{contents[i]["cu"] * amount}</td>
+                <td>{contents[i]["i"] * amount}</td>
+                <td>{contents[i]["fe"] * amount}</td>
+                <td>{contents[i]["mg"] * amount}</td>
+                <td>{contents[i]["mn"] * amount}</td>
+                <td>{contents[i]["mo"] * amount}</td>
+                <td>{contents[i]["p"] * amount}</td>
+                <td>{contents[i]["k"] * amount}</td>
+                <td>{contents[i]["se"] * amount}</td>
+                <td>{contents[i]["na"] * amount}</td>
+                <td>{contents[i]["zn"] * amount}</td>
+                <td>{contents[i]["va"] * amount}</td>
+                <td>{contents[i]["vb1"] * amount}</td>
+                <td>{contents[i]["vb2"] * amount}</td>
+                <td>{contents[i]["vb3"] * amount}</td>
+                <td>{contents[i]["vb5"] * amount}</td>
+                <td>{contents[i]["vb6"] * amount}</td>
+                <td>{contents[i]["vb7"] * amount}</td>
+                <td>{contents[i]["vb9"] * amount}</td>
+                <td>{contents[i]["vb12"] * amount}</td>
+                <td>{contents[i]["vc"] * amount}</td>
+                <td>{contents[i]["vd"] * amount}</td>
+                <td>{contents[i]["ve"] * amount}</td>
+                <td>{contents[i]["vk"] * amount}</td>
             </tr>
         )
 
