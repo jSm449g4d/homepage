@@ -65,7 +65,9 @@ export const CTable = () => {
                 switch (resJ["message"]) {
                     case "processed": {
                         sortSetContentsRev(resJ["combinations"]);
-                        AppDispatch(accountSetState({ token: resJ["token"] })); break;
+                        AppDispatch(accountSetState({ token: resJ["token"] }));
+                        AppDispatch(tskbSetState({}));
+                        break;
                     }
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]);

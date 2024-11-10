@@ -276,43 +276,60 @@ export const MTable = () => {
     const bottomForm = () => {
         return (
             <div>
-                <div className="d-flex justify-content-between align-items-center my-1">
-                    {tmpCombination["passhash"] == "" ?
-                        <button className="btn btn-outline-warning btn-lg" type="button"
-                            onClick={() => { setTmpCombinationDict("passhash", "0") }}>
-                            <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
-                            公開&nbsp;&nbsp;
-                        </button> :
-                        <button className="btn btn-warning btn-lg" type="button"
-                            onClick={() => { setTmpCombinationDict("passhash", "") }}>
-                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
-                            非公開
-                        </button>
-                    }
-                    {tmpCombination["name"] == "" ?
-                        <button className="btn btn-outline-primary btn-lg" type="button" disabled>
-                            <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
-                            レシピ名を入力してください
-                        </button> :
-                        <div>
-                            <button className="btn btn-outline-success btn-lg" type="button"
-                                onClick={() => { updateCombination() }}>
-                                <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
-                                更新
+                {combination["userid"] == userId ?
+                    <div className="d-flex justify-content-between align-items-center my-1">
+                        {tmpCombination["passhash"] == "" ?
+                            <button className="btn btn-outline-warning btn-lg" type="button"
+                                onClick={() => { setTmpCombinationDict("passhash", "0") }}>
+                                <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
+                                公開&nbsp;&nbsp;
+                            </button> :
+                            <button className="btn btn-warning btn-lg" type="button"
+                                onClick={() => { setTmpCombinationDict("passhash", "") }}>
+                                <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
+                                非公開
                             </button>
-                        </div>
-                    }
-                    {combination["userid"] == userId ?
+                        }
+                        {tmpCombination["name"] == "" ?
+                            <button className="btn btn-outline-primary btn-lg" type="button" disabled>
+                                <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
+                                レシピ名を入力してください
+                            </button> :
+                            <div>
+                                <button className="btn btn-outline-success btn-lg" type="button"
+                                    onClick={() => { updateCombination() }}>
+                                    <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
+                                    更新
+                                </button>
+                            </div>
+                        }
                         <button className="btn btn-outline-danger btn-lg" type="button"
                             onClick={() => { $("#combinationDestroyModal1").modal('show') }}>
                             <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>レシピ破棄
-                        </button> :
+                        </button>
+                    </div> :
+                    <div className="d-flex justify-content-between align-items-center my-1">
+                        {tmpCombination["passhash"] == "" ?
+                            <button className="btn btn-outline-warning btn-lg" type="button" disabled>
+                                <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
+                                公開&nbsp;&nbsp;
+                            </button> :
+                            <button className="btn btn-warning btn-lg" type="button" disabled>
+                                <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
+                                非公開
+                            </button>
+                        }
                         <button className="btn btn-outline-info btn-lg" type="button"
-                            onClick={() => { HIModal("レシピ破棄は作成者にしかできません") }}>
+                            onClick={() => { HIModal("作成者のみ許可された操作") }}>
+                            <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
+                            更新
+                        </button>
+                        <button className="btn btn-outline-info btn-lg" type="button"
+                            onClick={() => { HIModal("作成者のみ許可された操作") }}>
                             <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>レシピ破棄
                         </button>
-                    }
-                </div>
+                    </div>
+                }
             </div>)
     }
     "(id,name,tag,description,userid,user,passhash,timestamp,"
@@ -370,13 +387,13 @@ export const MTable = () => {
     const _tmpRecord = [];
     const _ccontents = JSON.parse(tmpCombination.contents)
     if (0 < contents.length) {
-        let _nutrition = contents[0]
-        for (let _ii = 0; _ii < contents.length; _ii++) { _nutrition[_ii] = 0 }
-        for (let _i = 1; _i < contents.length; _i++) {
+        var _nutrition = JSON.parse(JSON.stringify(contents[0]))
+        for (let _key in _nutrition) { _nutrition[_key] = 0 }
+        for (let _i = 0; _i < contents.length; _i++) {
             if (contents[_i]["id"] in _ccontents == false) continue
-            for (let _ii = 0; _ii < contents.length; _ii++) {
-                _nutrition[_ii] +=
-                    parseFloat("0" + (contents[_i][_ii]) *
+            for (let _key in _nutrition) {
+                _nutrition[_key] +=
+                    parseFloat("0" + (contents[_i][_key]) *
                         parseFloat("0" + _ccontents[contents[_i]["id"]]))
             }
         }

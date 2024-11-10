@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import { startTable, tskbSetState } from '../../components/slice'
 import { useAppSelector, useAppDispatch } from '../../components/store'
+import { HIModal, CIModal } from "../../components/imodals";
 import { CTable } from "./components/combinationTable"
 import { EMTable } from "./components/explorematerialtable"
 import { MTable } from "./components/materialtable"
