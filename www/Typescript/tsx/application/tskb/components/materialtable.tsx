@@ -45,7 +45,8 @@ export const MTable = () => {
 
     useEffect(() => {
         if (reloadFlag == false) return
-        if (tableStatus == "MTable") fetchMaterial()
+        AppDispatch(tskbSetState({}));
+        if (tableStatus == "MTable") setTimeout(() => fetchMaterial(), xhrDelay)
     }, [reloadFlag])
     useEffect(() => {
         setTmpCombination(combination)
@@ -268,9 +269,15 @@ export const MTable = () => {
                         disabled>
                         <i className="far fa-user mx-1"></i>{combination["user"]}
                     </button>
-                    <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
-                        onChange={(evt: any) => { setTmpCombinationDict("name", evt.target.value) }}>
-                    </input >
+                    {combination["userid"] == userId ?
+                        <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
+                            onChange={(evt: any) => { setTmpCombinationDict("name", evt.target.value) }}>
+                        </input > :
+                        <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
+                            disabled>
+                        </input >
+
+                    }
                 </div></div>)
     }
     const bottomForm = () => {

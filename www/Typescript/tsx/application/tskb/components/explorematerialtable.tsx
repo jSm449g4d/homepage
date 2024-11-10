@@ -25,8 +25,9 @@ export const EMTable = () => {
 
     useEffect(() => {
         if (reloadFlag == false) return
-        if (tableStatus == "MTable") exploreMaterial()
-        if (tableStatus == "CMTable") exploreMaterial()
+        AppDispatch(tskbSetState({}));
+        if (tableStatus == "MTable") setTimeout(() => exploreMaterial(), xhrDelay)
+        if (tableStatus == "CMTable") setTimeout(() => exploreMaterial(), xhrDelay)
         setTmpeMaterial("")
     }, [reloadFlag])
 
@@ -169,7 +170,17 @@ export const EMTable = () => {
                         }}
                         value={JSON.stringify(contents[i])}>
                         <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }}></i>編集
-                    </button> : <div></div>
+                    </button> :
+                    <button className="btn btn-outline-primary rounded-pill"
+                        onClick={(evt: any) => {
+                            AppDispatch(startTable({
+                                tableStatus: "CMTable",
+                                material: JSON.parse(evt.target.value)
+                            }))
+                        }}
+                        value={JSON.stringify(contents[i])}>
+                        <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }}></i>閲覧
+                    </button>
                 }
                 {combination["userid"] == userId ?
                     <button className="btn btn-outline-primary rounded-pill"

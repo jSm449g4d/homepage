@@ -26,7 +26,7 @@ export const CTable = () => {
 
     useEffect(() => {
         if (reloadFlag == false) return
-        if (tableStatus == "CTable") searchCombination()
+        if (tableStatus == "CTable") setTimeout(() => searchCombination(), xhrDelay)
         initTmps()
     }, [reloadFlag])
 
@@ -66,12 +66,11 @@ export const CTable = () => {
                     case "processed": {
                         sortSetContentsRev(resJ["combinations"]);
                         AppDispatch(accountSetState({ token: resJ["token"] }));
-                        AppDispatch(tskbSetState({}));
                         break;
                     }
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]);
-                        searchCombination(); break;
+                        break;
                     }
                 }
             })
