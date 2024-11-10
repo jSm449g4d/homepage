@@ -17,16 +17,19 @@ export const EMTable = () => {
     const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
     const combination = useAppSelector((state) => state.tskb.combination)
+    const reloadFlag = useAppSelector((state) => state.tskb.reloadFlag)
     const AppDispatch = useAppDispatch()
     const xhrTimeout = 3000
     const xhrDelay = 100
 
 
     useEffect(() => {
-        if (tableStatus == "MTable") exploreMaterial()
-        if (tableStatus == "CMTable") exploreMaterial()
+        if (reloadFlag == false) return
+        AppDispatch(tskbSetState({}));
+        if (tableStatus == "MTable") setTimeout(() => exploreMaterial(), xhrDelay)
+        if (tableStatus == "CMTable") setTimeout(() => exploreMaterial(), xhrDelay)
         setTmpeMaterial("")
-    }, [tableStatus, userId])
+    }, [reloadFlag])
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
@@ -89,6 +92,7 @@ export const EMTable = () => {
             .then(resJ => {
                 switch (resJ["message"]) {
                     case "processed": {
+                        AppDispatch(startTable({ tableStatus: "MTable" }))
                         break;
                     }
                     default: {
@@ -150,7 +154,7 @@ export const EMTable = () => {
         const _tmpData = [];
         var _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }
         if (contents[i]["passhash"] != "")
-            _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.2))" }
+            _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.3))" }
         _tmpData.push(
             <div className="col-12 border d-flex" style={_style}>
                 <h5 className="me-auto">
@@ -166,7 +170,17 @@ export const EMTable = () => {
                         }}
                         value={JSON.stringify(contents[i])}>
                         <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }}></i>編集
-                    </button> : <div></div>
+                    </button> :
+                    <button className="btn btn-outline-primary rounded-pill"
+                        onClick={(evt: any) => {
+                            AppDispatch(startTable({
+                                tableStatus: "CMTable",
+                                material: JSON.parse(evt.target.value)
+                            }))
+                        }}
+                        value={JSON.stringify(contents[i])}>
+                        <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }}></i>閲覧
+                    </button>
                 }
                 {combination["userid"] == userId ?
                     <button className="btn btn-outline-primary rounded-pill"

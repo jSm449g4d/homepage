@@ -18,19 +18,24 @@ export const CTable = () => {
     const token = useAppSelector((state) => state.account.token)
     const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
+    const reloadFlag = useAppSelector((state) => state.tskb.reloadFlag)
     const AppDispatch = useAppDispatch()
     const xhrTimeout = 3000
     const xhrDelay = 100
 
 
     useEffect(() => {
-        if (tableStatus == "CTable") searchCombination()
+        if (reloadFlag == false) return
+        if (tableStatus == "CTable") setTimeout(() => searchCombination(), xhrDelay)
+        initTmps()
+    }, [reloadFlag])
+
+    const initTmps = () => {
         setTmpTargetId(-1)
         setTmpCombination("")
         setTpDescription("")
         setTmpPrivateFlag(false)
-    }, [tableStatus, userId])
-
+    }
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
@@ -60,11 +65,12 @@ export const CTable = () => {
                 switch (resJ["message"]) {
                     case "processed": {
                         sortSetContentsRev(resJ["combinations"]);
-                        AppDispatch(accountSetState({ token: resJ["token"] })); break;
+                        AppDispatch(accountSetState({ token: resJ["token"] }));
+                        break;
                     }
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]);
-                        searchCombination(); break;
+                        break;
                     }
                 }
             })
@@ -144,34 +150,34 @@ export const CTable = () => {
                                     <i className="fa-solid fa-hammer mx-1" />レシピ作成
                                 </h3>
                             </div>
-                            <div className="modal-body d-flex justify-content-center">
-                                <div className="input-group m-1">
+                            <div className="modal-body d-flex justify-content-center row">
+                                <div className="input-group col-12 m-1">
                                     <span className="input-group-text">レシピ名</span>
-                                    <input type="text" className="form-control" placeholder="Username" aria-label="user"
+                                    <input type="text" className="form-control" placeholder="レシピ名" aria-label="user"
                                         value={tmpCombination} onChange={(evt) => { setTmpCombination(evt.target.value) }} />
                                 </div>
                                 {tmpPrivateFlag == false ?
-                                    <button className="btn btn-outline-warning btn-lg" type="button"
+                                    <button className="btn btn-outline-warning btn-lg col-12" type="button"
                                         onClick={() => { setTmpPrivateFlag(true) }}>
                                         <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
                                         公開&nbsp;&nbsp;
                                     </button> :
-                                    <button className="btn btn-warning btn-lg" type="button"
+                                    <button className="btn btn-warning btn-lg col-12" type="button"
                                         onClick={() => { setTmpPrivateFlag(false) }}>
                                         <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
                                         非公開
                                     </button>
                                 }
-                                <h4 className="mx-3">概説</h4>
-                                <textarea className="form-control w-80" rows={4} value={tmpDescription}
+                                <h4 className="mx-3 col-12">概説</h4>
+                                <textarea className="form-control w-80 col-12" rows={4} value={tmpDescription}
                                     onChange={(evt) => { setTpDescription(evt.target.value) }} />
                             </div>
-                            <div className="modal-footer d-flex">
+                            <div className="modal-footer d-flex col-12">
                                 <button type="button" className="btn btn-secondary me-auto" data-bs-dismiss="modal">
                                     Close
                                 </button>
                                 {tmpCombination != "" && token != "" ? <div>
-                                    <button type="button" className="btn btn-outline-primary" data-bs-dismiss="modal"
+                                    <button type="button" className="btn btn-outline-primary " data-bs-dismiss="modal"
                                         onClick={() => createCombination()}>
                                         <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
                                     </button>
@@ -231,7 +237,7 @@ export const CTable = () => {
                         </button> :
                         <button className="btn btn-outline-primary btn-lg" type="button"
                             onClick={() => {
-                                setTmpCombination("")
+                                initTmps()
                                 $('#combinationCreateModal').modal('show');
                             }}>
                             <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
@@ -249,8 +255,7 @@ export const CTable = () => {
         if (contents[i]["name"].indexOf(tmpCombination) == -1) continue
         const _tmpData = [];
         var _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }
-        if (contents[i]["passhash"] != "") { _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.2))" } }
-        if (contents[i]["passhash"] == "0") { _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,150,0.2))" } }
+        if (contents[i]["passhash"] == "0") { _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.3))" } }
         _tmpData.push(
             <div className="col-12 border d-flex" style={_style}>
                 <h5 className="me-auto">

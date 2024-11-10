@@ -12,10 +12,16 @@ export const MTable = () => {
         "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
         "passhash": "", "timestamp": 0, "contents": "{}"
     })
-    const setTmpConbinationDict = (_key: string, _value: any) => {
+    const setTmpCombinationDict = (_key: string, _value: any) => {
         let _copy = JSON.parse(JSON.stringify(tmpCombination))
         _copy[_key] = _value
         setTmpCombination(_copy)
+    }
+    const setTmpCombinationContents = (_key: string, _value: Number) => {
+        let _copy = JSON.parse(tmpCombination.contents)
+        _copy[_key] = _value
+        _copy = JSON.stringify(_copy)
+        setTmpCombinationDict("contents", _copy)
     }
     const reSetTmpConbinationDict = (_keys: any[]) => {
         let _copy = JSON.parse(JSON.stringify(tmpCombination))
@@ -31,14 +37,17 @@ export const MTable = () => {
     const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
     const combination = useAppSelector((state) => state.tskb.combination)
+    const reloadFlag = useAppSelector((state) => state.tskb.reloadFlag)
     const AppDispatch = useAppDispatch()
     const xhrTimeout = 3000
     const xhrDelay = 100
 
 
     useEffect(() => {
-        if (tableStatus == "MTable") fetchMaterial()
-    }, [tableStatus, userId])
+        if (reloadFlag == false) return
+        AppDispatch(tskbSetState({}));
+        if (tableStatus == "MTable") setTimeout(() => fetchMaterial(), xhrDelay)
+    }, [reloadFlag])
     useEffect(() => {
         setTmpCombination(combination)
     }, [combination])
@@ -141,6 +150,7 @@ export const MTable = () => {
             .then(resJ => {
                 switch (resJ["message"]) {
                     case "processed": {
+                        HIModal("更新完了")
                         AppDispatch(tskbSetState({ combination: resJ["combination"] }));
                         break;
                     }
@@ -259,51 +269,74 @@ export const MTable = () => {
                         disabled>
                         <i className="far fa-user mx-1"></i>{combination["user"]}
                     </button>
-                    <input className="flex-fill form-control form-control-lg" type="text" value={combination["name"]}
-                        disabled>
-                    </input >
+                    {combination["userid"] == userId ?
+                        <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
+                            onChange={(evt: any) => { setTmpCombinationDict("name", evt.target.value) }}>
+                        </input > :
+                        <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
+                            disabled>
+                        </input >
+
+                    }
                 </div></div>)
     }
     const bottomForm = () => {
         return (
             <div>
-                <div className="d-flex justify-content-between align-items-center my-1">
-                    {tmpCombination["passhash"] == "" ?
-                        <button className="btn btn-outline-warning btn-lg" type="button"
-                            onClick={() => { setTmpConbinationDict("passhash", "0") }}>
-                            <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
-                            公開&nbsp;&nbsp;
-                        </button> :
-                        <button className="btn btn-warning btn-lg" type="button"
-                            onClick={() => { setTmpConbinationDict("passhash", "") }}>
-                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
-                            非公開
-                        </button>
-                    }
-                    {tmpCombination["name"] == "" ?
-                        <button className="btn btn-outline-primary btn-lg" type="button" disabled>
-                            <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
-                            レシピ名を入力してください
-                        </button> :
-                        <div>
-                            <button className="btn btn-outline-success btn-lg" type="button"
-                                onClick={() => { updateCombination() }}>
-                                <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
-                                更新
+                {combination["userid"] == userId ?
+                    <div className="d-flex justify-content-between align-items-center my-1">
+                        {tmpCombination["passhash"] == "" ?
+                            <button className="btn btn-outline-warning btn-lg" type="button"
+                                onClick={() => { setTmpCombinationDict("passhash", "0") }}>
+                                <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
+                                公開&nbsp;&nbsp;
+                            </button> :
+                            <button className="btn btn-warning btn-lg" type="button"
+                                onClick={() => { setTmpCombinationDict("passhash", "") }}>
+                                <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
+                                非公開
                             </button>
-                        </div>
-                    }
-                    {combination["userid"] == userId ?
+                        }
+                        {tmpCombination["name"] == "" ?
+                            <button className="btn btn-outline-primary btn-lg" type="button" disabled>
+                                <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
+                                レシピ名を入力してください
+                            </button> :
+                            <div>
+                                <button className="btn btn-outline-success btn-lg" type="button"
+                                    onClick={() => { updateCombination() }}>
+                                    <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
+                                    更新
+                                </button>
+                            </div>
+                        }
                         <button className="btn btn-outline-danger btn-lg" type="button"
                             onClick={() => { $("#combinationDestroyModal1").modal('show') }}>
                             <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>レシピ破棄
-                        </button> :
+                        </button>
+                    </div> :
+                    <div className="d-flex justify-content-between align-items-center my-1">
+                        {tmpCombination["passhash"] == "" ?
+                            <button className="btn btn-outline-warning btn-lg" type="button" disabled>
+                                <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
+                                公開&nbsp;&nbsp;
+                            </button> :
+                            <button className="btn btn-warning btn-lg" type="button" disabled>
+                                <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
+                                非公開
+                            </button>
+                        }
                         <button className="btn btn-outline-info btn-lg" type="button"
-                            onClick={() => { HIModal("レシピ破棄は作成者にしかできません") }}>
+                            onClick={() => { HIModal("作成者のみ許可された操作") }}>
+                            <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
+                            更新
+                        </button>
+                        <button className="btn btn-outline-info btn-lg" type="button"
+                            onClick={() => { HIModal("作成者のみ許可された操作") }}>
                             <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>レシピ破棄
                         </button>
-                    }
-                </div>
+                    </div>
+                }
             </div>)
     }
     "(id,name,tag,description,userid,user,passhash,timestamp,"
@@ -359,73 +392,135 @@ export const MTable = () => {
         </tr>
     )
     const _tmpRecord = [];
+    const _ccontents = JSON.parse(tmpCombination.contents)
+    if (0 < contents.length) {
+        var _nutrition = JSON.parse(JSON.stringify(contents[0]))
+        for (let _key in _nutrition) { _nutrition[_key] = 0 }
+        for (let _i = 0; _i < contents.length; _i++) {
+            if (contents[_i]["id"] in _ccontents == false) continue
+            for (let _key in _nutrition) {
+                _nutrition[_key] +=
+                    parseFloat("0" + (contents[_i][_key]) *
+                        parseFloat("0" + _ccontents[contents[_i]["id"]]))
+            }
+        }
+        _tmpRecord.push(
+            <tr>
+                <td></td>
+                <td>総計</td>
+                <td></td>
+                <td>{_nutrition["cost"]}</td>
+                <td>{_nutrition["kcal"]}</td>
+                <td>{_nutrition["carbo"]}</td>
+                <td>{_nutrition["protein"]}</td>
+                <td>{_nutrition["fat"]}</td>
+                <td>{_nutrition["saturated_fat"]}</td>
+                <td>{_nutrition["n3"]}</td>
+                <td>{_nutrition["DHA_EPA"]}</td>
+                <td>{_nutrition["n6"]}</td>
+                <td>{_nutrition["fiber"]}</td>
+                <td>{_nutrition["colin"]}</td>
+                <td>{_nutrition["ca"]}</td>
+                <td>{_nutrition["cl"]}</td>
+                <td>{_nutrition["cr"]}</td>
+                <td>{_nutrition["cu"]}</td>
+                <td>{_nutrition["i"]}</td>
+                <td>{_nutrition["fe"]}</td>
+                <td>{_nutrition["mg"]}</td>
+                <td>{_nutrition["mn"]}</td>
+                <td>{_nutrition["mo"]}</td>
+                <td>{_nutrition["p"]}</td>
+                <td>{_nutrition["k"]}</td>
+                <td>{_nutrition["se"]}</td>
+                <td>{_nutrition["na"]}</td>
+                <td>{_nutrition["zn"]}</td>
+                <td>{_nutrition["va"]}</td>
+                <td>{_nutrition["vb1"]}</td>
+                <td>{_nutrition["vb2"]}</td>
+                <td>{_nutrition["vb3"]}</td>
+                <td>{_nutrition["vb5"]}</td>
+                <td>{_nutrition["vb6"]}</td>
+                <td>{_nutrition["vb7"]}</td>
+                <td>{_nutrition["vb9"]}</td>
+                <td>{_nutrition["vb12"]}</td>
+                <td>{_nutrition["vc"]}</td>
+                <td>{_nutrition["vd"]}</td>
+                <td>{_nutrition["ve"]}</td>
+                <td>{_nutrition["vk"]}</td>
+            </tr>
+        )
+    }
     _tmpRecord.push(
         <tr className="">
         </tr>
     )
-    const _ccontents = JSON.parse(combination.contents)
     for (let i = 0; i < contents.length; i++) {
         const _button = (
-            <th>
-                <button type="button" className="btn btn-outline-warning rounded-pill"
+            <td>
+                <button type="button" className="btn btn-outline-danger rounded-pill"
                     onClick={(evt: any) => { combineCombination(evt.target.value) }}
                     value={contents[i]["id"]}>
                     <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
                 </button>
-            </th>)
+            </td>)
         if (contents[i]["id"] in _ccontents == false) {
             _tmpRecord.push(
                 <tr>
-                    <th>{_button}</th>
-                    <th>素材にアクセスできませんでした</th>
+                    <td>{_button}</td>
+                    <td>素材にアクセスできませんでした</td>
                 </tr>)
             continue
         }
-        const amount = _ccontents[contents[i]["id"]]
+        const _amount = parseFloat("0" + _ccontents[contents[i]["id"]])
+        const _unit = _amount / parseFloat("0" + contents[i]["unit"])
+        _ccontents[contents[i]["id"]]
         _tmpRecord.push(
             <tr>
-                <th>{_button}</th>
-                <th>{contents[i]["name"]}</th>
-                <th>{amount}</th>
-                <th><input type="text" size={4} id={"MTamount_" + i} pattern="[0-9]{6}" /></th>
-                <th>{contents[i]["cost"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
-                <th>{contents[i]["kcal"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
-                <th>{contents[i]["carbo"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
-                <th>{contents[i]["protein"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
-                <th>{contents[i]["fat"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
-                <th>{contents[i]["saturated_fat"] * parseFloat("0" + $(this).siblings('text').attr("value"))}</th>
-                <th>{contents[i]["n3"]}</th>
-                <th>{contents[i]["DHA_EPA"]}</th>
-                <th>{contents[i]["n6"]}</th>
-                <th>{contents[i]["fiber"]}</th>
-                <th>{contents[i]["colin"]}</th>
-                <th>{contents[i]["ca"]}</th>
-                <th>{contents[i]["cl"]}</th>
-                <th>{contents[i]["cr"]}</th>
-                <th>{contents[i]["cu"]}</th>
-                <th>{contents[i]["i"]}</th>
-                <th>{contents[i]["fe"]}</th>
-                <th>{contents[i]["mg"]}</th>
-                <th>{contents[i]["mn"]}</th>
-                <th>{contents[i]["mo"]}</th>
-                <th>{contents[i]["p"]}</th>
-                <th>{contents[i]["k"]}</th>
-                <th>{contents[i]["se"]}</th>
-                <th>{contents[i]["na"]}</th>
-                <th>{contents[i]["zn"]}</th>
-                <th>{contents[i]["va"]}</th>
-                <th>{contents[i]["vb1"]}</th>
-                <th>{contents[i]["vb2"]}</th>
-                <th>{contents[i]["vb3"]}</th>
-                <th>{contents[i]["vb5"]}</th>
-                <th>{contents[i]["vb6"]}</th>
-                <th>{contents[i]["vb7"]}</th>
-                <th>{contents[i]["vb9"]}</th>
-                <th>{contents[i]["vb12"]}</th>
-                <th>{contents[i]["vc"]}</th>
-                <th>{contents[i]["vd"]}</th>
-                <th>{contents[i]["ve"]}</th>
-                <th>{contents[i]["vk"]}</th>
+                <td>{_button}</td>
+                <td>{contents[i]["name"]}</td>
+                <td><input type="text" size={4} value={_amount}
+                    onChange={(evt: any) => {
+                        setTmpCombinationContents(evt.target.name, parseFloat("0" + evt.target.value))
+                    }}
+                    id={"MTamount_" + i} name={String(contents[i]["id"])} pattern="[0-9|.]{6}" /></td>
+                <td>{contents[i]["cost"] * _unit}</td>
+                <td>{contents[i]["kcal"] * _unit}</td>
+                <td>{contents[i]["carbo"] * _unit}</td>
+                <td>{contents[i]["protein"] * _unit}</td>
+                <td>{contents[i]["fat"] * _unit}</td>
+                <td>{contents[i]["saturated_fat"] * _unit}</td>
+                <td>{contents[i]["n3"] * _unit}</td>
+                <td>{contents[i]["DHA_EPA"] * _unit}</td>
+                <td>{contents[i]["n6"] * _unit}</td>
+                <td>{contents[i]["fiber"] * _unit}</td>
+                <td>{contents[i]["colin"] * _unit}</td>
+                <td>{contents[i]["ca"] * _unit}</td>
+                <td>{contents[i]["cl"] * _unit}</td>
+                <td>{contents[i]["cr"] * _unit}</td>
+                <td>{contents[i]["cu"] * _unit}</td>
+                <td>{contents[i]["i"] * _unit}</td>
+                <td>{contents[i]["fe"] * _unit}</td>
+                <td>{contents[i]["mg"] * _unit}</td>
+                <td>{contents[i]["mn"] * _unit}</td>
+                <td>{contents[i]["mo"] * _unit}</td>
+                <td>{contents[i]["p"] * _unit}</td>
+                <td>{contents[i]["k"] * _unit}</td>
+                <td>{contents[i]["se"] * _unit}</td>
+                <td>{contents[i]["na"] * _unit}</td>
+                <td>{contents[i]["zn"] * _unit}</td>
+                <td>{contents[i]["va"] * _unit}</td>
+                <td>{contents[i]["vb1"] * _unit}</td>
+                <td>{contents[i]["vb2"] * _unit}</td>
+                <td>{contents[i]["vb3"] * _unit}</td>
+                <td>{contents[i]["vb5"] * _unit}</td>
+                <td>{contents[i]["vb6"] * _unit}</td>
+                <td>{contents[i]["vb7"] * _unit}</td>
+                <td>{contents[i]["vb9"] * _unit}</td>
+                <td>{contents[i]["vb12"] * _unit}</td>
+                <td>{contents[i]["vc"] * _unit}</td>
+                <td>{contents[i]["vd"] * _unit}</td>
+                <td>{contents[i]["ve"] * _unit}</td>
+                <td>{contents[i]["vk"] * _unit}</td>
             </tr>
         )
 

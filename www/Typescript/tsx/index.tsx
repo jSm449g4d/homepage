@@ -29,6 +29,6 @@ import("./application/" + _application).then(async (module) => {
         const appMain = createRoot(document.getElementById("appMain"))
         appMain.render(<Provider store={store}><module.AppMain /></Provider>)
         const titlelogo = createRoot(document.getElementById("titlelogo"))
-        titlelogo.render(<module.titleLogo />)
+        titlelogo.render(<Provider store={store}><module.titleLogo /></Provider>)
     }, 100);
 })

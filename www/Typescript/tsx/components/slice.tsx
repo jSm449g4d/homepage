@@ -26,6 +26,7 @@ export const tskbSlice = createSlice({
   name: 'tskb',
   initialState: {
     tableStatus: "",
+    reloadFlag: false,
     combination: {
       // "(id,name,tag,description,userid,user,passhash,timestamp,contents)"
       "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
@@ -36,7 +37,7 @@ export const tskbSlice = createSlice({
       //"unit,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
       //"ca,cl,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
       "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
-      "passhash": "", "timestamp": 0, "unit": "g", "cost": "0", "carbo": "0", "fiber": "0",
+      "passhash": "", "timestamp": 0, "unit": "100", "cost": "0", "carbo": "0", "fiber": "0",
       "protein": "0", "fat": "0", "saturated_fat": "0", "n3": "0", "DHA_EPA": "0", "n6": "0",
       "ca": "0", "cl": "0", "cr": "0", "cu": "0", "i": "0", "fe": "0", "mg": "0", "mn": "0",
       "mo": "0", "p": "0", "k": "0", "se": "0", "na": "0", "zn": "0", "va": "0",
@@ -49,6 +50,7 @@ export const tskbSlice = createSlice({
       if ("tableStatus" in action.payload) state.tableStatus = action.payload.tableStatus
       if ("combination" in action.payload) state.combination = action.payload.combination
       if ("material" in action.payload) state.material = action.payload.material
+      state.reloadFlag = false
     },
     startTable: (state, action: { payload: any }) => {
       if ("combination" in action.payload)
@@ -62,7 +64,7 @@ export const tskbSlice = createSlice({
         if (action.payload.material == null) {
           state.material = {
             "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
-            "passhash": "", "timestamp": 0, "unit": "g", "cost": "0", "carbo": "0", "fiber": "0",
+            "passhash": "", "timestamp": 0, "unit": "100", "cost": "0", "carbo": "0", "fiber": "0",
             "protein": "0", "fat": "0", "saturated_fat": "0", "n3": "0", "DHA_EPA": "0", "n6": "0",
             "ca": "0", "cl": "0", "cr": "0", "cu": "0", "i": "0", "fe": "0", "mg": "0", "mn": "0",
             "mo": "0", "p": "0", "k": "0", "se": "0", "na": "0", "zn": "0", "va": "0",
@@ -71,6 +73,7 @@ export const tskbSlice = createSlice({
           }
         } else state.material = action.payload.material
       if ("tableStatus" in action.payload) state.tableStatus = action.payload.tableStatus
+      state.reloadFlag = true
     },
   },
 })

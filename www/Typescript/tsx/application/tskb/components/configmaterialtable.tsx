@@ -36,14 +36,17 @@ export const CMTable = () => {
     const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
     const material = useAppSelector((state) => state.tskb.material)
+    const reloadFlag = useAppSelector((state) => state.tskb.reloadFlag)
     const AppDispatch = useAppDispatch()
     const xhrTimeout = 3000
     const xhrDelay = 100
 
 
     useEffect(() => {
+        if (reloadFlag == false) return
+        AppDispatch(tskbSetState({}));
         setTmpTargetId(-1)
-    }, [tableStatus, userId])
+    }, [reloadFlag])
     useEffect(() => {
         if (tableStatus == "CMTable") setTmpMaterial(material)
     }, [material])
@@ -114,7 +117,7 @@ export const CMTable = () => {
                 switch (resJ["message"]) {
                     case "processed":
                         HIModal("登録完了")
-                        AppDispatch(tskbSetState({ material: resJ["material"] }));
+                        AppDispatch(startTable({ tableStatus: "MTable", material: resJ["material"] }));
                         break;
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]);
@@ -143,7 +146,7 @@ export const CMTable = () => {
             .then(resJ => {
                 switch (resJ["message"]) {
                     case "processed":
-                        AppDispatch(tskbSetState({ tableStatus: "MTable" })); break;
+                        AppDispatch(startTable({ tableStatus: "MTable" })); break;
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]);
                         searchCombination(); break;
@@ -195,10 +198,15 @@ export const CMTable = () => {
                         onClick={() => { reSetTmpMaterialDict(["name"]) }}>
                         <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                     </button>
-                    <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial["name"]}
-                        placeholder='素材名を入力してください'
-                        onChange={(evt: any) => { setTmpMaterialDict("name", evt.target.value) }}>
-                    </input >
+                    {tmpMaterial["userid"] == userId || tmpMaterial["userid"] == -1 ?
+                        <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial["name"]}
+                            placeholder='素材名を入力してください'
+                            onChange={(evt: any) => { setTmpMaterialDict("name", evt.target.value) }}>
+                        </input > :
+                        <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial["name"]}
+                            disabled >
+                        </input >
+                    }
                 </div></div>)
     }
     const bottomForm = () => {
@@ -216,40 +224,40 @@ export const CMTable = () => {
                         onChange={(evt: any) => { setTmpMaterialDict("description", evt.target.value) }}
                         id="CMTdescriptionForm" />
                 </div>
-                <div className="d-flex justify-content-between align-items-center my-1">
-                    {tmpMaterial["passhash"] == "" ?
-                        <button className="btn btn-outline-warning btn-lg" type="button"
-                            onClick={() => { setTmpMaterialDict("passhash", "0") }}>
-                            <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
-                            公開&nbsp;&nbsp;
-                        </button> :
-                        <button className="btn btn-warning btn-lg" type="button"
-                            onClick={() => { setTmpMaterialDict("passhash", "") }}>
-                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
-                            非公開
-                        </button>
-                    }
-                    {tmpMaterial["name"] == "" ?
-                        <button className="btn btn-outline-primary btn-lg" type="button" disabled>
-                            <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
-                            素材名を入力してください
-                        </button> :
-                        <div>
-                            {material["id"] == -1 ?
-                                <button className="btn btn-outline-primary btn-lg" type="button"
-                                    onClick={() => { registerMaterial() }}>
-                                    <i className="fa-solid fa-lemon mx-1" style={{ pointerEvents: "none" }} />
-                                    登録
-                                </button> :
-                                <button className="btn btn-outline-success btn-lg" type="button"
-                                    onClick={() => { registerMaterial() }}>
-                                    <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
-                                    更新
-                                </button>
-                            }
-                        </div>
-                    }
-                    {material["userid"] == userId ?
+                {tmpMaterial["userid"] == userId || tmpMaterial["userid"] == -1 ?
+                    <div className="d-flex justify-content-between align-items-center my-1">
+                        {tmpMaterial["passhash"] == "" ?
+                            <button className="btn btn-outline-warning btn-lg" type="button"
+                                onClick={() => { setTmpMaterialDict("passhash", "0") }}>
+                                <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
+                                公開&nbsp;&nbsp;
+                            </button> :
+                            <button className="btn btn-warning btn-lg" type="button"
+                                onClick={() => { setTmpMaterialDict("passhash", "") }}>
+                                <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
+                                非公開
+                            </button>
+                        }
+                        {tmpMaterial["name"] == "" ?
+                            <button className="btn btn-outline-primary btn-lg" type="button" disabled>
+                                <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
+                                素材名を入力してください
+                            </button> :
+                            <div>
+                                {material["id"] == -1 ?
+                                    <button className="btn btn-outline-primary btn-lg" type="button"
+                                        onClick={() => { registerMaterial() }}>
+                                        <i className="fa-solid fa-lemon mx-1" style={{ pointerEvents: "none" }} />
+                                        登録
+                                    </button> :
+                                    <button className="btn btn-outline-success btn-lg" type="button"
+                                        onClick={() => { registerMaterial() }}>
+                                        <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
+                                        更新
+                                    </button>
+                                }
+                            </div>
+                        }
                         <div>
                             {tmpMaterial["name"] == "" ?
                                 <button className="btn btn-outline-info btn-lg" type="button"
@@ -259,21 +267,31 @@ export const CMTable = () => {
                                 <button className="btn btn-outline-danger btn-lg" type="button"
                                     onClick={() => { $("#CMTMaterialDeleteModal").modal('show') }}>
                                     <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>素材破棄
-                                </button>}</div> :
-                        <div>
-                            {material["userid"] == -1 ?
-                                <button className="btn btn-outline-info btn-lg" type="button"
-                                    onClick={() => { HIModal("ログインが必要") }}>
-                                    <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>素材破棄
-                                </button> :
-                                <button className="btn btn-outline-info btn-lg" type="button"
-                                    onClick={() => { HIModal("素材破棄は作成者にしかできません") }}>
-                                    <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>素材破棄
-                                </button>
-                            }
+                                </button>}
                         </div>
-                    }
-                </div>
+                    </div> :
+                    <div className="d-flex justify-content-between align-items-center my-1">
+                        {tmpMaterial["passhash"] == "" ?
+                            <button className="btn btn-outline-warning btn-lg" type="button" disabled>
+                                <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
+                                公開&nbsp;&nbsp;
+                            </button> :
+                            <button className="btn btn-warning btn-lg" type="button" disabled>
+                                <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
+                                非公開
+                            </button>
+                        }
+                        <button className="btn btn-outline-info btn-lg" type="button"
+                            onClick={() => { HIModal("作成者のみ許可された操作") }}>
+                            <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
+                            更新
+                        </button>
+                        <button className="btn btn-outline-info btn-lg" type="button"
+                            onClick={() => { HIModal("作成者のみ許可された操作") }}>
+                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>素材破棄
+                        </button>
+                    </div>
+                }
             </div>)
     }
     const _tmpTable = (
@@ -282,6 +300,14 @@ export const CMTable = () => {
                 <tbody>
                     <tr>
                         <th scope="col"><h4>基本</h4></th>
+                        <th scope="col">単位数量<br />
+                            <i className="text-info fa-solid fa-circle-question"
+                                onClick={() => {
+                                    HIModal("単位となる数量", "基本的に素材100[g]当たりの栄養価\n" +
+                                        "サプリ等は1[個]当たりの栄養価")
+                                }}>
+                            </i>
+                        </th>
                         <th scope="col">単価<br />円</th>
                         <th scope="col">熱量<br />kcal</th>
                         <th scope="col">炭水化物<br />g</th>
@@ -289,23 +315,25 @@ export const CMTable = () => {
                         <th scope="col">脂質<br />g</th>
                     </tr>
                     <tr>
-                        <th><button className="btn btn-success" type="button"
+                        <td><button className="btn btn-success" type="button"
                             onClick={() => {
                                 reSetTmpMaterialDict(
-                                    ["cost", "kcal", "carbo", "protein", "fat"])
+                                    ["unit", "cost", "kcal", "carbo", "protein", "fat"])
                             }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
-                        </button></th>
-                        <th><input type="text" size={4} value={tmpMaterial["cost"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("cost", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["kcal"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("kcal", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["carbo"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("carbo", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["protein"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("protein", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["fat"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("fat", evt.target.value) }} /></th>
+                        </button></td>
+                        <td><input type="text" size={4} value={tmpMaterial["unit"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("unit", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["cost"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("cost", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["kcal"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("kcal", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["carbo"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("carbo", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["protein"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("protein", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["fat"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("fat", evt.target.value) }} /></td>
                     </tr>
                     <tr>
                         <th scope="col"><h4>詳細</h4></th>
@@ -317,25 +345,25 @@ export const CMTable = () => {
                         <th scope="col">コリン<br />mg</th>
                     </tr>
                     <tr>
-                        <th><button className="btn btn-success" type="button"
+                        <td><button className="btn btn-success" type="button"
                             onClick={() => {
                                 reSetTmpMaterialDict(
                                     ["fiber", "colin", "saturated_fat", "n3", "DHA_EPA", "n6"])
                             }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
-                        </button></th>
-                        <th><input type="text" size={4} value={tmpMaterial["saturated_fat"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("saturated_fat", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["n3"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("n3", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["DHA_EPA"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("DHA_EPA", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["n6"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("n6", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["fiber"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("fiber", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["colin"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("colin", evt.target.value) }} /></th>
+                        </button></td>
+                        <td><input type="text" size={4} value={tmpMaterial["saturated_fat"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("saturated_fat", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["n3"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("n3", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["DHA_EPA"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("DHA_EPA", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["n6"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("n6", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["fiber"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("fiber", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["colin"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("colin", evt.target.value) }} /></td>
                     </tr>
                     <tr>
                         <th scope="col"><h4>ミネラル</h4></th>
@@ -355,41 +383,41 @@ export const CMTable = () => {
                         <th scope="col">亜鉛<br />mg</th>
                     </tr>
                     <tr>
-                        <th><button className="btn btn-success" type="button"
+                        <td><button className="btn btn-success" type="button"
                             onClick={() => {
                                 reSetTmpMaterialDict(
                                     ["ca", "cl", "cr", "cu", "i", "fe", "mg", "mn", "mo", "p", "ca", "se", "na", "zn"])
                             }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
-                        </button></th>
-                        <th><input type="text" size={4} value={tmpMaterial["ca"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("ca", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["cl"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("cl", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["cr"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("cr", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["cu"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("cu", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["i"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("i", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["fe"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("fe", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["mg"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("mg", evt.target.value) }} />
-                        </th><th><input type="text" size={4} value={tmpMaterial["mn"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("mn", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["mo"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("mo", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["p"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("p", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["ca"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("ca", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["se"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("se", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["na"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("na", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["zn"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("zn", evt.target.value) }} /></th>
+                        </button></td>
+                        <td><input type="text" size={4} value={tmpMaterial["ca"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("ca", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["cl"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("cl", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["cr"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("cr", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["cu"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("cu", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["i"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("i", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["fe"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("fe", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["mg"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("mg", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["mn"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("mn", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["mo"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("mo", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["p"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("p", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["ca"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("ca", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["se"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("se", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["na"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("na", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["zn"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("zn", evt.target.value) }} /></td>
                     </tr>
                     <tr>
                         <th scope="col"><h4>ビタミン</h4></th>
@@ -408,39 +436,39 @@ export const CMTable = () => {
                         <th scope="col">VK<br />μg</th>
                     </tr>
                     <tr>
-                        <th><button className="btn btn-success" type="button"
+                        <td><button className="btn btn-success" type="button"
                             onClick={() => {
                                 reSetTmpMaterialDict(
                                     ["va", "vb1", "vb2", "vb3", "vb5", "vb6", "vb7", "vb9", "vb12", "vc", "vd", "ve", "vk"])
                             }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
-                        </button></th>
-                        <th><input type="text" size={4} value={tmpMaterial["va"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("va", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vb1"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vb2"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb2", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vb3"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb3", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vb5"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb5", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vb6"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb6", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vb7"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb7", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vb9"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb9", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vb12"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb12", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vc"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vc", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vd"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vd", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["ve"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("ve", evt.target.value) }} /></th>
-                        <th><input type="text" size={4} value={tmpMaterial["vk"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vk", evt.target.value) }} /></th>
+                        </button></td>
+                        <td><input type="text" size={4} value={tmpMaterial["va"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("va", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["vb1"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("vb", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["vb2"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("vb2", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["vb3"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("vb3", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["vb5"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("vb5", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["vb6"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("vb6", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["vb7"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("vb7", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["vb9"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("vb9", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["vb12"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("vb12", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["vc"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("vc", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["vd"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("vd", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["ve"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("ve", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={tmpMaterial["vk"]}
+                            onChange={(evt: any) => { setTmpMaterialDict("vk", evt.target.value) }} /></td>
                     </tr>
                 </tbody>
             </table>
