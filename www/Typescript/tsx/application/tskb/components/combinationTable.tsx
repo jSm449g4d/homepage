@@ -25,7 +25,6 @@ export const CTable = () => {
 
 
     useEffect(() => {
-        if (reloadFlag == false) return
         if (tableStatus == "CTable") setTimeout(() => searchCombination(), xhrDelay)
         initTmps()
     }, [reloadFlag])

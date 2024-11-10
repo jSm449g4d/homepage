@@ -74,7 +74,7 @@ export const AppMain = () => {
                         <div className="btn-col" style={{ background: "rgba(255,255,255,0.6)" }}>
                             <a className="a-nolink" href='/?application=tskb/main' >
                                 <div className="d-flex flex-column" style={{ height: "380px" }}>
-                                    <h5>栄養計算アプリ(β版)</h5>
+                                    <h5>栄養計算アプリ(α版)</h5>
                                     <div className="d-flex flex-column flex-grow-1">
                                         <img className="img-fluid" src="/static/img/tskbtitle.png" style={{ height: 150, objectFit: "contain" }} />
                                         データが更新されなかったら<br />緑色のリロードボタンを押してください

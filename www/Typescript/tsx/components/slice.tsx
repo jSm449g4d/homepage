@@ -26,7 +26,7 @@ export const tskbSlice = createSlice({
   name: 'tskb',
   initialState: {
     tableStatus: "",
-    reloadFlag: false,
+    reloadFlag: 0,
     combination: {
       // "(id,name,tag,description,userid,user,passhash,timestamp,contents)"
       "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
@@ -50,7 +50,6 @@ export const tskbSlice = createSlice({
       if ("tableStatus" in action.payload) state.tableStatus = action.payload.tableStatus
       if ("combination" in action.payload) state.combination = action.payload.combination
       if ("material" in action.payload) state.material = action.payload.material
-      state.reloadFlag = false
     },
     startTable: (state, action: { payload: any }) => {
       if ("combination" in action.payload)
@@ -73,7 +72,7 @@ export const tskbSlice = createSlice({
           }
         } else state.material = action.payload.material
       if ("tableStatus" in action.payload) state.tableStatus = action.payload.tableStatus
-      state.reloadFlag = true
+      state.reloadFlag++
     },
   },
 })

@@ -24,7 +24,6 @@ export const EMTable = () => {
 
 
     useEffect(() => {
-        if (reloadFlag == false) return
         AppDispatch(tskbSetState({}));
         if (tableStatus == "MTable") setTimeout(() => exploreMaterial(), xhrDelay)
         if (tableStatus == "CMTable") setTimeout(() => exploreMaterial(), xhrDelay)
