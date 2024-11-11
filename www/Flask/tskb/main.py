@@ -82,56 +82,6 @@ with closing(sqlite3.connect(db_dir)) as conn:
     )
     conn.commit()
 
-_nutrition_empty = {
-    "id": -1,
-    "name": "",
-    "tag": "",
-    "description": "",
-    "userid": -1,
-    "user": "",
-    "passhash": "",
-    "timestamp": 0,
-    "unit": 0,
-    "cost": 0,
-    "carbo": 0,
-    "fiber": 0,
-    "protein": 0,
-    "fat": 0,
-    "saturated_fat": 0,
-    "n3": 0,
-    "DHA_EPA": 0,
-    "n6": 0,
-    "ca": 0,
-    "cl": 0,
-    "cr": 0,
-    "cu": 0,
-    "i": 0,
-    "fe": 0,
-    "mg": 0,
-    "mn": 0,
-    "mo": 0,
-    "p": 0,
-    "k": 0,
-    "se": 0,
-    "na": 0,
-    "zn": 0,
-    "va": 0,
-    "vb1": 0,
-    "vb2": 0,
-    "vb3": 0,
-    "vb5": 0,
-    "vb6": 0,
-    "vb7": 0,
-    "vb9": 0,
-    "vb12": 0,
-    "vc": 0,
-    "vd": 0,
-    "ve": 0,
-    "vk": 0,
-    "colin": 0,
-    "kcal": 0,
-}
-
 
 def isfloat(_s):
     try:
@@ -269,22 +219,18 @@ def show(request):
                 return json.dumps(
                     {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
                 )
-            _material = _dataDict["material"]
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
-                _materialid = _material["id"]
-                _timestamp = _material["timestamp"]
                 # process start
                 # register material
-                if _materialid == -1:
-                    _timestamp = int(time.time())
-                    cur.execute(
-                        "SELECT * FROM tskb_material WHERE name = ?;",
-                        [_material["name"]],
-                    )
-                    _Cmaterial = cur.fetchone()
-                    if _Cmaterial != None:
+                cur.execute(
+                    "SELECT * FROM tskb_material WHERE name = ?;",
+                    [_dataDict["material"]["name"]],
+                )
+                _material = cur.fetchone()
+                if _dataDict["material"]["id"] == -1:
+                    if _material != None:
                         return json.dumps(
                             {"message": "alreadyExisted", "text": "既存の名前"}
                         )
@@ -293,37 +239,38 @@ def show(request):
                         "(name,tag,description,userid,user,passhash,timestamp) "
                         "values(?,?,?,?,?,?,?)",
                         [
-                            _material["name"],
+                            _dataDict["material"]["name"],
                             ",".join([]),
-                            _material["description"],
+                            _dataDict["material"]["description"],
                             token["id"],
                             _dataDict["user"],
-                            _material["passhash"],
-                            _timestamp,
+                            _dataDict["material"]["passhash"],
+                            0,
                         ],
                     )
                     conn.commit()
                     cur.execute(
-                        "SELECT * FROM tskb_material WHERE userid = ? AND timestamp = ?;",
-                        [token["id"], _timestamp],
+                        "SELECT * FROM tskb_material WHERE ROWID = last_insert_rowid();",
+                        [],
                     )
-                    _Cmaterial = cur.fetchone()
-                    _materialid = _Cmaterial["id"]
+                    _material = cur.fetchone()
                 # update material
-                cur.execute(
-                    "SELECT * FROM tskb_material WHERE id = ?;",
-                    [_materialid],
-                )
-                _Cmaterial = cur.fetchone()
-                if _Cmaterial == None:
+                if _material == None:
                     return json.dumps(
-                        {"message": "notExist", "text": "素材不明"}, ensure_ascii=False
+                        {"message": "notExist", "text": "素材不明"},
+                        ensure_ascii=False,
                     )
-                if _Cmaterial["userid"] != token["id"]:
+                if _material["userid"] != token["id"]:
                     return json.dumps(
                         {"message": "wrongPass", "text": "アクセス拒否"},
                         ensure_ascii=False,
                     )
+                _material = dict(_material)
+                _userid = _material["id"]
+                _material.update(_dataDict["material"])
+                if _dataDict["material"]["id"] == -1:
+                    _material["id"] = _userid
+                    _material["timestamp"] = int(time.time())
                 if isfloat(_material["unit"]) < 1:
                     _material["unit"] = 1
                 cur.execute(
@@ -342,7 +289,7 @@ def show(request):
                         token["id"],
                         _dataDict["user"],
                         _material["passhash"],
-                        _timestamp,
+                        _material["timestamp"],
                         isfloat(_material["unit"]),
                         isfloat(_material["cost"]),
                         isfloat(_material["carbo"]),
@@ -382,17 +329,17 @@ def show(request):
                         isfloat(_material["vk"]),
                         isfloat(_material["colin"]),
                         isfloat(_material["kcal"]),
-                        _Cmaterial["id"],
+                        _material["id"],
                     ],
                 )
                 conn.commit()
                 cur.execute(
                     "SELECT * FROM tskb_material WHERE id = ?;",
-                    [_materialid],
+                    [_material["id"]],
                 )
-                _Cmaterial = cur.fetchone()
+                _material = cur.fetchone()
                 return json.dumps(
-                    {"message": "processed", "material": dict(_Cmaterial)},
+                    {"message": "processed", "material": dict(_material)},
                     ensure_ascii=False,
                 )
             return json.dumps({"message": "rejected", "text": "不明なエラー"})
@@ -408,7 +355,6 @@ def show(request):
                 for _updata_dicts in _updata_dicts:
                     conn.row_factory = sqlite3.Row
                     cur = conn.cursor()
-                    _dict = _nutrition_empty.copy()
                     # make record
                     cur.execute(
                         "SELECT * FROM tskb_material WHERE name = ?;",

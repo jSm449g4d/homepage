@@ -17,9 +17,10 @@ export const CMTable = () => {
         "vb1": "", "vb2": "", "vb3": "", "vb5": "", "vb6": "", "vb7": "", "vb9": "",
         "vb12": "", "vc": "", "vd": "", "ve": "", "vk": "", "colin": "", "kcal": "",
     })
-    const setTmpMaterialDict = (_key: string, _value: any) => {
+    const setTmpMaterialDict = (_key: string, _value: any, _p = "") => {
         let _copy = JSON.parse(JSON.stringify(tmpMaterial))
-        _copy[_key] = _value
+        if (_p == "float") { _copy[_key] = String(_value).replace(/[^0-9|.]/g, '') }
+        else _copy[_key] = _value
         setTmpMaterial(_copy)
     }
     const reSetTmpMaterialDict = (_keys: any[]) => {
@@ -320,18 +321,18 @@ export const CMTable = () => {
                             }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button></td>
-                        <td><input type="text" size={4} value={tmpMaterial["unit"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("unit", evt.target.value) }} /></td>
+                        <td><input type="text" size={4} value={parseFloat("0" + tmpMaterial["unit"])}
+                            onChange={(evt: any) => { setTmpMaterialDict("unit", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["cost"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("cost", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("cost", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["kcal"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("kcal", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("kcal", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["carbo"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("carbo", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("carbo", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["protein"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("protein", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("protein", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["fat"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("fat", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("fat", evt.target.value, "float") }} /></td>
                     </tr>
                     <tr>
                         <th scope="col"><h4>詳細</h4></th>
@@ -351,17 +352,17 @@ export const CMTable = () => {
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button></td>
                         <td><input type="text" size={4} value={tmpMaterial["saturated_fat"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("saturated_fat", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("saturated_fat", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["n3"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("n3", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("n3", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["DHA_EPA"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("DHA_EPA", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("DHA_EPA", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["n6"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("n6", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("n6", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["fiber"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("fiber", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("fiber", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["colin"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("colin", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("colin", evt.target.value, "float") }} /></td>
                     </tr>
                     <tr>
                         <th scope="col"><h4>ミネラル</h4></th>
@@ -389,33 +390,33 @@ export const CMTable = () => {
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button></td>
                         <td><input type="text" size={4} value={tmpMaterial["ca"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("ca", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("ca", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["cl"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("cl", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("cl", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["cr"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("cr", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("cr", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["cu"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("cu", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("cu", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["i"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("i", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("i", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["fe"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("fe", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("fe", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["mg"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("mg", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("mg", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["mn"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("mn", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("mn", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["mo"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("mo", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("mo", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["p"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("p", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("p", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["ca"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("ca", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("ca", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["se"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("se", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("se", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["na"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("na", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("na", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["zn"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("zn", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("zn", evt.target.value, "float") }} /></td>
                     </tr>
                     <tr>
                         <th scope="col"><h4>ビタミン</h4></th>
@@ -442,31 +443,31 @@ export const CMTable = () => {
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button></td>
                         <td><input type="text" size={4} value={tmpMaterial["va"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("va", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("va", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["vb1"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("vb", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["vb2"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb2", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("vb2", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["vb3"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb3", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("vb3", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["vb5"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb5", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("vb5", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["vb6"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb6", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("vb6", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["vb7"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb7", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("vb7", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["vb9"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb9", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("vb9", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["vb12"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb12", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("vb12", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["vc"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vc", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("vc", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["vd"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vd", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("vd", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["ve"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("ve", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("ve", evt.target.value, "float") }} /></td>
                         <td><input type="text" size={4} value={tmpMaterial["vk"]}
-                            onChange={(evt: any) => { setTmpMaterialDict("vk", evt.target.value) }} /></td>
+                            onChange={(evt: any) => { setTmpMaterialDict("vk", evt.target.value, "float") }} /></td>
                     </tr>
                 </tbody>
             </table>

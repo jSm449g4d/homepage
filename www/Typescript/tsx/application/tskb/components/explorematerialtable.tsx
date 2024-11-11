@@ -159,10 +159,12 @@ export const EMTable = () => {
                             </h4>
                         </div>
                         <div className="modal-body">
+                            <div>
+                                json形式{"[{'name': '素材名', ...}, {}, ... {}]"}<br />
+                                各素材はのレコードはnameがキーになってます<br />
+                                処理的にはpython3のjson.dumpsとjson.loadsを使用してます<br />
+                            </div>
                             <div className="input-group">
-                                json形式{"[{'name': '素材名', ...}, {}, ... {}]"}<br/>
-                                各素材はのレコードはnameがキーになってます<br/>
-                                処理的にはpython3のjson.dumpsとjson.loadsを使用してます<br/>
                                 <input type="file" className="form-control" placeholder="attachment file"
                                     onChange={(evt) => { setTmpAttachment(evt.target.files[0]) }} />
                                 <button className="btn btn-warning" type="button"
