@@ -10,6 +10,7 @@ import { string } from 'prop-types';
 export const EMTable = () => {
     const [contents, setContents] = useState([])
     const [tmpMaterial, setTmpeMaterial] = useState("")
+    const [tmpAttachment, setTmpAttachment] = useState(null)
 
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
@@ -21,13 +22,14 @@ export const EMTable = () => {
     const AppDispatch = useAppDispatch()
     const xhrTimeout = 3000
     const xhrDelay = 100
+    const fileSizeMax = 1024 * 1024 * 10
 
 
     useEffect(() => {
-        AppDispatch(tskbSetState({}));
         if (tableStatus == "MTable") setTimeout(() => exploreMaterial(), xhrDelay)
         if (tableStatus == "CMTable") setTimeout(() => exploreMaterial(), xhrDelay)
         setTmpeMaterial("")
+        setTmpAttachment(null);
     }, [reloadFlag])
 
     const stringForSend = (_additionalDict: {} = {}) => {
@@ -104,7 +106,80 @@ export const EMTable = () => {
                 console.error(error.message)
             });
     }
+    const updataMaterial = () => {
+        if (tmpAttachment == null) return
+        if (fileSizeMax <= tmpAttachment.size) {
+            CIModal("ファイルサイズが大きすぎます", String(fileSizeMax) + " byte未満")
+            return
+        }
+        HIModal("アップロード中です", "時間がかかりますのでお待ちください");
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("updata", tmpAttachment, tmpAttachment.name)
+        const request = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout * 10)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed":
+                        {
+                            HIModal("ファイルアップロード成功");
+                            setTmpAttachment(null)
+                            AppDispatch(startTable({ "tableStatus": "MTable" }))
+                        }
+                        break;
+                    default: {
+                        setTmpAttachment(null)
+                        if ("text" in resJ) CIModal(resJ["text"]); break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                setTmpAttachment(null)
+                console.error(error.message)
+            });
+    }
     // modal
+    const EMTUpdataModal = () => {
+        return (
+            <div className="modal fade" id="EMTUpdataModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h4 className="modal-title">
+                                <i className="fa-solid fa-arrow-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
+                                データセット提出
+                            </h4>
+                        </div>
+                        <div className="modal-body">
+                            <div className="input-group">
+                                json形式{"[{'name': '素材名', ...}, {}, ... {}]"}<br/>
+                                各素材はのレコードはnameがキーになってます<br/>
+                                処理的にはpython3のjson.dumpsとjson.loadsを使用してます<br/>
+                                <input type="file" className="form-control" placeholder="attachment file"
+                                    onChange={(evt) => { setTmpAttachment(evt.target.files[0]) }} />
+                                <button className="btn btn-warning" type="button"
+                                    onClick={() => updataMaterial()}>
+                                    <i className="fa-solid fa-arrow-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
+                                    提出
+                                </button>
+                            </div>
+                        </div>
+                        <div className="modal-footer d-flex">
+                            <button type="button" className="btn btn-secondary me-auto" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
     // app
     const topForm = () => {
         return (<div>
@@ -132,6 +207,19 @@ export const EMTable = () => {
                     <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial}
                         placeholder="検索文字列"
                         onChange={(evt: any) => setTmpeMaterial(evt.target.value)} />
+                </div>
+                <div className="d-flex justify-content-between align-items-center my-1">
+                    {token == "" ?
+                        <button className="btn btn-outline-dark btn-sm" type="button" disabled>
+                            <i className="fa-solid fa-arrow-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
+                            データセット提出<br />※管理者用機能
+                        </button> :
+                        <button className="btn btn-outline-warning btn-sm" type="button"
+                            onClick={() => $("#EMTUpdataModal").modal("show")}>
+                            <i className="fa-solid fa-arrow-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
+                            データセット提出<br />※管理者用機能
+                        </button>
+                    }
                     {token == "" ?
                         <button className="btn btn-outline-primary btn-lg" type="button" disabled >
                             + 新規作成
@@ -142,7 +230,8 @@ export const EMTable = () => {
                             } >
                             + 新規作成
                         </button>}
-                </div></div></div>)
+                </div>
+            </div></div>)
     }
     // if contents dont have enough element for example contents hold chat_data ,table need break
     if (0 < contents.length)
@@ -214,6 +303,7 @@ export const EMTable = () => {
             border: "3px double silver",
             background: "linear-gradient(45deg,rgba(240,150,110,0.2), rgba(60,60,60,0.0))"
         }}>
+            {EMTUpdataModal()}
             {topForm()}
             <div className="row m-1">
                 {_tmpRecord}

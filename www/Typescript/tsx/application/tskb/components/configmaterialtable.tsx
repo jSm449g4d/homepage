@@ -43,7 +43,6 @@ export const CMTable = () => {
 
 
     useEffect(() => {
-        AppDispatch(tskbSetState({}));
         setTmpTargetId(-1)
     }, [reloadFlag])
     useEffect(() => {
