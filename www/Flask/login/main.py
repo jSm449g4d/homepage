@@ -7,6 +7,9 @@ import time
 import sys
 import os
 import flask
+import smtplib
+from email.mime.text import MIMEText
+from email.utils import formatdate
 
 FUNC_NAME = "login"
 
@@ -104,8 +107,8 @@ def show(request):
                 )
             return json.dumps({"message": "rejected"})
 
-        if "signin" in request.form:
-            _dataDict.update(json.loads(request.form["signin"]))
+        if "signup" in request.form:
+            _dataDict.update(json.loads(request.form["signup"]))
             passhash = hashlib.sha256(_dataDict["pass"].encode()).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
@@ -200,6 +203,40 @@ def show(request):
                 conn.commit()
                 return json.dumps(
                     {"message": "processed"},
+                    ensure_ascii=False,
+                )
+            return json.dumps({"message": "rejected"})
+
+        # under construction
+        if "mailcertification" in request.form:
+            _dataDict.update(json.loads(request.form["login"]))
+            user = _dataDict["user"]
+            passhash = hashlib.sha256(_dataDict["pass"].encode()).hexdigest()
+            with closing(sqlite3.connect(db_dir)) as conn:
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                cur.execute("SELECT * FROM account WHERE user = ?;", [user])
+                _data = cur.fetchone()
+                if _data == None:
+                    return json.dumps({"message": "notExist"})
+                token = jwt.encode(
+                    {"id": _data["id"], "timestamp": int(time.time())},
+                    pyJWT_pass,
+                    algorithm="HS256",
+                )
+                _BODY="1. copy this JTWtoken ["+token+"]\n"
+                +"2. plz paste the JWTtoken certification modal"
+                mail = MIMEText(_BODY)
+                mail['To'] = _data["mail"]
+                mail['Date'] = formatdate()
+                smtpobj = smtplib.SMTP('smtp.gmail.com', 587)
+                smtpobj.ehlo()
+                smtpobj.starttls() 
+                smtpobj.ehlo()
+                return json.dumps(
+                    {
+                        "message": "processed",
+                    },
                     ensure_ascii=False,
                 )
             return json.dumps({"message": "rejected"})

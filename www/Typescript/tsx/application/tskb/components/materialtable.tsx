@@ -400,7 +400,8 @@ export const MTable = () => {
             for (let _key in _nutrition) {
                 _nutrition[_key] +=
                     parseFloat("0" + (contents[_i][_key]) *
-                        parseFloat("0" + _ccontents[contents[_i]["id"]]))
+                    parseFloat("0" + _ccontents[contents[_i]["id"]])) /
+                    parseFloat("0" + contents[_i]["unit"])
             }
         }
         _tmpRecord.push(
@@ -481,7 +482,7 @@ export const MTable = () => {
                     onChange={(evt: any) => {
                         setTmpCombinationContents(evt.target.name, parseFloat("0" + evt.target.value))
                     }}
-                    id={"MTamount_" + i} name={String(contents[i]["id"])} pattern="[0-9]{6}" /></td>
+                    id={"MTamount_" + i} name={String(contents[i]["id"])} /></td>
                 <td>{contents[i]["cost"] * _unit}</td>
                 <td>{contents[i]["kcal"] * _unit}</td>
                 <td>{contents[i]["carbo"] * _unit}</td>
