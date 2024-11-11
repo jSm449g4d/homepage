@@ -470,8 +470,23 @@ def show(request):
                             {"message": "alreadyExisted", "text": "既存です"},
                             ensure_ascii=False,
                         )
-
-                    _contents.update({_dataDict["add_material"]: 0})
+                    cur.execute(
+                        "SELECT * FROM tskb_material WHERE id = ?;",
+                        [_dataDict["add_material"]],
+                    )
+                    _Cmaterial = cur.fetchone()
+                    if _Cmaterial == None:
+                        return json.dumps(
+                            {"message": "notExist", "text": "素材不明"},
+                            ensure_ascii=False,
+                        )
+                    if _Ccombination["passhash"] != "":
+                        if _Cmaterial["userid"] != token["id"]:
+                            return json.dumps(
+                                {"message": "wrongPass", "text": "アクセス拒否"},
+                                ensure_ascii=False,
+                            )
+                    _contents.update({_dataDict["add_material"]: _Cmaterial["unit"]})
                 if "del_material" in _dataDict:
                     _contents.pop(_dataDict["del_material"])
                 cur.execute(

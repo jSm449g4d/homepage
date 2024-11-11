@@ -73,11 +73,11 @@ export const AppWidgetHead = () => {
             });
         _formInit()
     }
-    const _signin = () => {
+    const _signup = () => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("signin", JSON.stringify({}))
+        formData.append("signup", JSON.stringify({}))
         const request = new Request("/login/main.py", {
             method: 'POST',
             headers: headers,
@@ -186,14 +186,14 @@ export const AppWidgetHead = () => {
         _formInit()
     }
     const _accountForm = () => {
-        const accountSigninModal = () => {
+        const accountSignupModal = () => {
             return (
-                <div className="modal fade" id="accountSigninModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal fade" id="accountSignupModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-headerrow">
                                 <div className="modal-title d-flex m-2">
-                                    <h3 className="me-auto"><i className="fa-solid fa-pen text-primary mx-1" />SignIn</h3>
+                                    <h3 className="me-auto"><i className="fa-solid fa-pen text-primary mx-1" />SignUp</h3>
                                     <button className="btn btn-info" type="button" data-bs-dismiss="modal"
                                         onClick={() =>
                                             HIModal("開発中",
@@ -206,12 +206,12 @@ export const AppWidgetHead = () => {
                             <div className="modal-body">
                                 <div className="row">
                                     <div className="input-group col-12 m-1">
-                                        <span className="input-group-text" id="account-addon1">User</span>
+                                        <span className="input-group-text">User</span>
                                         <input type="text" className="form-control" placeholder="Username" aria-label="Username"
                                             value={tmpUser} onChange={(evt) => { setTmpUser(evt.target.value) }} />
                                     </div>
                                     <div className="input-group col-12 m-1">
-                                        <span className="input-group-text" id="account-addon2">Pass</span>
+                                        <span className="input-group-text">Pass</span>
                                         <input type="password" className="form-control" placeholder="pass" aria-label="pass"
                                             aria-labelledby="passwordHelpBlock"
                                             value={tmpPass} onChange={(evt) => { setTmpPass(evt.target.value) }} />
@@ -221,15 +221,15 @@ export const AppWidgetHead = () => {
                                             style={{ transform: "rotate(90deg)" }} disabled
                                             onChange={(evt: any) => {
                                                 if (evt.target.checked == true) {
-                                                    $('#accountSigninModalMail').prop("disabled", false)
+                                                    $('#accountSignupModalMail').prop("disabled", false)
                                                 } else {
-                                                    $('#accountSigninModalMail').prop("disabled", true)
+                                                    $('#accountSignupModalMail').prop("disabled", true)
                                                     setTmpMail("")
                                                 }
                                             }}>
                                         </input><input type="text" className="form-control" placeholder="Mailaddress"
                                             value={tmpMail} onChange={(evt) => { setTmpMail(evt.target.value) }}
-                                            disabled id="accountSigninModalMail" />
+                                            disabled id="accountSignupModalMail" />
                                     </div>
                                 </div>
                             </div>
@@ -245,7 +245,7 @@ export const AppWidgetHead = () => {
                                         <i className="fa-solid fa-circle-info mx-1" />登録
                                     </button> :
                                     <button type="button" className="btn btn-primary" data-bs-dismiss="modal"
-                                        onClick={() => _signin()}>
+                                        onClick={() => _signup()}>
                                         <i className="fa-solid fa-pen mx-1" style={{ pointerEvents: "none" }} />登録
                                     </button>
                                 }
@@ -364,7 +364,7 @@ export const AppWidgetHead = () => {
         }
         return (
             <div>
-                {accountSigninModal()}
+                {accountSignupModal()}
                 {accountConfigModal()}
                 {token == "" ?
                     <div className="d-flex">
@@ -390,8 +390,8 @@ export const AppWidgetHead = () => {
                         </div>
                         {tmpUser == "" && tmpPass == "" ?
                             <button className="btn btn-outline-primary" type="button" aria-expanded="false"
-                                onClick={() => { _formInit(); $('#accountSigninModal').modal('show'); }}>
-                                <i className="fa-solid fa-pen mx-1"></i>signIn
+                                onClick={() => { _formInit(); $('#accountSignupModal').modal('show'); }}>
+                                <i className="fa-solid fa-pen mx-1"></i>signUp
                             </button> :
                             <button className="btn btn-outline-success" type="button"
                                 aria-expanded="false" onClick={() => { _login(); }}>
