@@ -134,7 +134,10 @@ export const MTable = () => {
         formData.append("update", JSON.stringify({
             "combination": tmpCombination,
         }))
-        if (tmpAttachment != null) {
+        if (tmpAttachment == - 1) {
+            formData.append("delimage", JSON.stringify({}))
+        }
+        else if (tmpAttachment != null) {
             formData.append("upimage", tmpAttachment, tmpAttachment.name)
         }
         const request = new Request("/tskb/main.py", {
@@ -211,9 +214,9 @@ export const MTable = () => {
         fetch(request)
             .then(response => response.blob())
             .then(blob => {
+                //if (blob.type.indexOf("image") == -1) return
                 const _url = window.URL.createObjectURL(blob);
-                _url
-                $("#MTimage").attr({ "src": _url })
+                $("#MTimage").attr({ "src": _url });
                 $("#MTimage").css('visibility', '');
             })
             .catch(error => {
@@ -306,8 +309,8 @@ export const MTable = () => {
                 <div className="col-12 col-md-4 my-1">
                     <div className="d-flex justify-content-center">
                         {combination["userid"] == userId ?
-                            <div className="me-auto">
-                                {tmpAttachment == null ?
+                            <div>
+                                {tmpAttachment == null || tmpAttachment == -1?
                                     <div>
                                         <h4>画像のアップロード</h4>
                                         <input type="file" className="form-control"
@@ -319,22 +322,24 @@ export const MTable = () => {
                                                 _reader.onload = () => {
                                                     $("#MTimage").attr({ "src": _reader.result })
                                                     $("#MTimage").css('visibility', '');
+                                                    HIModal("画像登録", "更新してください")
                                                 };
                                                 _reader.readAsDataURL(evt.target.files[0])
                                             }} />
                                     </div> :
                                     <button className="btn btn-outline-danger" type="button"
                                         onClick={() => {
-                                            setTmpAttachment(null)
+                                            setTmpAttachment(-1)
                                             $("#MTimage").attr({ "src": "" })
                                             $("#MTimage").css('visibility', 'hidden');
+                                            HIModal("画像削除", "更新してください")
                                         }}>
                                         <i className=" fa-solid fa-xmark" style={{ pointerEvents: "none" }} />
                                     </button>
                                 }
                             </div> :
                             <div>
-                                {$("#MTimage").css("visibility") == "hidden" ?
+                                {tmpAttachment == null ?
                                     <h4>No Image</h4>
                                     : <div />
                                 }

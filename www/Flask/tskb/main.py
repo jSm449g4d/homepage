@@ -670,15 +670,17 @@ def show(request):
                     [_combination["id"]],
                 )
                 _Ccombination = cur.fetchone()
-                if "upimage" in request.files:
-                    request.files["upimage"].save(
-                        os.path.normpath(
-                            os.path.join(
-                                tmp_dir + "combination/",
-                                str(_Ccombination["id"]),
-                            )
-                        )
+                _target_dir = os.path.normpath(
+                    os.path.join(
+                        tmp_dir + "combination/",
+                        str(_Ccombination["id"]),
                     )
+                )
+                if "delimage" in request.form:
+                    if os.path.exists(_target_dir):
+                        os.remove(_target_dir)
+                if "upimage" in request.files:
+                    request.files["upimage"].save(_target_dir)
                 return json.dumps(
                     {"message": "processed", "combination": dict(_Ccombination)},
                     ensure_ascii=False,
@@ -709,7 +711,9 @@ def show(request):
                         )
                 # process start
                 _target_file = os.path.normpath(
-                    os.path.join(tmp_dir + "combination/", str(_dataDict["combination_id"]))
+                    os.path.join(
+                        tmp_dir + "combination/", str(_dataDict["combination_id"])
+                    )
                 )
                 if os.path.exists(_target_file):
                     return flask.send_file(
