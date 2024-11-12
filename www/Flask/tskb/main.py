@@ -2,7 +2,7 @@ import sqlite3
 import json
 import os
 import jwt
-import hashlib
+import glob
 import bleach
 import flask
 import sys
@@ -29,8 +29,9 @@ def get_response(_statusDict={"STATUS": "VALUE"}):
 
 
 # load setting
-tmp_dir = "./tmp/" + FUNC_NAME
-os.makedirs(tmp_dir, exist_ok=True)
+tmp_dir = "./tmp/" + FUNC_NAME + "/"
+os.makedirs(tmp_dir + "combination/", exist_ok=True)
+os.makedirs(tmp_dir + "material/", exist_ok=True)
 key_dir = "./keys/keys.json"
 db_dir = "./tmp/sqlite.db"
 pyJWT_pass = "test"
@@ -650,7 +651,6 @@ def show(request):
                         {"message": "wrongPass", "text": "アクセス拒否"},
                         ensure_ascii=False,
                     )
-                _contents = json.loads(_Ccombination["contents"])
                 cur.execute(
                     "UPDATE tskb_combination SET name = ?, description = ?,"
                     " userid = ?, user = ?, passhash = ? ,contents = ? WHERE id = ?;",
@@ -670,11 +670,55 @@ def show(request):
                     [_combination["id"]],
                 )
                 _Ccombination = cur.fetchone()
+                if "upimage" in request.files:
+                    request.files["upimage"].save(
+                        os.path.normpath(
+                            os.path.join(
+                                tmp_dir + "combination/",
+                                str(_Ccombination["id"]),
+                            )
+                        )
+                    )
                 return json.dumps(
                     {"message": "processed", "combination": dict(_Ccombination)},
                     ensure_ascii=False,
                 )
             return json.dumps({"message": "rejected"})
+
+        if "dlimage" in request.form:
+            _dataDict.update(json.loads(request.form["dlimage"]))
+            with closing(sqlite3.connect(db_dir)) as conn:
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                # duplication and roomKey check
+                cur.execute(
+                    "SELECT * FROM tskb_combination WHERE id = ?;",
+                    [_dataDict["combination_id"]],
+                )
+                _combination = cur.fetchone()
+                if _combination == None:
+                    return json.dumps(
+                        {"message": "notExist", "text": "レシピ不明"},
+                        ensure_ascii=False,
+                    )
+                if _combination["passhash"] != "":
+                    if _combination["id"] != token["id"]:
+                        return json.dumps(
+                            {"message": "wrongPass", "text": "アクセス拒否"},
+                            ensure_ascii=False,
+                        )
+                # process start
+                _target_file = os.path.normpath(
+                    os.path.join(tmp_dir + "combination/", str(_dataDict["combination_id"]))
+                )
+                if os.path.exists(_target_file):
+                    return flask.send_file(
+                        _target_file,
+                    )
+                return json.dumps(
+                    {"message": "notExist", "text": "ファイル無"}, ensure_ascii=False
+                )
+            return json.dumps({"message": "rejected"}, ensure_ascii=False)
 
         if "destroy" in request.form:
             _dataDict.update(json.loads(request.form["destroy"]))

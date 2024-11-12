@@ -4,7 +4,6 @@ import { HIModal, CIModal } from "../../../components/imodals";
 import { satisfyDictKeys, Unixtime2String } from "../../../components/util";
 import { accountSetState, tskbSetState, startTable } from '../../../components/slice'
 import { useAppSelector, useAppDispatch } from '../../../components/store'
-import { string } from 'prop-types';
 
 
 export const EMTable = () => {

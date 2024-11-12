@@ -8,6 +8,7 @@ import { useAppSelector, useAppDispatch } from '../../../components/store'
 
 export const MTable = () => {
     const [contents, setContents] = useState([])
+    const [tmpAttachment, setTmpAttachment] = useState(null)
     const [tmpCombination, setTmpCombination] = useState({
         "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
         "passhash": "", "timestamp": 0, "contents": "{}"
@@ -74,7 +75,9 @@ export const MTable = () => {
                     case "processed": {
                         AppDispatch(tskbSetState({ combination: resJ["combination"] }));
                         sortSetContents(resJ["materials"]);
-                        AppDispatch(accountSetState({ token: resJ["token"] })); break;
+                        AppDispatch(accountSetState({ token: resJ["token"] }));
+                        downloadImage();
+                        break;
                     }
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]);
@@ -131,6 +134,9 @@ export const MTable = () => {
         formData.append("update", JSON.stringify({
             "combination": tmpCombination,
         }))
+        if (tmpAttachment != null) {
+            formData.append("upimage", tmpAttachment, tmpAttachment.name)
+        }
         const request = new Request("/tskb/main.py", {
             method: 'POST',
             headers: headers,
@@ -191,11 +197,35 @@ export const MTable = () => {
                 console.error(error.message)
             });
     }
+    const downloadImage = () => {
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("dlimage", JSON.stringify({ "combination_id": combination["id"] }))
+        const request = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.blob())
+            .then(blob => {
+                const _url = window.URL.createObjectURL(blob);
+                _url
+                $("#MTimage").attr({ "src": _url })
+                $("#MTimage").css('visibility', '');
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
     const destroyCombination = () => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("destroy", JSON.stringify({ "combination_id": tmpCombination["id"] }))
+        formData.append("destroy", JSON.stringify({ "combination_id": combination["id"] }))
         const request = new Request("/tskb/main.py", {
             method: 'POST',
             headers: headers,
@@ -247,7 +277,7 @@ export const MTable = () => {
     // app
     const topForm = () => {
         return (
-            <div className="row">
+            <div className="row m-1">
                 <div className="col-12 my-1">
                     <div className="input-group d-flex justify-content-center align-items-center">
                         <button className="btn btn-outline-dark btn-lg" type="button"
@@ -274,8 +304,44 @@ export const MTable = () => {
                     </div>
                 </div>
                 <div className="col-12 col-md-4 my-1">
-                    <div className="d-flex justify-content-center align-items-center">
-                        {"画像(未実装)"}
+                    <div className="d-flex justify-content-center">
+                        {combination["userid"] == userId ?
+                            <div className="me-auto">
+                                {tmpAttachment == null ?
+                                    <div>
+                                        <h4>画像のアップロード</h4>
+                                        <input type="file" className="form-control"
+                                            accept="image/*" placeholder='画像のアップロード'
+                                            onChange={(evt) => {
+                                                setTmpAttachment(evt.target.files[0])
+                                                if (!evt.target.files[0]) return
+                                                var _reader = new FileReader()
+                                                _reader.onload = () => {
+                                                    $("#MTimage").attr({ "src": _reader.result })
+                                                    $("#MTimage").css('visibility', '');
+                                                };
+                                                _reader.readAsDataURL(evt.target.files[0])
+                                            }} />
+                                    </div> :
+                                    <button className="btn btn-outline-danger" type="button"
+                                        onClick={() => {
+                                            setTmpAttachment(null)
+                                            $("#MTimage").attr({ "src": "" })
+                                            $("#MTimage").css('visibility', 'hidden');
+                                        }}>
+                                        <i className=" fa-solid fa-xmark" style={{ pointerEvents: "none" }} />
+                                    </button>
+                                }
+                            </div> :
+                            <div>
+                                {$("#MTimage").css("visibility") == "hidden" ?
+                                    <h4>No Image</h4>
+                                    : <div />
+                                }
+                            </div>
+                        }
+                        <img className="img-fluid" src="" id="MTimage"
+                            style={{ height: 200, objectFit: "contain", visibility: "hidden" }} />
                     </div>
                 </div>
                 <div className="col-12 col-md-8 my-1">
@@ -284,7 +350,7 @@ export const MTable = () => {
                     </div>
                     <textarea className="form-control col-12 w-80" rows={3} value={combination["description"]}
                         onChange={(evt: any) => { setTmpCombinationDict("description", evt.target.value) }}
-                        id="CMTdescriptionForm" />
+                        style={{ resize: "none" }} />
                 </div>
             </div>)
     }
@@ -313,7 +379,7 @@ export const MTable = () => {
                             <div>
                                 <button className="btn btn-outline-success btn-lg" type="button"
                                     onClick={() => { updateCombination() }}>
-                                    <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
+                                    <i className="fa-solid fa-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
                                     更新
                                 </button>
                             </div>
@@ -336,7 +402,7 @@ export const MTable = () => {
                         }
                         <button className="btn btn-outline-info btn-lg" type="button"
                             onClick={() => { HIModal("作成者のみ許可された操作") }}>
-                            <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
+                            <i className="fa-solid fa-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
                             更新
                         </button>
                         <button className="btn btn-outline-info btn-lg" type="button"

@@ -1,5 +1,3 @@
-import { string } from "prop-types";
-
 // To prevent high freq access
 export class stopf5_tsx {
     last_timestamp: { [label: string]: number }
