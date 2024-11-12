@@ -3,7 +3,7 @@ import json
 import os
 import jwt
 import hashlib
-import html
+import bleach
 import flask
 import sys
 from contextlib import closing
@@ -226,7 +226,7 @@ def show(request):
                 # register material
                 cur.execute(
                     "SELECT * FROM tskb_material WHERE name = ?;",
-                    [_dataDict["material"]["name"]],
+                    [bleach.clean(_dataDict["material"]["name"], strip=True)],
                 )
                 _material = cur.fetchone()
                 if _dataDict["material"]["id"] == -1:
@@ -239,9 +239,11 @@ def show(request):
                         "(name,tag,description,userid,user,passhash,timestamp) "
                         "values(?,?,?,?,?,?,?)",
                         [
-                            _dataDict["material"]["name"],
+                            bleach.clean(_dataDict["material"]["name"], strip=True),
                             ",".join([]),
-                            _dataDict["material"]["description"],
+                            bleach.clean(
+                                _dataDict["material"]["description"], strip=True
+                            ),
                             token["id"],
                             _dataDict["user"],
                             _dataDict["material"]["passhash"],
@@ -284,8 +286,8 @@ def show(request):
                     "vb9 = ?,vb12 = ?,vc = ?,vd = ?,ve = ?,vk = ?,"
                     "colin = ?,kcal = ? WHERE id = ?;",
                     [
-                        _material["name"],
-                        _material["description"],
+                        bleach.clean(_material["name"], strip=True),
+                        bleach.clean(_material["description"], strip=True),
                         token["id"],
                         _dataDict["user"],
                         _material["passhash"],
@@ -358,7 +360,7 @@ def show(request):
                     # make record
                     cur.execute(
                         "SELECT * FROM tskb_material WHERE name = ?;",
-                        [_updata_dicts["name"]],
+                        [bleach.clean(_updata_dicts["name"], strip=True)],
                     )
                     _material = cur.fetchone()
                     if _material == None:
@@ -367,7 +369,7 @@ def show(request):
                             "(name,tag,userid,user,passhash,timestamp) "
                             "values(?,?,?,?,?,?)",
                             [
-                                _updata_dicts["name"],
+                                bleach.clean(_updata_dicts["name"], strip=True),
                                 ",".join([]),
                                 token["id"],
                                 _dataDict["user"],
@@ -399,8 +401,8 @@ def show(request):
                         "vb9 = ?,vb12 = ?,vc = ?,vd = ?,ve = ?,vk = ?,"
                         "colin = ?,kcal = ? WHERE id = ?;",
                         [
-                            _material["name"],
-                            _material["description"],
+                            bleach.clean(_material["name"], strip=True),
+                            bleach.clean(_material["description"], strip=True),
                             token["id"],
                             _dataDict["user"],
                             _material["passhash"],
@@ -507,7 +509,6 @@ def show(request):
                     {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
                 )
             _passhash = ""
-            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             if _dataDict["privateFlag"] == True:
                 _passhash = "0"
             with closing(sqlite3.connect(db_dir)) as conn:
@@ -516,7 +517,7 @@ def show(request):
                 # check duplication
                 cur.execute(
                     "SELECT * FROM tskb_combination WHERE name = ?;",
-                    [_dataDict["name"]],
+                    [bleach.clean(_dataDict["name"], strip=True)],
                 )
                 _room = cur.fetchone()
                 if _room != None:
@@ -529,7 +530,7 @@ def show(request):
                     "(name,tag,description,userid,user,passhash,timestamp,contents) "
                     "values(?,?,?,?,?,?,?,?)",
                     [
-                        _dataDict["name"],
+                        bleach.clean(_dataDict["name"], strip=True),
                         ",".join([]),
                         _dataDict["description"],
                         token["id"],
@@ -654,7 +655,7 @@ def show(request):
                     "UPDATE tskb_combination SET name = ?, description = ?,"
                     " userid = ?, user = ?, passhash = ? ,contents = ? WHERE id = ?;",
                     [
-                        _combination["name"],
+                        bleach.clean(_combination["name"], strip=True),
                         _combination["description"],
                         token["id"],
                         _dataDict["user"],

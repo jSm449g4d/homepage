@@ -214,7 +214,8 @@ export const AppWidgetHead = () => {
                                         <span className="input-group-text">Pass</span>
                                         <input type="password" className="form-control" placeholder="pass" aria-label="pass"
                                             aria-labelledby="passwordHelpBlock"
-                                            value={tmpPass} onChange={(evt) => { setTmpPass(evt.target.value) }} />
+                                            value={String(tmpPass).replace(/[^0-9|^a-z|^A-Z|]/g, '')}
+                                            onChange={(evt) => { setTmpPass(evt.target.value) }} />
                                     </div>
                                     <div className="form-check form-switch m-1 col-12">
                                         <input className="form-check-input" type="checkbox" role="switch"
@@ -305,7 +306,8 @@ export const AppWidgetHead = () => {
                                             }
                                         }}>
                                     </input><input type="password" className="form-control" placeholder="Password"
-                                        value={tmpPass} onChange={(evt) => { setTmpPass(evt.target.value) }}
+                                        value={String(tmpPass).replace(/[^0-9|^a-z|^A-Z|]/g, '')}
+                                        onChange={(evt) => { setTmpPass(evt.target.value) }}
                                         disabled id="accountConfigModalPass" />
                                 </div>
                                 <div className="form-check form-switch m-1">
@@ -385,7 +387,8 @@ export const AppWidgetHead = () => {
                                 <span className="input-group-text">Pass</span>
                                 <input type="password" className="form-control" placeholder="pass" aria-label="pass"
                                     aria-labelledby="passwordHelpBlock"
-                                    value={tmpPass} onChange={(evt) => { setTmpPass(evt.target.value) }} />
+                                    value={String(tmpPass).replace(/[^0-9|^a-z|^A-Z|]/g, '')}
+                                    onChange={(evt) => { setTmpPass(evt.target.value) }} />
                             </div>
                         </div>
                         {tmpUser == "" && tmpPass == "" ?

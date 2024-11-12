@@ -12,3 +12,4 @@ urllib3==2.2.3
 certifi==2024.8.30
 psutil==6.1.0
 PyJWT==2.9.0
+bleach==6.2.0

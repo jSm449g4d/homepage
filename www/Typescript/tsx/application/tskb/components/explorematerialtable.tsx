@@ -190,7 +190,7 @@ export const EMTable = () => {
             </div>
             <div className="my-1">
                 <div className="input-group d-flex justify-content-center align-items-center my-1">
-                    <button className="btn btn-outline-success btn-lg" type="button"
+                    <button className="btn btn-outline-success btn-lg" type="button" id="EMTExploreButton"
                         onClick={() => { exploreMaterial() }}>
                         <i className="fa-solid fa-magnifying-glass mx-1" style={{ pointerEvents: "none" }} />
                         素材検索
@@ -208,7 +208,10 @@ export const EMTable = () => {
                     }
                     <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial}
                         placeholder="検索文字列"
-                        onChange={(evt: any) => setTmpeMaterial(evt.target.value)} />
+                        onChange={(evt: any) => setTmpeMaterial(evt.target.value)}
+                        onKeyDown={(evt: any) => {
+                            if (evt.key == "Enter") $("#EMTExploreButton").trigger("click")
+                        }} />
                 </div>
                 <div className="d-flex justify-content-between align-items-center my-1">
                     {token == "" ?
@@ -257,6 +260,7 @@ export const EMTable = () => {
                                 tableStatus: "CMTable",
                                 material: JSON.parse(evt.target.value)
                             }))
+                            window.scrollTo({ top: 0, behavior: "smooth", });
                         }}
                         value={JSON.stringify(contents[i])}>
                         <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }}></i>編集
@@ -267,6 +271,7 @@ export const EMTable = () => {
                                 tableStatus: "CMTable",
                                 material: JSON.parse(evt.target.value)
                             }))
+                            window.scrollTo({ top: 0, behavior: "smooth", });
                         }}
                         value={JSON.stringify(contents[i])}>
                         <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }}></i>閲覧
@@ -276,6 +281,7 @@ export const EMTable = () => {
                     <button className="btn btn-outline-primary rounded-pill"
                         onClick={(evt: any) => {
                             combineMaterial(evt.target.value)
+                            window.scrollTo({ top: 0, behavior: "smooth", });
                         }
                         } value={contents[i]["id"]} >
                         + レシピに追加
