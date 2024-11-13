@@ -359,7 +359,9 @@ export const MTable = () => {
                             style={{ height: 200, objectFit: "contain", visibility: "hidden" }} />
                     </div>
                 </div>
-                <div className="col-12 col-md-8 my-1">
+                <div className="col-12 col-md-4 my-1">
+                </div>
+                <div className="col-12 col-md-4 my-1">
                     <div className="d-flex justify-content-center align-items-center">
                         <h4 className="mx-3">概説</h4>
                     </div>

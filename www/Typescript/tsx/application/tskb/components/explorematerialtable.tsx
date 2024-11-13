@@ -10,6 +10,7 @@ export const EMTable = () => {
     const [contents, setContents] = useState([])
     const [tmpMaterial, setTmpeMaterial] = useState("")
     const [tmpAttachment, setTmpAttachment] = useState(null)
+    const [tmpsearchRadio, setTmpsearchRadio] = useState(0)
 
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
@@ -28,7 +29,8 @@ export const EMTable = () => {
         if (tableStatus == "MTable") setTimeout(() => exploreMaterial(), xhrDelay)
         if (tableStatus == "CMTable") setTimeout(() => exploreMaterial(), xhrDelay)
         setTmpeMaterial("")
-        setTmpAttachment(null);
+        setTmpAttachment(null)
+        setTmpsearchRadio(0)
     }, [reloadFlag])
 
     const stringForSend = (_additionalDict: {} = {}) => {
@@ -187,8 +189,31 @@ export const EMTable = () => {
             <div className="my-1 d-flex justify-content-center">
                 <h3>素材フォーム</h3>
             </div>
-            <div className="my-1">
-                <div className="input-group d-flex justify-content-center align-items-center my-1">
+            <div className="input-group d-flex justify-content-evenly my-1">
+                <div>
+                    <div className="form-check form-check-inline">
+                        <input className="form-check-input" type="radio" name="exampleRadios"
+                            checked={tmpsearchRadio == 0} onChange={() => setTmpsearchRadio(0)} />
+                        <label className="form-check-label">
+                            名前検索※開発中
+                        </label>
+                    </div>
+                    <div className="form-check form-check-inline">
+                        <input className="form-check-input" type="radio" name="exampleRadios"
+                            checked={tmpsearchRadio == 1} onChange={() => setTmpsearchRadio(1)} />
+                        <label className="form-check-label">
+                            タグ検索※開発中
+                        </label>
+                    </div>
+                    <div className="form-check form-check-inline">
+                        <input className="form-check-input" type="radio" name="exampleRadios"
+                            checked={tmpsearchRadio == 2} onChange={() => setTmpsearchRadio(2)} />
+                        <label className="form-check-label">
+                            非公開検索※開発中
+                        </label>
+                    </div>
+                </div>
+                <div className="input-group d-flex justify-content-center my-1">
                     <button className="btn btn-outline-success btn-lg" type="button" id="EMTExploreButton"
                         onClick={() => { exploreMaterial() }}>
                         <i className="fa-solid fa-magnifying-glass mx-1" style={{ pointerEvents: "none" }} />
@@ -212,7 +237,7 @@ export const EMTable = () => {
                             if (evt.key == "Enter") $("#EMTExploreButton").trigger("click")
                         }} />
                 </div>
-                <div className="d-flex justify-content-between align-items-center my-1">
+                <div className="d-flex justify-content-between my-1">
                     {token == "" ?
                         <button className="btn btn-outline-dark btn-sm" type="button" disabled>
                             <i className="fa-solid fa-arrow-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />

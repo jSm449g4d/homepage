@@ -179,49 +179,98 @@ export const CMTable = () => {
             </div>
         )
     }
+    const CMTMaterialTagModal = () => {
+        return (
+            <div className="modal fade" id="CMTMaterialTagModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h4 className="modal-title">
+                                <i className="fa-solid fa-gear" />タグ編集
+                            </h4>
+                        </div>
+                        <div className="modal-footer d-flex">
+                            <button type="button" className="btn btn-secondary me-auto" data-bs-dismiss="modal">Close</button>
+                            <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
+                                onClick={() => { }}>
+                                <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />test
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
     // app
     const topForm = () => {
         return (
-            <div>
-                <div className="input-group d-flex justify-content-center align-items-center my-1">
-                    <button className="btn btn-outline-dark btn-lg" type="button"
-                        onClick={() => { AppDispatch(startTable({ tableStatus: "MTable" })) }}>
-                        <i className="fa-solid fa-right-from-bracket mx-1"></i>レシピ閲覧に戻る
-                    </button>
-                    <button className="btn btn-outline-dark btn-lg" type="button"
-                        disabled>
-                        <i className="far fa-user mx-1"></i>{material["user"]}
-                    </button>
-                    <button className="btn btn-outline-success btn-lg" type="button"
-                        onClick={() => { reSetTmpMaterialDict(["name"]) }}>
-                        <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
-                    </button>
-                    {tmpMaterial["userid"] == userId || tmpMaterial["userid"] == -1 ?
-                        <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial["name"]}
-                            placeholder='素材名を入力してください'
-                            onChange={(evt: any) => { setTmpMaterialDict("name", evt.target.value) }}>
-                        </input > :
-                        <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial["name"]}
-                            disabled >
-                        </input >
-                    }
-                </div></div>)
-    }
-    const bottomForm = () => {
-        return (
-            <div>
-                <div className="my-1">
-                    <div className="d-flex justify-content-center align-items-center">
-                        <button className="btn btn-success" type="button"
-                            onClick={() => { reSetTmpMaterialDict(["description"]) }}>
+            <div className="row m-1">
+                <div className="col-12">
+                    <div className="input-group d-flex justify-content-center align-items-center my-1">
+                        <button className="btn btn-outline-dark btn-lg" type="button"
+                            onClick={() => { AppDispatch(startTable({ tableStatus: "MTable" })) }}>
+                            <i className="fa-solid fa-right-from-bracket mx-1"></i>レシピ閲覧に戻る
+                        </button>
+                        <button className="btn btn-outline-dark btn-lg" type="button"
+                            disabled>
+                            <i className="far fa-user mx-1"></i>{material["user"]}
+                        </button>
+                        <button className="btn btn-outline-success btn-lg" type="button"
+                            onClick={() => { reSetTmpMaterialDict(["name","description"]) }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button>
+                        {tmpMaterial["userid"] == userId || tmpMaterial["userid"] == -1 ?
+                            <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial["name"]}
+                                placeholder='素材名を入力してください'
+                                onChange={(evt: any) => { setTmpMaterialDict("name", evt.target.value) }}>
+                            </input > :
+                            <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial["name"]}
+                                disabled >
+                            </input >
+                        }
+                    </div>
+                </div>
+                <div className="col-12 col-md-8">
+                    <div className="btn-group m-1">
+                        <button className="btn btn-outline-dark" type="button"
+                            onClick={() => { $("#CMTMaterialTagModal").modal("show") }}>
+                            <i className="fa-solid fa-gear" style={{ pointerEvents: "none" }} />
+                        </button>
+                        <button className="btn btn-outline-dark" type="button"
+                            onClick={() => { }}>
+                            testtag
+                        </button>
+                    </div>
+                    <div className="btn-group m-1">
+                        <button className="btn btn-outline-dark" type="button"
+                            onClick={() => { $("#CMTMaterialTagModal").modal("show") }}>
+                            <i className="fa-solid fa-gear" style={{ pointerEvents: "none" }} />
+                        </button>
+                        <button className="btn btn-outline-dark" type="button"
+                            onClick={() => { }}>
+                            testtagII
+                        </button>
+                    </div>
+                    <div className="btn-group m-1">
+                        <button className="btn btn-outline-dark" type="button"
+                            onClick={() => { }}>
+                            testtagIII_nogear
+                        </button>
+                    </div>
+                </div>
+                <div className="col-12 col-md-4 my-1">
+                    <div className="d-flex justify-content-center align-items-center">
                         <h4 className="mx-3">概説</h4>
                     </div>
                     <textarea className="form-control col-12 w-80" rows={3} value={tmpMaterial["description"]}
                         onChange={(evt: any) => { setTmpMaterialDict("description", evt.target.value) }}
                         id="CMTdescriptionForm" />
                 </div>
+            </div>)
+    }
+    const bottomForm = () => {
+        return (
+            <div>
                 {tmpMaterial["userid"] == userId || tmpMaterial["userid"] == -1 ?
                     <div className="d-flex justify-content-between align-items-center my-1">
                         {tmpMaterial["passhash"] == "" ?
@@ -484,6 +533,7 @@ export const CMTable = () => {
         <div className="p-1" style={{
             background: "linear-gradient(45deg,rgba(180,230,240,0.2), rgba(60,60,60,0.0))"
         }}>
+            {CMTMaterialTagModal()}
             {CMTMaterialDeleteModal()}
             {topForm()}
             {_tmpTable}
