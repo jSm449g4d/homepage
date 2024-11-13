@@ -11,7 +11,7 @@ export const MTable = () => {
     //tmpAttachment -1: delete, 1: alreadyExist null: noImage, else: uploadImage
     const [tmpAttachment, setTmpAttachment] = useState(null)
     const [tmpCombination, setTmpCombination] = useState({
-        "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
+        "id": -1, "name": "", "tag": "", "description": "", "userid": -1, "user": "",
         "passhash": "", "timestamp": 0, "contents": "{}"
     })
     const setTmpCombinationDict = (_key: string, _value: any) => {

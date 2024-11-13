@@ -9,7 +9,7 @@ import { useAppSelector, useAppDispatch } from '../../../components/store'
 export const CMTable = () => {
     const [tmpTargetId, setTmpTargetId] = useState(-1)
     const [tmpMaterial, setTmpMaterial] = useState({
-        "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
+        "id": -1, "name": "", "tag": "", "description": "", "userid": -1, "user": "",
         "passhash": "", "timestamp": 0, "unit": "g", "cost": "", "carbo": "", "fiber": "",
         "protein": "", "fat": "", "saturated_fat": "", "n3": "", "DHA_EPA": "", "n6": "",
         "ca": "", "cl": "", "cr": "", "cu": "", "i": "", "fe": "", "mg": "", "mn": "",
@@ -211,14 +211,13 @@ export const CMTable = () => {
                             onClick={() => { AppDispatch(startTable({ tableStatus: "MTable" })) }}>
                             <i className="fa-solid fa-right-from-bracket mx-1"></i>レシピ閲覧に戻る
                         </button>
-                        <button className="btn btn-outline-dark btn-lg" type="button"
-                            disabled>
-                            <i className="far fa-user mx-1"></i>{material["user"]}
-                        </button>
                         <button className="btn btn-outline-success btn-lg" type="button"
-                            onClick={() => { reSetTmpMaterialDict(["name","description"]) }}>
+                            onClick={() => { setTmpMaterial(material) }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button>
+                        <span className="input-group-text form-control-lg">
+                            <i className="fa-solid fa-stroopwafel mx-1" />
+                        </span>
                         {tmpMaterial["userid"] == userId || tmpMaterial["userid"] == -1 ?
                             <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial["name"]}
                                 placeholder='素材名を入力してください'
@@ -230,41 +229,26 @@ export const CMTable = () => {
                         }
                     </div>
                 </div>
-                <div className="col-12 col-md-8">
-                    <div className="btn-group m-1">
-                        <button className="btn btn-outline-dark" type="button"
-                            onClick={() => { $("#CMTMaterialTagModal").modal("show") }}>
-                            <i className="fa-solid fa-gear" style={{ pointerEvents: "none" }} />
-                        </button>
-                        <button className="btn btn-outline-dark" type="button"
-                            onClick={() => { }}>
-                            testtag
-                        </button>
+                <div className="col-12 col-md-4 my-1">
+                    <div className="input-group">
+                        <span className="input-group-text"><i className="fa-solid fa-tag mx-1" /></span>
+                        <input className="form-control" type="text" placeholder="タグ名"
+                            value={tmpMaterial.tag} onChange={(evt: any) => setTmpMaterialDict("tag", evt.target.value)} />
                     </div>
-                    <div className="btn-group m-1">
-                        <button className="btn btn-outline-dark" type="button"
-                            onClick={() => { $("#CMTMaterialTagModal").modal("show") }}>
-                            <i className="fa-solid fa-gear" style={{ pointerEvents: "none" }} />
-                        </button>
-                        <button className="btn btn-outline-dark" type="button"
-                            onClick={() => { }}>
-                            testtagII
-                        </button>
-                    </div>
-                    <div className="btn-group m-1">
-                        <button className="btn btn-outline-dark" type="button"
-                            onClick={() => { }}>
-                            testtagIII_nogear
-                        </button>
+                    <div className="border border-2 bg-light p-2">
+                        <p><i className="far fa-user mx-1"></i>作成者{": " + material["user"]}</p>
+                        <p>作成時間:<br />{Unixtime2String(Number(material.timestamp))}</p>
                     </div>
                 </div>
-                <div className="col-12 col-md-4 my-1">
+                <div className="col-12 col-md-4">
                     <div className="d-flex justify-content-center align-items-center">
                         <h4 className="mx-3">概説</h4>
                     </div>
-                    <textarea className="form-control col-12 w-80" rows={3} value={tmpMaterial["description"]}
+                    <textarea className="form-control col-12 w-80" rows={4} value={tmpMaterial["description"]}
                         onChange={(evt: any) => { setTmpMaterialDict("description", evt.target.value) }}
-                        id="CMTdescriptionForm" />
+                        style={{ resize: "none" }} />
+                </div>
+                <div className="col-12 col-md-4">
                 </div>
             </div>)
     }

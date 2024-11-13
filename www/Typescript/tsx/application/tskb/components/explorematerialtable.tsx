@@ -189,8 +189,8 @@ export const EMTable = () => {
             <div className="my-1 d-flex justify-content-center">
                 <h3>素材フォーム</h3>
             </div>
-            <div className="input-group d-flex justify-content-evenly my-1">
-                <div>
+            <div>
+                <div className="input-group d-flex justify-content-evenly my-1">
                     <div className="form-check form-check-inline">
                         <input className="form-check-input" type="radio" name="exampleRadios"
                             checked={tmpsearchRadio == 0} onChange={() => setTmpsearchRadio(0)} />
@@ -313,15 +313,16 @@ export const EMTable = () => {
                 }
             </div >)
         _tmpData.push(
-            <div className="col-12 col-md-10 p-1">
+            <div className="col-12 col-md-12 p-1">
                 <div>
+                    {contents[i]["tag"] != "" ?
+                        <button className="btn btn-outline-dark btn-sm rounded-pill" disabled>
+                            <i className="fa-solid fa-tag mx-1" />{contents[i]["tag"]}
+                        </button > :
+                        <div />}
                     {contents[i]["description"]}
                 </div>
             </div>)
-        _tmpData.push(
-            <div className="col-12 col-md-2 p-1 border"><div className="text-center">
-                {Unixtime2String(Number(contents[i]["timestamp"]))}
-            </div></div>)
         _tmpRecord.push(
             <div className="col-12 col-md-6" style={{
                 border: "1px inset silver", borderRadius: "5px", marginBottom: "3px", boxShadow: "2px 2px 1px rgba(60,60,60,0.2)"

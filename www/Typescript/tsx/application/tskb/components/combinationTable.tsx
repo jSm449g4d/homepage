@@ -260,7 +260,7 @@ export const CTable = () => {
         _tmpData.push(
             <div className="col-12 border d-flex" style={_style}>
                 <h5 className="me-auto">
-                    <i className="fa-solid fa-jar mx-1"></i>{contents[i]["name"]}
+                    <i className="fa-solid fa-stroopwafel mx-1"></i>{contents[i]["name"]}
                 </h5>
                 <button className="btn btn-outline-primary rounded-pill"
                     onClick={(evt: any) => {

@@ -54,7 +54,7 @@ with closing(sqlite3.connect(db_dir)) as conn:
     # passhash="": public ,"0": private
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_combination(id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "name TEXT UNIQUE NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
+        "name TEXT UNIQUE NOT NULL,tag TEXT DEFAULT '',description TEXT DEFAULT '',"
         "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
         "contents TEXT NOT NULL)"
     )
@@ -64,7 +64,7 @@ with closing(sqlite3.connect(db_dir)) as conn:
     "ca,cl,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_material(id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "name TEXT UNIQUE NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
+        "name TEXT UNIQUE NOT NULL,tag TEXT DEFAULT '',description TEXT DEFAULT '',"
         "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
         "unit REAL DEFAULT 100,cost REAL DEFAULT 0,"
         "carbo REAL DEFAULT 0,fiber REAL DEFAULT 0,"
@@ -237,11 +237,10 @@ def show(request):
                         )
                     cur.execute(
                         "INSERT INTO tskb_material "
-                        "(name,tag,description,userid,user,passhash,timestamp) "
-                        "values(?,?,?,?,?,?,?)",
+                        "(name,description,userid,user,passhash,timestamp) "
+                        "values(?,?,?,?,?,?)",
                         [
                             bleach.clean(_dataDict["material"]["name"], strip=True),
-                            ",".join([]),
                             bleach.clean(
                                 _dataDict["material"]["description"], strip=True
                             ),
@@ -277,7 +276,7 @@ def show(request):
                 if isfloat(_material["unit"]) < 1:
                     _material["unit"] = 1
                 cur.execute(
-                    "UPDATE tskb_material SET name = ?,description = ?,"
+                    "UPDATE tskb_material SET name = ?,tag = ?,description = ?,"
                     "userid = ?,user = ?,passhash = ?,timestamp = ?,"
                     "unit = ?,cost = ?,carbo = ?,fiber= ? ,protein = ?,"
                     "fat = ?,saturated_fat = ?,n3 = ?,DHA_EPA = ?,n6 = ?,"
@@ -288,6 +287,7 @@ def show(request):
                     "colin = ?,kcal = ? WHERE id = ?;",
                     [
                         bleach.clean(_material["name"], strip=True),
+                        bleach.clean(_material["tag"], strip=True),
                         bleach.clean(_material["description"], strip=True),
                         token["id"],
                         _dataDict["user"],
@@ -367,11 +367,10 @@ def show(request):
                     if _material == None:
                         cur.execute(
                             "INSERT INTO tskb_material "
-                            "(name,tag,userid,user,passhash,timestamp) "
-                            "values(?,?,?,?,?,?)",
+                            "(name,userid,user,passhash,timestamp) "
+                            "values(?,?,?,?,?)",
                             [
                                 bleach.clean(_updata_dicts["name"], strip=True),
-                                ",".join([]),
                                 token["id"],
                                 _dataDict["user"],
                                 "",
@@ -392,7 +391,7 @@ def show(request):
                     if isfloat(_material["unit"]) < 1:
                         _material["unit"] = 1
                     cur.execute(
-                        "UPDATE tskb_material SET name = ?,description = ?,"
+                        "UPDATE tskb_material SET name = ?,tag = ?,description = ?,"
                         "userid = ?,user = ?,passhash = ?,timestamp = ?,"
                         "unit = ?,cost = ?,carbo = ?,fiber= ? ,protein = ?,"
                         "fat = ?,saturated_fat = ?,n3 = ?,DHA_EPA = ?,n6 = ?,"
@@ -403,6 +402,7 @@ def show(request):
                         "colin = ?,kcal = ? WHERE id = ?;",
                         [
                             bleach.clean(_material["name"], strip=True),
+                            bleach.clean(_material["tag"], strip=True),
                             bleach.clean(_material["description"], strip=True),
                             token["id"],
                             _dataDict["user"],
@@ -528,11 +528,10 @@ def show(request):
                     )
                 cur.execute(
                     "INSERT INTO tskb_combination "
-                    "(name,tag,description,userid,user,passhash,timestamp,contents) "
-                    "values(?,?,?,?,?,?,?,?)",
+                    "(name,description,userid,user,passhash,timestamp,contents) "
+                    "values(?,?,?,?,?,?,?)",
                     [
                         bleach.clean(_dataDict["name"], strip=True),
-                        ",".join([]),
                         _dataDict["description"],
                         token["id"],
                         _dataDict["user"],
