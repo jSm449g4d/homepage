@@ -705,7 +705,7 @@ export const AppMain = () => {
                     <h5><i className="far fa-clock "></i>{jpclockNow}</h5>
                 </div>
                 <textarea className="form-control col-12 w-80" rows={4} value={tmpText}
-                    onChange={(evt) => { setTmpText(evt.target.value) }}></textarea>
+                    onChange={(evt) => { setTmpText(evt.target.value) }} style={{ resize: "none" }} />
                 <div className="col-12 my-1">
                     <div className="input-group">
                         <input type="file" className="form-control" placeholder="attachment file"

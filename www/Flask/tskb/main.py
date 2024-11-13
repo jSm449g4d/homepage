@@ -2,8 +2,8 @@ import sqlite3
 import json
 import os
 import jwt
-import hashlib
-import html
+from PIL import Image
+import bleach
 import flask
 import sys
 from contextlib import closing
@@ -29,8 +29,9 @@ def get_response(_statusDict={"STATUS": "VALUE"}):
 
 
 # load setting
-tmp_dir = "./tmp/" + FUNC_NAME
-os.makedirs(tmp_dir, exist_ok=True)
+tmp_dir = "./tmp/" + FUNC_NAME + "/"
+os.makedirs(tmp_dir + "combination/", exist_ok=True)
+os.makedirs(tmp_dir + "material/", exist_ok=True)
 key_dir = "./keys/keys.json"
 db_dir = "./tmp/sqlite.db"
 pyJWT_pass = "test"
@@ -226,7 +227,7 @@ def show(request):
                 # register material
                 cur.execute(
                     "SELECT * FROM tskb_material WHERE name = ?;",
-                    [_dataDict["material"]["name"]],
+                    [bleach.clean(_dataDict["material"]["name"], strip=True)],
                 )
                 _material = cur.fetchone()
                 if _dataDict["material"]["id"] == -1:
@@ -239,9 +240,11 @@ def show(request):
                         "(name,tag,description,userid,user,passhash,timestamp) "
                         "values(?,?,?,?,?,?,?)",
                         [
-                            _dataDict["material"]["name"],
+                            bleach.clean(_dataDict["material"]["name"], strip=True),
                             ",".join([]),
-                            _dataDict["material"]["description"],
+                            bleach.clean(
+                                _dataDict["material"]["description"], strip=True
+                            ),
                             token["id"],
                             _dataDict["user"],
                             _dataDict["material"]["passhash"],
@@ -284,8 +287,8 @@ def show(request):
                     "vb9 = ?,vb12 = ?,vc = ?,vd = ?,ve = ?,vk = ?,"
                     "colin = ?,kcal = ? WHERE id = ?;",
                     [
-                        _material["name"],
-                        _material["description"],
+                        bleach.clean(_material["name"], strip=True),
+                        bleach.clean(_material["description"], strip=True),
                         token["id"],
                         _dataDict["user"],
                         _material["passhash"],
@@ -358,7 +361,7 @@ def show(request):
                     # make record
                     cur.execute(
                         "SELECT * FROM tskb_material WHERE name = ?;",
-                        [_updata_dicts["name"]],
+                        [bleach.clean(_updata_dicts["name"], strip=True)],
                     )
                     _material = cur.fetchone()
                     if _material == None:
@@ -367,7 +370,7 @@ def show(request):
                             "(name,tag,userid,user,passhash,timestamp) "
                             "values(?,?,?,?,?,?)",
                             [
-                                _updata_dicts["name"],
+                                bleach.clean(_updata_dicts["name"], strip=True),
                                 ",".join([]),
                                 token["id"],
                                 _dataDict["user"],
@@ -399,8 +402,8 @@ def show(request):
                         "vb9 = ?,vb12 = ?,vc = ?,vd = ?,ve = ?,vk = ?,"
                         "colin = ?,kcal = ? WHERE id = ?;",
                         [
-                            _material["name"],
-                            _material["description"],
+                            bleach.clean(_material["name"], strip=True),
+                            bleach.clean(_material["description"], strip=True),
                             token["id"],
                             _dataDict["user"],
                             _material["passhash"],
@@ -507,7 +510,6 @@ def show(request):
                     {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
                 )
             _passhash = ""
-            token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             if _dataDict["privateFlag"] == True:
                 _passhash = "0"
             with closing(sqlite3.connect(db_dir)) as conn:
@@ -516,7 +518,7 @@ def show(request):
                 # check duplication
                 cur.execute(
                     "SELECT * FROM tskb_combination WHERE name = ?;",
-                    [_dataDict["name"]],
+                    [bleach.clean(_dataDict["name"], strip=True)],
                 )
                 _room = cur.fetchone()
                 if _room != None:
@@ -529,7 +531,7 @@ def show(request):
                     "(name,tag,description,userid,user,passhash,timestamp,contents) "
                     "values(?,?,?,?,?,?,?,?)",
                     [
-                        _dataDict["name"],
+                        bleach.clean(_dataDict["name"], strip=True),
                         ",".join([]),
                         _dataDict["description"],
                         token["id"],
@@ -649,12 +651,11 @@ def show(request):
                         {"message": "wrongPass", "text": "アクセス拒否"},
                         ensure_ascii=False,
                     )
-                _contents = json.loads(_Ccombination["contents"])
                 cur.execute(
                     "UPDATE tskb_combination SET name = ?, description = ?,"
                     " userid = ?, user = ?, passhash = ? ,contents = ? WHERE id = ?;",
                     [
-                        _combination["name"],
+                        bleach.clean(_combination["name"], strip=True),
                         _combination["description"],
                         token["id"],
                         _dataDict["user"],
@@ -669,11 +670,64 @@ def show(request):
                     [_combination["id"]],
                 )
                 _Ccombination = cur.fetchone()
+                _target_dir = os.path.normpath(
+                    os.path.join(
+                        tmp_dir + "combination/",
+                        str(_Ccombination["id"]) + ".png",
+                    )
+                )
+                if "delimage" in request.form:
+                    if os.path.exists(_target_dir):
+                        os.remove(_target_dir)
+                if "upimage" in request.files:
+                    request.files["upimage"].save(_target_dir)
+                    _im = Image.open(_target_dir)
+                    _im = _im.resize((round(300 * _im.width / _im.height), 300))
+                    _im.save(_target_dir)
                 return json.dumps(
                     {"message": "processed", "combination": dict(_Ccombination)},
                     ensure_ascii=False,
                 )
             return json.dumps({"message": "rejected"})
+
+        if "dlimage" in request.form:
+            _dataDict.update(json.loads(request.form["dlimage"]))
+            with closing(sqlite3.connect(db_dir)) as conn:
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                # duplication and roomKey check
+                cur.execute(
+                    "SELECT * FROM tskb_combination WHERE id = ?;",
+                    [_dataDict["combination_id"]],
+                )
+                _combination = cur.fetchone()
+                if _combination == None:
+                    return json.dumps(
+                        {"message": "notExist", "text": "レシピ不明"},
+                        ensure_ascii=False,
+                    )
+                if _combination["passhash"] != "":
+                    if _combination["id"] != token["id"]:
+                        return json.dumps(
+                            {"message": "wrongPass", "text": "アクセス拒否"},
+                            ensure_ascii=False,
+                        )
+                # process start
+                _target_file = os.path.normpath(
+                    os.path.join(
+                        tmp_dir + "combination/",
+                        str(_dataDict["combination_id"]) + ".png",
+                    )
+                )
+                if os.path.exists(_target_file):
+                    return flask.send_file(
+                        _target_file,
+                        mimetype="image/png",
+                    )
+                return json.dumps(
+                    {"message": "notExist", "text": "ファイル無"}, ensure_ascii=False
+                )
+            return json.dumps({"message": "rejected"}, ensure_ascii=False)
 
         if "destroy" in request.form:
             _dataDict.update(json.loads(request.form["destroy"]))

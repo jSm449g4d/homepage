@@ -1,5 +1,3 @@
-import { string } from "prop-types";
-
 // To prevent high freq access
 export class stopf5_tsx {
     last_timestamp: { [label: string]: number }
@@ -55,4 +53,13 @@ export const Unixtime2String = (unixtime: number = 0) => {
 export const satisfyDictKeys = (_targetDict: {}, _keys: any[]) => {
     for (let _i = 0; _i < _keys.length; _i++) if (_keys[_i] in _targetDict == false) return false
     return true
+}
+
+export const toSignificantDigits = (_value: any, _digits = 5) => {
+    var _val = String(_value); var _ret = ""; var _dig = _digits
+    for (let _i = 0; _i < _val.length && _i < _dig; _i++) {
+        if ("." == _val[_i]) _dig++
+        _ret += _val[_i]
+    }
+    return _ret
 }

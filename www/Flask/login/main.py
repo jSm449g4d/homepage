@@ -31,7 +31,7 @@ def get_response(_statusDict={"STATUS": "VALUE"}):
 
 
 # load setting
-tmp_dir = "./tmp/" + FUNC_NAME
+tmp_dir = "./tmp/" + FUNC_NAME+"/"
 os.makedirs(tmp_dir, exist_ok=True)
 key_dir = "./keys/keys.json"
 db_dir = "./tmp/sqlite.db"

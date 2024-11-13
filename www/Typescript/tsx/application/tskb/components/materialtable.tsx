@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
 import { HIModal, CIModal } from "../../../components/imodals";
-import { satisfyDictKeys, Unixtime2String } from "../../../components/util";
+import { satisfyDictKeys, Unixtime2String, toSignificantDigits } from "../../../components/util";
 import { accountSetState, tskbSetState, startTable } from '../../../components/slice'
 import { useAppSelector, useAppDispatch } from '../../../components/store'
 
 
 export const MTable = () => {
     const [contents, setContents] = useState([])
+    //tmpAttachment -1: delete, 1: alreadyExist null: noImage, else: uploadImage
+    const [tmpAttachment, setTmpAttachment] = useState(null)
     const [tmpCombination, setTmpCombination] = useState({
         "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
         "passhash": "", "timestamp": 0, "contents": "{}"
@@ -22,13 +24,6 @@ export const MTable = () => {
         _copy[_key] = _value
         _copy = JSON.stringify(_copy)
         setTmpCombinationDict("contents", _copy)
-    }
-    const reSetTmpConbinationDict = (_keys: any[]) => {
-        let _copy = JSON.parse(JSON.stringify(tmpCombination))
-        for (let i = 0; i < _keys.length; i++) {
-            _copy[_keys[i]] = JSON.parse(JSON.stringify(combination))[_keys[i]]
-        }
-        setTmpCombination(_copy)
     }
 
     const user = useAppSelector((state) => state.account.user)
@@ -81,7 +76,9 @@ export const MTable = () => {
                     case "processed": {
                         AppDispatch(tskbSetState({ combination: resJ["combination"] }));
                         sortSetContents(resJ["materials"]);
-                        AppDispatch(accountSetState({ token: resJ["token"] })); break;
+                        AppDispatch(accountSetState({ token: resJ["token"] }));
+                        downloadImage();
+                        break;
                     }
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]);
@@ -138,6 +135,18 @@ export const MTable = () => {
         formData.append("update", JSON.stringify({
             "combination": tmpCombination,
         }))
+        switch (tmpAttachment) {
+            case -1:
+                formData.append("delimage", JSON.stringify({}))
+                break;
+            case 1:
+                break;
+            case null:
+                break;
+            default:
+                formData.append("upimage", tmpAttachment, tmpAttachment.name)
+                break;
+        }
         const request = new Request("/tskb/main.py", {
             method: 'POST',
             headers: headers,
@@ -198,11 +207,38 @@ export const MTable = () => {
                 console.error(error.message)
             });
     }
+    const downloadImage = () => {
+        const headers = new Headers();
+        const formData = new FormData();
+        setTmpAttachment(null)
+        formData.append("info", stringForSend())
+        formData.append("dlimage", JSON.stringify({ "combination_id": combination["id"] }))
+        const request = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.blob())
+            .then(blob => {
+                if (blob.type.indexOf("image") != -1) {
+                    const _url = window.URL.createObjectURL(blob);
+                    $("#MTimage").attr({ "src": _url });
+                    $("#MTimage").css('visibility', '');
+                    setTmpAttachment(1)
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
     const destroyCombination = () => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("destroy", JSON.stringify({ "combination_id": tmpCombination["id"] }))
+        formData.append("destroy", JSON.stringify({ "combination_id": combination["id"] }))
         const request = new Request("/tskb/main.py", {
             method: 'POST',
             headers: headers,
@@ -254,30 +290,84 @@ export const MTable = () => {
     // app
     const topForm = () => {
         return (
-            <div>
-                <div className="input-group d-flex justify-content-center align-items-center my-1">
-                    <button className="btn btn-outline-dark btn-lg" type="button"
-                        onClick={() => { searchCombination() }}>
-                        <i className="fa-solid fa-right-from-bracket mx-1"></i>レシピ一覧に戻る
-                    </button>
-                    <button className="btn btn-outline-success btn-lg" type="button"
-                        onClick={() => { fetchMaterial() }}>
-                        <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
-                    </button>
-                    <button className="btn btn-outline-dark btn-lg" type="button"
-                        disabled>
-                        <i className="far fa-user mx-1"></i>{combination["user"]}
-                    </button>
-                    {combination["userid"] == userId ?
-                        <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
-                            onChange={(evt: any) => { setTmpCombinationDict("name", evt.target.value) }}>
-                        </input > :
-                        <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
+            <div className="row m-1">
+                <div className="col-12 my-1">
+                    <div className="input-group d-flex justify-content-center align-items-center">
+                        <button className="btn btn-outline-dark btn-lg" type="button"
+                            onClick={() => { searchCombination() }}>
+                            <i className="fa-solid fa-right-from-bracket mx-1"></i>レシピ一覧に戻る
+                        </button>
+                        <button className="btn btn-outline-success btn-lg" type="button"
+                            onClick={() => { fetchMaterial() }}>
+                            <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
+                        </button>
+                        <button className="btn btn-outline-dark btn-lg" type="button"
                             disabled>
-                        </input >
+                            <i className="far fa-user mx-1"></i>{combination["user"]}
+                        </button>
+                        {combination["userid"] == userId ?
+                            <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
+                                onChange={(evt: any) => { setTmpCombinationDict("name", evt.target.value) }}>
+                            </input > :
+                            <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
+                                disabled>
+                            </input >
 
-                    }
-                </div></div>)
+                        }
+                    </div>
+                </div>
+                <div className="col-12 col-md-4 my-1">
+                    <div className="d-flex justify-content-center">
+                        {combination["userid"] == userId ?
+                            <div>
+                                {tmpAttachment == null || tmpAttachment == -1 ?
+                                    <div>
+                                        <h4>画像のアップロード</h4>
+                                        <input type="file" className="form-control"
+                                            accept="image/*" placeholder='画像のアップロード'
+                                            onChange={(evt) => {
+                                                setTmpAttachment(evt.target.files[0])
+                                                if (!evt.target.files[0]) return
+                                                var _reader = new FileReader()
+                                                _reader.onload = () => {
+                                                    $("#MTimage").attr({ "src": _reader.result })
+                                                    $("#MTimage").css('visibility', '');
+                                                    HIModal("画像登録", "更新してください")
+                                                };
+                                                _reader.readAsDataURL(evt.target.files[0])
+                                            }} />
+                                    </div> :
+                                    <button className="btn btn-outline-danger" type="button"
+                                        onClick={() => {
+                                            setTmpAttachment(-1)
+                                            $("#MTimage").attr({ "src": "" })
+                                            $("#MTimage").css('visibility', 'hidden');
+                                            HIModal("画像削除", "更新してください")
+                                        }}>
+                                        <i className=" fa-solid fa-xmark" style={{ pointerEvents: "none" }} />
+                                    </button>
+                                }
+                            </div> :
+                            <div>
+                                {tmpAttachment == null || tmpAttachment == -1 ?
+                                    <h4>No Image</h4>
+                                    : <div />
+                                }
+                            </div>
+                        }
+                        <img className="img-fluid" src="" id="MTimage"
+                            style={{ height: 200, objectFit: "contain", visibility: "hidden" }} />
+                    </div>
+                </div>
+                <div className="col-12 col-md-8 my-1">
+                    <div className="d-flex justify-content-center align-items-center">
+                        <h4 className="mx-3">概説</h4>
+                    </div>
+                    <textarea className="form-control col-12 w-80" rows={3} value={combination["description"]}
+                        onChange={(evt: any) => { setTmpCombinationDict("description", evt.target.value) }}
+                        style={{ resize: "none" }} />
+                </div>
+            </div>)
     }
     const bottomForm = () => {
         return (
@@ -303,8 +393,11 @@ export const MTable = () => {
                             </button> :
                             <div>
                                 <button className="btn btn-outline-success btn-lg" type="button"
-                                    onClick={() => { updateCombination() }}>
-                                    <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
+                                    onClick={() => {
+                                        updateCombination()
+                                        window.scrollTo({ top: 0, behavior: "smooth", });
+                                    }}>
+                                    <i className="fa-solid fa-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
                                     更新
                                 </button>
                             </div>
@@ -327,7 +420,7 @@ export const MTable = () => {
                         }
                         <button className="btn btn-outline-info btn-lg" type="button"
                             onClick={() => { HIModal("作成者のみ許可された操作") }}>
-                            <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
+                            <i className="fa-solid fa-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
                             更新
                         </button>
                         <button className="btn btn-outline-info btn-lg" type="button"
@@ -349,7 +442,14 @@ export const MTable = () => {
         <tr>
             <th scope="col">操作</th>
             <th scope="col">名称</th>
-            <th scope="col">量</th>
+            <th scope="col">量
+                <i className="text-info fa-solid fa-circle-question mx-1"
+                    onClick={() => {
+                        HIModal("単位となる数量", "基本的に素材100[g]当たりの栄養価\n" +
+                            "サプリ等は1[個]当たりの栄養価")
+                    }}>
+                </i>
+            </th>
             <th scope="col">単価<br />円</th>
             <th scope="col">熱量<br />kcal</th>
             <th scope="col">炭水化物<br />g</th>
@@ -400,10 +500,11 @@ export const MTable = () => {
             for (let _key in _nutrition) {
                 _nutrition[_key] +=
                     parseFloat("0" + (contents[_i][_key]) *
-                    parseFloat("0" + _ccontents[contents[_i]["id"]])) /
+                        parseFloat("0" + _ccontents[contents[_i]["id"]])) /
                     parseFloat("0" + contents[_i]["unit"])
             }
         }
+        for (let _key in _nutrition) { _nutrition[_key] = toSignificantDigits(_nutrition[_key]) }
         _tmpRecord.push(
             <tr>
                 <td></td>
@@ -457,70 +558,75 @@ export const MTable = () => {
     for (let i = 0; i < contents.length; i++) {
         const _button = (
             <td>
-                <button type="button" className="btn btn-outline-danger rounded-pill"
-                    onClick={(evt: any) => { combineCombination(evt.target.value) }}
-                    value={contents[i]["id"]}>
-                    <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
-                </button>
+                {combination["userid"] == userId ?
+                    <button type="button" className="btn btn-outline-danger rounded-pill"
+                        onClick={(evt: any) => { combineCombination(evt.target.value) }}
+                        value={contents[i]["id"]}>
+                        <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
+                    </button> :
+                    <button type="button" className="btn btn-outline-danger rounded-pill"
+                        disabled>
+                        <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
+                    </button>
+                }
             </td>)
         if (contents[i]["id"] in _ccontents == false) {
             _tmpRecord.push(
                 <tr>
                     <td>{_button}</td>
-                    <td>素材にアクセスできませんでした</td>
+                    <td>未使用の素材です</td>
                 </tr>)
             continue
         }
         const _amount = parseFloat("0" + _ccontents[contents[i]["id"]])
         const _unit = _amount / parseFloat("0" + contents[i]["unit"])
-        _ccontents[contents[i]["id"]]
         _tmpRecord.push(
             <tr>
                 <td>{_button}</td>
                 <td>{contents[i]["name"]}</td>
                 <td><input type="text" size={4} value={_amount}
                     onChange={(evt: any) => {
-                        setTmpCombinationContents(evt.target.name, parseFloat("0" + evt.target.value))
+                        setTmpCombinationContents(evt.target.name, evt.target.value)
                     }}
                     id={"MTamount_" + i} name={String(contents[i]["id"])} /></td>
-                <td>{contents[i]["cost"] * _unit}</td>
-                <td>{contents[i]["kcal"] * _unit}</td>
-                <td>{contents[i]["carbo"] * _unit}</td>
-                <td>{contents[i]["protein"] * _unit}</td>
-                <td>{contents[i]["fat"] * _unit}</td>
-                <td>{contents[i]["saturated_fat"] * _unit}</td>
-                <td>{contents[i]["n3"] * _unit}</td>
-                <td>{contents[i]["DHA_EPA"] * _unit}</td>
-                <td>{contents[i]["n6"] * _unit}</td>
-                <td>{contents[i]["fiber"] * _unit}</td>
-                <td>{contents[i]["colin"] * _unit}</td>
-                <td>{contents[i]["ca"] * _unit}</td>
-                <td>{contents[i]["cl"] * _unit}</td>
-                <td>{contents[i]["cr"] * _unit}</td>
-                <td>{contents[i]["cu"] * _unit}</td>
-                <td>{contents[i]["i"] * _unit}</td>
-                <td>{contents[i]["fe"] * _unit}</td>
-                <td>{contents[i]["mg"] * _unit}</td>
-                <td>{contents[i]["mn"] * _unit}</td>
-                <td>{contents[i]["mo"] * _unit}</td>
-                <td>{contents[i]["p"] * _unit}</td>
-                <td>{contents[i]["k"] * _unit}</td>
-                <td>{contents[i]["se"] * _unit}</td>
-                <td>{contents[i]["na"] * _unit}</td>
-                <td>{contents[i]["zn"] * _unit}</td>
-                <td>{contents[i]["va"] * _unit}</td>
-                <td>{contents[i]["vb1"] * _unit}</td>
-                <td>{contents[i]["vb2"] * _unit}</td>
-                <td>{contents[i]["vb3"] * _unit}</td>
-                <td>{contents[i]["vb5"] * _unit}</td>
-                <td>{contents[i]["vb6"] * _unit}</td>
-                <td>{contents[i]["vb7"] * _unit}</td>
-                <td>{contents[i]["vb9"] * _unit}</td>
-                <td>{contents[i]["vb12"] * _unit}</td>
-                <td>{contents[i]["vc"] * _unit}</td>
-                <td>{contents[i]["vd"] * _unit}</td>
-                <td>{contents[i]["ve"] * _unit}</td>
-                <td>{contents[i]["vk"] * _unit}</td>
+                <td>{toSignificantDigits(contents[i]["cost"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["kcal"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["carbo"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["protein"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["fat"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["saturated_fat"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["n3"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["DHA_EPA"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["n6"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["fiber"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["colin"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["ca"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["cl"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["cr"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["cu"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["i"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["fe"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["mg"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["mn"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["mo"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["p"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["k"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["se"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["na"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["zn"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["va"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb1"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb2"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb3"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb5"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb6"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb7"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb9"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb12"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vc"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vd"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["ve"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vk"] * _unit)}</td>
             </tr>
         )
 
