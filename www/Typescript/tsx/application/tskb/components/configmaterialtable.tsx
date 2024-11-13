@@ -244,12 +244,18 @@ export const CMTable = () => {
                             <div>
                                 {material["id"] == -1 ?
                                     <button className="btn btn-outline-primary btn-lg" type="button"
-                                        onClick={() => { registerMaterial() }}>
+                                        onClick={() => {
+                                            registerMaterial();
+                                            window.scrollTo({ top: 0, behavior: "smooth", });
+                                        }}>
                                         <i className="fa-solid fa-lemon mx-1" style={{ pointerEvents: "none" }} />
                                         登録
                                     </button> :
                                     <button className="btn btn-outline-success btn-lg" type="button"
-                                        onClick={() => { registerMaterial() }}>
+                                        onClick={() => {
+                                            registerMaterial();
+                                            window.scrollTo({ top: 0, behavior: "smooth", });
+                                        }}>
                                         <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
                                         更新
                                     </button>

@@ -8,6 +8,7 @@ import { useAppSelector, useAppDispatch } from '../../../components/store'
 
 export const MTable = () => {
     const [contents, setContents] = useState([])
+    //tmpAttachment -1: delete, 1: alreadyExist null: noImage, else: uploadImage
     const [tmpAttachment, setTmpAttachment] = useState(null)
     const [tmpCombination, setTmpCombination] = useState({
         "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
@@ -134,11 +135,17 @@ export const MTable = () => {
         formData.append("update", JSON.stringify({
             "combination": tmpCombination,
         }))
-        if (tmpAttachment == - 1) {
-            formData.append("delimage", JSON.stringify({}))
-        }
-        else if (tmpAttachment != null) {
-            formData.append("upimage", tmpAttachment, tmpAttachment.name)
+        switch (tmpAttachment) {
+            case -1:
+                formData.append("delimage", JSON.stringify({}))
+                break;
+            case 1:
+                break;
+            case null:
+                break;
+            default:
+                formData.append("upimage", tmpAttachment, tmpAttachment.name)
+                break;
         }
         const request = new Request("/tskb/main.py", {
             method: 'POST',
@@ -203,6 +210,7 @@ export const MTable = () => {
     const downloadImage = () => {
         const headers = new Headers();
         const formData = new FormData();
+        setTmpAttachment(null)
         formData.append("info", stringForSend())
         formData.append("dlimage", JSON.stringify({ "combination_id": combination["id"] }))
         const request = new Request("/tskb/main.py", {
@@ -214,10 +222,12 @@ export const MTable = () => {
         fetch(request)
             .then(response => response.blob())
             .then(blob => {
-                //if (blob.type.indexOf("image") == -1) return
-                const _url = window.URL.createObjectURL(blob);
-                $("#MTimage").attr({ "src": _url });
-                $("#MTimage").css('visibility', '');
+                if (blob.type.indexOf("image") != -1) {
+                    const _url = window.URL.createObjectURL(blob);
+                    $("#MTimage").attr({ "src": _url });
+                    $("#MTimage").css('visibility', '');
+                    setTmpAttachment(1)
+                }
             })
             .catch(error => {
                 CIModal("通信エラー")
@@ -310,7 +320,7 @@ export const MTable = () => {
                     <div className="d-flex justify-content-center">
                         {combination["userid"] == userId ?
                             <div>
-                                {tmpAttachment == null || tmpAttachment == -1?
+                                {tmpAttachment == null || tmpAttachment == -1 ?
                                     <div>
                                         <h4>画像のアップロード</h4>
                                         <input type="file" className="form-control"
@@ -339,7 +349,7 @@ export const MTable = () => {
                                 }
                             </div> :
                             <div>
-                                {tmpAttachment == null ?
+                                {tmpAttachment == null || tmpAttachment == -1 ?
                                     <h4>No Image</h4>
                                     : <div />
                                 }
@@ -383,7 +393,10 @@ export const MTable = () => {
                             </button> :
                             <div>
                                 <button className="btn btn-outline-success btn-lg" type="button"
-                                    onClick={() => { updateCombination() }}>
+                                    onClick={() => {
+                                        updateCombination()
+                                        window.scrollTo({ top: 0, behavior: "smooth", });
+                                    }}>
                                     <i className="fa-solid fa-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
                                     更新
                                 </button>

@@ -96,7 +96,9 @@ export const CTable = () => {
             .then(response => response.json())
             .then(resJ => {
                 switch (resJ["message"]) {
-                    case "processed": setTimeout(() => { searchCombination() }, xhrDelay)
+                    case "processed": 
+                    setTimeout(() => { searchCombination() }, xhrDelay)
+                    HIModal("レシピ作成成功")
                         break;
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]);

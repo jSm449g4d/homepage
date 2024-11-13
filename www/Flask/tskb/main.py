@@ -2,7 +2,7 @@ import sqlite3
 import json
 import os
 import jwt
-import glob
+from PIL import Image
 import bleach
 import flask
 import sys
@@ -673,7 +673,7 @@ def show(request):
                 _target_dir = os.path.normpath(
                     os.path.join(
                         tmp_dir + "combination/",
-                        str(_Ccombination["id"]),
+                        str(_Ccombination["id"]) + ".png",
                     )
                 )
                 if "delimage" in request.form:
@@ -681,6 +681,9 @@ def show(request):
                         os.remove(_target_dir)
                 if "upimage" in request.files:
                     request.files["upimage"].save(_target_dir)
+                    _im = Image.open(_target_dir)
+                    _im = _im.resize((round(300 * _im.width / _im.height), 300))
+                    _im.save(_target_dir)
                 return json.dumps(
                     {"message": "processed", "combination": dict(_Ccombination)},
                     ensure_ascii=False,
@@ -712,12 +715,14 @@ def show(request):
                 # process start
                 _target_file = os.path.normpath(
                     os.path.join(
-                        tmp_dir + "combination/", str(_dataDict["combination_id"])
+                        tmp_dir + "combination/",
+                        str(_dataDict["combination_id"]) + ".png",
                     )
                 )
                 if os.path.exists(_target_file):
                     return flask.send_file(
                         _target_file,
+                        mimetype="image/png",
                     )
                 return json.dumps(
                     {"message": "notExist", "text": "ファイル無"}, ensure_ascii=False
