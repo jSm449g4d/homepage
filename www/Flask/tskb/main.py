@@ -127,41 +127,58 @@ def show(request):
                 if token != "":
                     _userid = token["id"]
                 # process start
-                # search opend material
-                if _dataDict["privateFlag"] == False:
-                    cur.execute(
-                        "SELECT * FROM tskb_material WHERE name LIKE ? "
-                        "AND passhash = '' LIMIT 100;",
-                        ["%" + _dataDict["keyword"] + "%"],
-                    )
-                    _materials = [
-                        {key: value for key, value in dict(result).items()}
-                        for result in cur.fetchall()
-                    ]
-                    return json.dumps(
-                        {
-                            "message": "processed",
-                            "materials": _materials,
-                        },
-                        ensure_ascii=False,
-                    )
-                if _dataDict["privateFlag"] == True:
-                    cur.execute(
-                        "SELECT * FROM tskb_material WHERE userid = ? "
-                        "AND passhash = '0'",
-                        [token["id"]],
-                    )
-                    _materials = [
-                        {key: value for key, value in dict(result).items()}
-                        for result in cur.fetchall()
-                    ]
-                    return json.dumps(
-                        {
-                            "message": "processed",
-                            "materials": _materials,
-                        },
-                        ensure_ascii=False,
-                    )
+                match _dataDict["search_radio"]:
+                    case "name":
+                        cur.execute(
+                            "SELECT * FROM tskb_material WHERE name LIKE ? "
+                            "AND passhash = '' LIMIT 200;",
+                            ["%" + _dataDict["keyword"] + "%"],
+                        )
+                        _materials = [
+                            {key: value for key, value in dict(result).items()}
+                            for result in cur.fetchall()
+                        ]
+                        return json.dumps(
+                            {
+                                "message": "processed",
+                                "materials": _materials,
+                            },
+                            ensure_ascii=False,
+                        )
+                    case "tag":
+                        cur.execute(
+                            "SELECT * FROM tskb_material WHERE tag LIKE ? "
+                            "AND passhash = '' LIMIT 200;",
+                            ["%" + _dataDict["keyword"] + "%"],
+                        )
+                        _materials = [
+                            {key: value for key, value in dict(result).items()}
+                            for result in cur.fetchall()
+                        ]
+                        return json.dumps(
+                            {
+                                "message": "processed",
+                                "materials": _materials,
+                            },
+                            ensure_ascii=False,
+                        )
+                    case "private":
+                        cur.execute(
+                            "SELECT * FROM tskb_material WHERE name LIKE ? "
+                            "AND passhash = '0' AND userid = ? LIMIT 200;",
+                            ["%" + _dataDict["keyword"] + "%", _userid],
+                        )
+                        _materials = [
+                            {key: value for key, value in dict(result).items()}
+                            for result in cur.fetchall()
+                        ]
+                        return json.dumps(
+                            {
+                                "message": "processed",
+                                "materials": _materials,
+                            },
+                            ensure_ascii=False,
+                        )
                 # search closed material
             return json.dumps({"message": "rejected", "text": "不明なエラー"})
 

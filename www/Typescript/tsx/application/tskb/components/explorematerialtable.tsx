@@ -10,7 +10,7 @@ export const EMTable = () => {
     const [contents, setContents] = useState([])
     const [tmpMaterial, setTmpeMaterial] = useState("")
     const [tmpAttachment, setTmpAttachment] = useState(null)
-    const [tmpsearchRadio, setTmpsearchRadio] = useState(0)
+    const [tmpsearchRadio, setTmpsearchRadio] = useState("name")
 
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
@@ -30,7 +30,7 @@ export const EMTable = () => {
         if (tableStatus == "CMTable") setTimeout(() => exploreMaterial(), xhrDelay)
         setTmpeMaterial("")
         setTmpAttachment(null)
-        setTmpsearchRadio(0)
+        setTmpsearchRadio("name")
     }, [reloadFlag])
 
     const stringForSend = (_additionalDict: {} = {}) => {
@@ -50,7 +50,7 @@ export const EMTable = () => {
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("explore", JSON.stringify({
-            "keyword": tmpMaterial, "privateFlag": _tmpPrivateFlag
+            "keyword": tmpMaterial, "search_radio": tmpsearchRadio
         }))
         const request = new Request("/tskb/main.py", {
             method: 'POST',
@@ -193,25 +193,31 @@ export const EMTable = () => {
                 <div className="input-group d-flex justify-content-evenly my-1">
                     <div className="form-check form-check-inline">
                         <input className="form-check-input" type="radio" name="exampleRadios"
-                            checked={tmpsearchRadio == 0} onChange={() => setTmpsearchRadio(0)} />
+                            checked={tmpsearchRadio == "name"}
+                            onChange={() => setTmpsearchRadio("name")} />
                         <label className="form-check-label">
-                            名前検索※開発中
+                            名前検索
                         </label>
                     </div>
                     <div className="form-check form-check-inline">
                         <input className="form-check-input" type="radio" name="exampleRadios"
-                            checked={tmpsearchRadio == 1} onChange={() => setTmpsearchRadio(1)} />
+                            checked={tmpsearchRadio == "tag"}
+                            onChange={() => setTmpsearchRadio("tag")} />
                         <label className="form-check-label">
-                            タグ検索※開発中
+                            タグ検索
                         </label>
                     </div>
-                    <div className="form-check form-check-inline">
-                        <input className="form-check-input" type="radio" name="exampleRadios"
-                            checked={tmpsearchRadio == 2} onChange={() => setTmpsearchRadio(2)} />
-                        <label className="form-check-label">
-                            非公開検索※開発中
-                        </label>
-                    </div>
+                    {userId != -1 ?
+                        <div className="form-check form-check-inline">
+                            <input className="form-check-input" type="radio" name="exampleRadios"
+                                checked={tmpsearchRadio == "private"}
+                                onChange={() => setTmpsearchRadio("private")} />
+                            <label className="form-check-label">
+                                非公開名前検索
+                            </label>
+                        </div> :
+                        <div />
+                    }
                 </div>
                 <div className="input-group d-flex justify-content-center my-1">
                     <button className="btn btn-outline-success btn-lg" type="button" id="EMTExploreButton"
@@ -219,17 +225,6 @@ export const EMTable = () => {
                         <i className="fa-solid fa-magnifying-glass mx-1" style={{ pointerEvents: "none" }} />
                         素材検索
                     </button>
-                    {token == "" ?
-                        <button className="btn btn-outline-primary btn-lg" type="button" disabled>
-                            <i className="fa-solid fa-book-open mx-1" style={{ pointerEvents: "none" }} />
-                            非公開一覧
-                        </button> :
-                        <button className="btn btn-outline-primary btn-lg" type="button"
-                            onClick={() => { exploreMaterial(true); }}>
-                            <i className="fa-solid fa-book-open mx-1" style={{ pointerEvents: "none" }} />
-                            非公開一覧
-                        </button>
-                    }
                     <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial}
                         placeholder="検索文字列"
                         onChange={(evt: any) => setTmpeMaterial(evt.target.value)}
