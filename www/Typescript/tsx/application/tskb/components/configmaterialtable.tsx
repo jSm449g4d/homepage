@@ -216,7 +216,7 @@ export const CMTable = () => {
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button>
                         <span className="input-group-text form-control-lg">
-                            <i className="fa-solid fa-stroopwafel mx-1" />
+                            <i className="fa-solid fa-lemon mx-1" />
                         </span>
                         {tmpMaterial["userid"] == userId || tmpMaterial["userid"] == -1 ?
                             <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial["name"]}
@@ -230,6 +230,8 @@ export const CMTable = () => {
                     </div>
                 </div>
                 <div className="col-12 col-md-4 my-1">
+                </div>
+                <div className="col-12 col-md-4 my-1">
                     <div className="input-group">
                         <span className="input-group-text"><i className="fa-solid fa-tag mx-1" /></span>
                         <input className="form-control" type="text" placeholder="タグ名"
@@ -240,15 +242,13 @@ export const CMTable = () => {
                         <p>作成時間:<br />{Unixtime2String(Number(material.timestamp))}</p>
                     </div>
                 </div>
-                <div className="col-12 col-md-4">
+                <div className="col-12 col-md-4 my-1">
                     <div className="d-flex justify-content-center align-items-center">
                         <h4 className="mx-3">概説</h4>
                     </div>
                     <textarea className="form-control col-12 w-80" rows={4} value={tmpMaterial["description"]}
                         onChange={(evt: any) => { setTmpMaterialDict("description", evt.target.value) }}
                         style={{ resize: "none" }} />
-                </div>
-                <div className="col-12 col-md-4">
                 </div>
             </div>)
     }
@@ -334,7 +334,7 @@ export const CMTable = () => {
     }
     const _tmpTable = (
         <div style={{ overflow: "auto" }}>
-            <table className="table table-dark table-striped-columns table-bordered">
+            <table className="table table-dark table-striped-columns table-bordered" style={{ whiteSpace: "nowrap" }}>
                 <tbody>
                     <tr>
                         <th scope="col"><h4>基本</h4></th>

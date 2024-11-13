@@ -96,9 +96,9 @@ export const CTable = () => {
             .then(response => response.json())
             .then(resJ => {
                 switch (resJ["message"]) {
-                    case "processed": 
-                    setTimeout(() => { searchCombination() }, xhrDelay)
-                    HIModal("レシピ作成成功")
+                    case "processed":
+                        setTimeout(() => { searchCombination() }, xhrDelay)
+                        HIModal("レシピ作成成功")
                         break;
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]);
@@ -283,15 +283,15 @@ export const CTable = () => {
                 }
             </div>)
         _tmpData.push(
-            <div className="col-12 col-md-10 p-1 d-flex justify-content-center align-items-center border">
-                <div>
-                    {contents[i]["description"]}
-                </div>
+            <div className="col-12 col-md-12 p-1">
+                {contents[i]["tag"] != "" ?
+                    <button className="btn btn-outline-dark btn-sm rounded-pill" disabled>
+                        <i className="fa-solid fa-tag mx-1" />{contents[i]["tag"]}
+                    </button > :
+                    <div />}
+
+                {contents[i]["description"]}
             </div>)
-        _tmpData.push(
-            <div className="col-12 col-md-2 p-1 border"><div className="text-center">
-                {Unixtime2String(Number(contents[i]["timestamp"]))}
-            </div></div>)
         _tmpRecord.push(
             <div className="col-12 col-md-6" style={{
                 border: "1px inset silver", borderRadius: "5px", marginBottom: "3px", boxShadow: "2px 2px 1px rgba(60,60,60,0.2)"

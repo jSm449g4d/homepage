@@ -301,10 +301,9 @@ export const MTable = () => {
                             onClick={() => { fetchMaterial() }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button>
-                        <button className="btn btn-outline-dark btn-lg" type="button"
-                            disabled>
-                            <i className="far fa-user mx-1"></i>{combination["user"]}
-                        </button>
+                        <span className="input-group-text form-control-lg">
+                            <i className="fa-solid fa-stroopwafel mx-1" />
+                        </span>
                         {combination["userid"] == userId ?
                             <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
                                 onChange={(evt: any) => { setTmpCombinationDict("name", evt.target.value) }}>
@@ -312,7 +311,6 @@ export const MTable = () => {
                             <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
                                 disabled>
                             </input >
-
                         }
                     </div>
                 </div>
@@ -360,14 +358,24 @@ export const MTable = () => {
                     </div>
                 </div>
                 <div className="col-12 col-md-4 my-1">
-                </div>
-                <div className="col-12 col-md-4 my-1">
                     <div className="d-flex justify-content-center align-items-center">
                         <h4 className="mx-3">概説</h4>
                     </div>
-                    <textarea className="form-control col-12 w-80" rows={3} value={combination["description"]}
+                    <textarea className="form-control col-12 w-80" rows={4} value={tmpCombination["description"]}
                         onChange={(evt: any) => { setTmpCombinationDict("description", evt.target.value) }}
                         style={{ resize: "none" }} />
+                </div>
+                <div className="col-12 col-md-4 my-1">
+                    <div className="input-group">
+                        <span className="input-group-text"><i className="fa-solid fa-tag mx-1" /></span>
+                        <input className="form-control" type="text" placeholder="タグ名"
+                            value={tmpCombination.tag} 
+                            onChange={(evt: any) => setTmpCombinationDict("tag", evt.target.value)} />
+                    </div>
+                    <div className="border border-2 bg-light p-2">
+                        <p><i className="far fa-user mx-1"></i>作成者{": " + combination["user"]}</p>
+                        <p>作成時間:<br />{Unixtime2String(Number(combination.timestamp))}</p>
+                    </div>
                 </div>
             </div>)
     }

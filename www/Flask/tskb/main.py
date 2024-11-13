@@ -651,11 +651,12 @@ def show(request):
                         ensure_ascii=False,
                     )
                 cur.execute(
-                    "UPDATE tskb_combination SET name = ?, description = ?,"
+                    "UPDATE tskb_combination SET name = ?, tag = ?, description = ?,"
                     " userid = ?, user = ?, passhash = ? ,contents = ? WHERE id = ?;",
                     [
                         bleach.clean(_combination["name"], strip=True),
-                        _combination["description"],
+                        bleach.clean(_combination["tag"], strip=True),
+                        bleach.clean(_combination["description"], strip=True),
                         token["id"],
                         _dataDict["user"],
                         _combination["passhash"],

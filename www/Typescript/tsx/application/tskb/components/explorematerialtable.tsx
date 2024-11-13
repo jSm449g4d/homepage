@@ -314,14 +314,12 @@ export const EMTable = () => {
             </div >)
         _tmpData.push(
             <div className="col-12 col-md-12 p-1">
-                <div>
-                    {contents[i]["tag"] != "" ?
-                        <button className="btn btn-outline-dark btn-sm rounded-pill" disabled>
-                            <i className="fa-solid fa-tag mx-1" />{contents[i]["tag"]}
-                        </button > :
-                        <div />}
-                    {contents[i]["description"]}
-                </div>
+                {contents[i]["tag"] != "" ?
+                    <button className="btn btn-outline-dark btn-sm rounded-pill" disabled>
+                        <i className="fa-solid fa-tag mx-1" />{contents[i]["tag"]}
+                    </button > :
+                    <div />}
+                {contents[i]["description"]}
             </div>)
         _tmpRecord.push(
             <div className="col-12 col-md-6" style={{
