@@ -11,7 +11,7 @@ export const MTable = () => {
     //tmpAttachment -1: delete, 1: alreadyExist null: noImage, else: uploadImage
     const [tmpAttachment, setTmpAttachment] = useState(null)
     const [tmpCombination, setTmpCombination] = useState({
-        "id": -1, "name": "", "tag": [], "description": "", "userid": -1, "user": "",
+        "id": -1, "name": "", "tag": "", "description": "", "userid": -1, "user": "",
         "passhash": "", "timestamp": 0, "contents": "{}"
     })
     const setTmpCombinationDict = (_key: string, _value: any) => {
@@ -301,10 +301,9 @@ export const MTable = () => {
                             onClick={() => { fetchMaterial() }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button>
-                        <button className="btn btn-outline-dark btn-lg" type="button"
-                            disabled>
-                            <i className="far fa-user mx-1"></i>{combination["user"]}
-                        </button>
+                        <span className="input-group-text form-control-lg">
+                            <i className="fa-solid fa-stroopwafel mx-1" />
+                        </span>
                         {combination["userid"] == userId ?
                             <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
                                 onChange={(evt: any) => { setTmpCombinationDict("name", evt.target.value) }}>
@@ -312,7 +311,6 @@ export const MTable = () => {
                             <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
                                 disabled>
                             </input >
-
                         }
                     </div>
                 </div>
@@ -359,11 +357,23 @@ export const MTable = () => {
                             style={{ height: 200, objectFit: "contain", visibility: "hidden" }} />
                     </div>
                 </div>
-                <div className="col-12 col-md-8 my-1">
+                <div className="col-12 col-md-4 my-1">
+                    <div className="input-group">
+                        <span className="input-group-text"><i className="fa-solid fa-tag mx-1" /></span>
+                        <input className="form-control" type="text" placeholder="タグ名"
+                            value={tmpCombination.tag}
+                            onChange={(evt: any) => setTmpCombinationDict("tag", evt.target.value)} />
+                    </div>
+                    <div className="border border-2 bg-light p-2">
+                        <p><i className="far fa-user mx-1"></i>作成者{": " + combination["user"]}</p>
+                        <p>作成時間:<br />{Unixtime2String(Number(combination.timestamp))}</p>
+                    </div>
+                </div>
+                <div className="col-12 col-md-4 my-1">
                     <div className="d-flex justify-content-center align-items-center">
                         <h4 className="mx-3">概説</h4>
                     </div>
-                    <textarea className="form-control col-12 w-80" rows={3} value={combination["description"]}
+                    <textarea className="form-control col-12 w-80" rows={4} value={tmpCombination["description"]}
                         onChange={(evt: any) => { setTmpCombinationDict("description", evt.target.value) }}
                         style={{ resize: "none" }} />
                 </div>
@@ -434,9 +444,6 @@ export const MTable = () => {
     "(id,name,tag,description,userid,user,passhash,timestamp,"
     "g,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
     "ca,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
-    if (0 < contents.length)
-        if (!satisfyDictKeys(contents[0], []))
-            return (<div className="row m-1">loading</div>)
     const _tmpElementColumn = [];
     _tmpElementColumn.push(
         <tr>
@@ -492,6 +499,7 @@ export const MTable = () => {
     )
     const _tmpRecord = [];
     const _ccontents = JSON.parse(tmpCombination.contents)
+
     if (0 < contents.length) {
         var _nutrition = JSON.parse(JSON.stringify(contents[0]))
         for (let _key in _nutrition) { _nutrition[_key] = 0 }
@@ -550,85 +558,85 @@ export const MTable = () => {
                 <td>{_nutrition["vk"]}</td>
             </tr>
         )
-    }
-    _tmpRecord.push(
-        <tr className="">
-        </tr>
-    )
-    for (let i = 0; i < contents.length; i++) {
-        const _button = (
-            <td>
-                {combination["userid"] == userId ?
-                    <button type="button" className="btn btn-outline-danger rounded-pill"
-                        onClick={(evt: any) => { combineCombination(evt.target.value) }}
-                        value={contents[i]["id"]}>
-                        <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
-                    </button> :
-                    <button type="button" className="btn btn-outline-danger rounded-pill"
-                        disabled>
-                        <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
-                    </button>
-                }
-            </td>)
-        if (contents[i]["id"] in _ccontents == false) {
+        _tmpRecord.push(
+            <tr className="">
+            </tr>
+        )
+        for (let i = 0; i < contents.length; i++) {
+            const _button = (
+                <td>
+                    {combination["userid"] == userId ?
+                        <button type="button" className="btn btn-outline-danger rounded-pill"
+                            onClick={(evt: any) => { combineCombination(evt.target.value) }}
+                            value={contents[i]["id"]}>
+                            <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
+                        </button> :
+                        <button type="button" className="btn btn-outline-danger rounded-pill"
+                            disabled>
+                            <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
+                        </button>
+                    }
+                </td>)
+            if (contents[i]["id"] in _ccontents == false) {
+                _tmpRecord.push(
+                    <tr>
+                        <td>{_button}</td>
+                        <td>未使用の素材です</td>
+                    </tr>)
+                continue
+            }
+            const _amount = parseFloat("0" + _ccontents[contents[i]["id"]])
+            const _unit = _amount / parseFloat("0" + contents[i]["unit"])
             _tmpRecord.push(
                 <tr>
                     <td>{_button}</td>
-                    <td>未使用の素材です</td>
-                </tr>)
-            continue
+                    <td>{contents[i]["name"]}</td>
+                    <td><input type="text" size={4} value={_amount}
+                        onChange={(evt: any) => {
+                            setTmpCombinationContents(evt.target.name, evt.target.value)
+                        }}
+                        id={"MTamount_" + i} name={String(contents[i]["id"])} /></td>
+                    <td>{toSignificantDigits(contents[i]["cost"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["kcal"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["carbo"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["protein"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["fat"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["saturated_fat"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["n3"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["DHA_EPA"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["n6"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["fiber"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["colin"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["ca"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["cl"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["cr"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["cu"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["i"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["fe"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["mg"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["mn"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["mo"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["p"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["k"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["se"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["na"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["zn"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["va"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["vb1"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["vb2"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["vb3"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["vb5"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["vb6"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["vb7"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["vb9"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["vb12"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["vc"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["vd"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["ve"] * _unit)}</td>
+                    <td>{toSignificantDigits(contents[i]["vk"] * _unit)}</td>
+                </tr>
+            )
         }
-        const _amount = parseFloat("0" + _ccontents[contents[i]["id"]])
-        const _unit = _amount / parseFloat("0" + contents[i]["unit"])
-        _tmpRecord.push(
-            <tr>
-                <td>{_button}</td>
-                <td>{contents[i]["name"]}</td>
-                <td><input type="text" size={4} value={_amount}
-                    onChange={(evt: any) => {
-                        setTmpCombinationContents(evt.target.name, evt.target.value)
-                    }}
-                    id={"MTamount_" + i} name={String(contents[i]["id"])} /></td>
-                <td>{toSignificantDigits(contents[i]["cost"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["kcal"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["carbo"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["protein"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["fat"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["saturated_fat"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["n3"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["DHA_EPA"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["n6"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["fiber"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["colin"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["ca"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["cl"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["cr"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["cu"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["i"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["fe"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["mg"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["mn"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["mo"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["p"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["k"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["se"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["na"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["zn"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["va"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["vb1"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["vb2"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["vb3"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["vb5"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["vb6"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["vb7"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["vb9"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["vb12"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["vc"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["vd"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["ve"] * _unit)}</td>
-                <td>{toSignificantDigits(contents[i]["vk"] * _unit)}</td>
-            </tr>
-        )
 
     }
     return (

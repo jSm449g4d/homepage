@@ -10,6 +10,7 @@ export const EMTable = () => {
     const [contents, setContents] = useState([])
     const [tmpMaterial, setTmpeMaterial] = useState("")
     const [tmpAttachment, setTmpAttachment] = useState(null)
+    const [tmpsearchRadio, setTmpsearchRadio] = useState("name")
 
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
@@ -28,7 +29,8 @@ export const EMTable = () => {
         if (tableStatus == "MTable") setTimeout(() => exploreMaterial(), xhrDelay)
         if (tableStatus == "CMTable") setTimeout(() => exploreMaterial(), xhrDelay)
         setTmpeMaterial("")
-        setTmpAttachment(null);
+        setTmpAttachment(null)
+        setTmpsearchRadio("name")
     }, [reloadFlag])
 
     const stringForSend = (_additionalDict: {} = {}) => {
@@ -48,7 +50,7 @@ export const EMTable = () => {
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("explore", JSON.stringify({
-            "keyword": tmpMaterial, "privateFlag": _tmpPrivateFlag
+            "keyword": tmpMaterial, "search_radio": tmpsearchRadio
         }))
         const request = new Request("/tskb/main.py", {
             method: 'POST',
@@ -187,24 +189,42 @@ export const EMTable = () => {
             <div className="my-1 d-flex justify-content-center">
                 <h3>素材フォーム</h3>
             </div>
-            <div className="my-1">
-                <div className="input-group d-flex justify-content-center align-items-center my-1">
+            <div>
+                <div className="input-group d-flex justify-content-evenly my-1">
+                    <div className="form-check form-check-inline">
+                        <input className="form-check-input" type="radio" name="exampleRadios"
+                            checked={tmpsearchRadio == "name"}
+                            onChange={() => setTmpsearchRadio("name")} />
+                        <label className="form-check-label">
+                            名前検索
+                        </label>
+                    </div>
+                    <div className="form-check form-check-inline">
+                        <input className="form-check-input" type="radio" name="exampleRadios"
+                            checked={tmpsearchRadio == "tag"}
+                            onChange={() => setTmpsearchRadio("tag")} />
+                        <label className="form-check-label">
+                            タグ検索
+                        </label>
+                    </div>
+                    {userId != -1 ?
+                        <div className="form-check form-check-inline">
+                            <input className="form-check-input" type="radio" name="exampleRadios"
+                                checked={tmpsearchRadio == "private"}
+                                onChange={() => setTmpsearchRadio("private")} />
+                            <label className="form-check-label">
+                                非公開名前検索
+                            </label>
+                        </div> :
+                        <div />
+                    }
+                </div>
+                <div className="input-group d-flex justify-content-center my-1">
                     <button className="btn btn-outline-success btn-lg" type="button" id="EMTExploreButton"
                         onClick={() => { exploreMaterial() }}>
                         <i className="fa-solid fa-magnifying-glass mx-1" style={{ pointerEvents: "none" }} />
                         素材検索
                     </button>
-                    {token == "" ?
-                        <button className="btn btn-outline-primary btn-lg" type="button" disabled>
-                            <i className="fa-solid fa-book-open mx-1" style={{ pointerEvents: "none" }} />
-                            非公開一覧
-                        </button> :
-                        <button className="btn btn-outline-primary btn-lg" type="button"
-                            onClick={() => { exploreMaterial(true); }}>
-                            <i className="fa-solid fa-book-open mx-1" style={{ pointerEvents: "none" }} />
-                            非公開一覧
-                        </button>
-                    }
                     <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial}
                         placeholder="検索文字列"
                         onChange={(evt: any) => setTmpeMaterial(evt.target.value)}
@@ -212,7 +232,7 @@ export const EMTable = () => {
                             if (evt.key == "Enter") $("#EMTExploreButton").trigger("click")
                         }} />
                 </div>
-                <div className="d-flex justify-content-between align-items-center my-1">
+                <div className="d-flex justify-content-between my-1">
                     {token == "" ?
                         <button className="btn btn-outline-dark btn-sm" type="button" disabled>
                             <i className="fa-solid fa-arrow-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
@@ -288,15 +308,14 @@ export const EMTable = () => {
                 }
             </div >)
         _tmpData.push(
-            <div className="col-12 col-md-10 p-1">
-                <div>
-                    {contents[i]["description"]}
-                </div>
+            <div className="col-12 col-md-12 p-1">
+                {contents[i]["tag"] != "" ?
+                    <button className="btn btn-outline-dark btn-sm rounded-pill" disabled>
+                        <i className="fa-solid fa-tag mx-1" />{contents[i]["tag"]}
+                    </button > :
+                    <div />}
+                {contents[i]["description"]}
             </div>)
-        _tmpData.push(
-            <div className="col-12 col-md-2 p-1 border"><div className="text-center">
-                {Unixtime2String(Number(contents[i]["timestamp"]))}
-            </div></div>)
         _tmpRecord.push(
             <div className="col-12 col-md-6" style={{
                 border: "1px inset silver", borderRadius: "5px", marginBottom: "3px", boxShadow: "2px 2px 1px rgba(60,60,60,0.2)"

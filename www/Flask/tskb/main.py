@@ -3,7 +3,7 @@ import json
 import os
 import jwt
 from PIL import Image
-import bleach
+import re
 import flask
 import sys
 from contextlib import closing
@@ -54,7 +54,7 @@ with closing(sqlite3.connect(db_dir)) as conn:
     # passhash="": public ,"0": private
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_combination(id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "name TEXT UNIQUE NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
+        "name TEXT UNIQUE NOT NULL,tag TEXT DEFAULT '',description TEXT DEFAULT '',"
         "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
         "contents TEXT NOT NULL)"
     )
@@ -64,7 +64,7 @@ with closing(sqlite3.connect(db_dir)) as conn:
     "ca,cl,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_material(id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "name TEXT UNIQUE NOT NULL,tag TEXT NOT NULL,description TEXT DEFAULT '',"
+        "name TEXT UNIQUE NOT NULL,tag TEXT DEFAULT '',description TEXT DEFAULT '',"
         "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
         "unit REAL DEFAULT 100,cost REAL DEFAULT 0,"
         "carbo REAL DEFAULT 0,fiber REAL DEFAULT 0,"
@@ -93,6 +93,10 @@ def isfloat(_s):
         return _f
 
 
+def safe_string(_s):
+    return re.sub("[<(.*)>|＜(.*)＞|\\|/]", "", _s).replace("　", " ")
+
+
 def show(request):
 
     if request.method == "GET":
@@ -110,7 +114,7 @@ def show(request):
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             if token["timestamp"] + pyJWT_timeout < int(time.time()):
                 return json.dumps(
-                    {"message": "tokenTimeout", "text": "JWT期限切れ"},
+                    {"message": "tokenTimeout", "text": "JWT期限切れ_要再ログイン"},
                     ensure_ascii=False,
                 )
             encoded_new_token = jwt.encode(
@@ -127,41 +131,58 @@ def show(request):
                 if token != "":
                     _userid = token["id"]
                 # process start
-                # search opend material
-                if _dataDict["privateFlag"] == False:
-                    cur.execute(
-                        "SELECT * FROM tskb_material WHERE name LIKE ? "
-                        "AND passhash = '' LIMIT 100;",
-                        ["%" + _dataDict["keyword"] + "%"],
-                    )
-                    _materials = [
-                        {key: value for key, value in dict(result).items()}
-                        for result in cur.fetchall()
-                    ]
-                    return json.dumps(
-                        {
-                            "message": "processed",
-                            "materials": _materials,
-                        },
-                        ensure_ascii=False,
-                    )
-                if _dataDict["privateFlag"] == True:
-                    cur.execute(
-                        "SELECT * FROM tskb_material WHERE userid = ? "
-                        "AND passhash = '0'",
-                        [token["id"]],
-                    )
-                    _materials = [
-                        {key: value for key, value in dict(result).items()}
-                        for result in cur.fetchall()
-                    ]
-                    return json.dumps(
-                        {
-                            "message": "processed",
-                            "materials": _materials,
-                        },
-                        ensure_ascii=False,
-                    )
+                match _dataDict["search_radio"]:
+                    case "name":
+                        cur.execute(
+                            "SELECT * FROM tskb_material WHERE name LIKE ? "
+                            "AND passhash = '' LIMIT 200;",
+                            ["%" + _dataDict["keyword"] + "%"],
+                        )
+                        _materials = [
+                            {key: value for key, value in dict(result).items()}
+                            for result in cur.fetchall()
+                        ]
+                        return json.dumps(
+                            {
+                                "message": "processed",
+                                "materials": _materials,
+                            },
+                            ensure_ascii=False,
+                        )
+                    case "tag":
+                        cur.execute(
+                            "SELECT * FROM tskb_material WHERE tag LIKE ? "
+                            "AND passhash = '' LIMIT 200;",
+                            ["%" + _dataDict["keyword"] + "%"],
+                        )
+                        _materials = [
+                            {key: value for key, value in dict(result).items()}
+                            for result in cur.fetchall()
+                        ]
+                        return json.dumps(
+                            {
+                                "message": "processed",
+                                "materials": _materials,
+                            },
+                            ensure_ascii=False,
+                        )
+                    case "private":
+                        cur.execute(
+                            "SELECT * FROM tskb_material WHERE name LIKE ? "
+                            "AND passhash = '0' AND userid = ? LIMIT 200;",
+                            ["%" + _dataDict["keyword"] + "%", _userid],
+                        )
+                        _materials = [
+                            {key: value for key, value in dict(result).items()}
+                            for result in cur.fetchall()
+                        ]
+                        return json.dumps(
+                            {
+                                "message": "processed",
+                                "materials": _materials,
+                            },
+                            ensure_ascii=False,
+                        )
                 # search closed material
             return json.dumps({"message": "rejected", "text": "不明なエラー"})
 
@@ -227,7 +248,7 @@ def show(request):
                 # register material
                 cur.execute(
                     "SELECT * FROM tskb_material WHERE name = ?;",
-                    [bleach.clean(_dataDict["material"]["name"], strip=True)],
+                    [safe_string(_dataDict["material"]["name"])],
                 )
                 _material = cur.fetchone()
                 if _dataDict["material"]["id"] == -1:
@@ -237,14 +258,11 @@ def show(request):
                         )
                     cur.execute(
                         "INSERT INTO tskb_material "
-                        "(name,tag,description,userid,user,passhash,timestamp) "
-                        "values(?,?,?,?,?,?,?)",
+                        "(name,description,userid,user,passhash,timestamp) "
+                        "values(?,?,?,?,?,?)",
                         [
-                            bleach.clean(_dataDict["material"]["name"], strip=True),
-                            ",".join([]),
-                            bleach.clean(
-                                _dataDict["material"]["description"], strip=True
-                            ),
+                            safe_string(_dataDict["material"]["name"]),
+                            safe_string(_dataDict["material"]["description"]),
                             token["id"],
                             _dataDict["user"],
                             _dataDict["material"]["passhash"],
@@ -277,7 +295,7 @@ def show(request):
                 if isfloat(_material["unit"]) < 1:
                     _material["unit"] = 1
                 cur.execute(
-                    "UPDATE tskb_material SET name = ?,description = ?,"
+                    "UPDATE tskb_material SET name = ?,tag = ?,description = ?,"
                     "userid = ?,user = ?,passhash = ?,timestamp = ?,"
                     "unit = ?,cost = ?,carbo = ?,fiber= ? ,protein = ?,"
                     "fat = ?,saturated_fat = ?,n3 = ?,DHA_EPA = ?,n6 = ?,"
@@ -287,8 +305,9 @@ def show(request):
                     "vb9 = ?,vb12 = ?,vc = ?,vd = ?,ve = ?,vk = ?,"
                     "colin = ?,kcal = ? WHERE id = ?;",
                     [
-                        bleach.clean(_material["name"], strip=True),
-                        bleach.clean(_material["description"], strip=True),
+                        safe_string(_material["name"]),
+                        safe_string(_material["tag"]),
+                        safe_string(_material["description"]),
                         token["id"],
                         _dataDict["user"],
                         _material["passhash"],
@@ -361,24 +380,22 @@ def show(request):
                     # make record
                     cur.execute(
                         "SELECT * FROM tskb_material WHERE name = ?;",
-                        [bleach.clean(_updata_dicts["name"], strip=True)],
+                        [safe_string(_updata_dicts["name"])],
                     )
                     _material = cur.fetchone()
                     if _material == None:
                         cur.execute(
                             "INSERT INTO tskb_material "
-                            "(name,tag,userid,user,passhash,timestamp) "
-                            "values(?,?,?,?,?,?)",
+                            "(name,userid,user,passhash,timestamp) "
+                            "values(?,?,?,?,?)",
                             [
-                                bleach.clean(_updata_dicts["name"], strip=True),
-                                ",".join([]),
+                                safe_string(_updata_dicts["name"]),
                                 token["id"],
                                 _dataDict["user"],
                                 "",
                                 int(time.time()),
                             ],
                         )
-                        conn.commit()
                         cur.execute(
                             "SELECT * FROM tskb_material WHERE ROWID = last_insert_rowid();",
                             [],
@@ -392,7 +409,7 @@ def show(request):
                     if isfloat(_material["unit"]) < 1:
                         _material["unit"] = 1
                     cur.execute(
-                        "UPDATE tskb_material SET name = ?,description = ?,"
+                        "UPDATE tskb_material SET name = ?,tag = ?,description = ?,"
                         "userid = ?,user = ?,passhash = ?,timestamp = ?,"
                         "unit = ?,cost = ?,carbo = ?,fiber= ? ,protein = ?,"
                         "fat = ?,saturated_fat = ?,n3 = ?,DHA_EPA = ?,n6 = ?,"
@@ -402,8 +419,9 @@ def show(request):
                         "vb9 = ?,vb12 = ?,vc = ?,vd = ?,ve = ?,vk = ?,"
                         "colin = ?,kcal = ? WHERE id = ?;",
                         [
-                            bleach.clean(_material["name"], strip=True),
-                            bleach.clean(_material["description"], strip=True),
+                            safe_string(_material["name"]),
+                            safe_string(_material["tag"]),
+                            safe_string(_material["description"]),
                             token["id"],
                             _dataDict["user"],
                             _material["passhash"],
@@ -450,8 +468,7 @@ def show(request):
                             _material["id"],
                         ],
                     )
-                    conn.commit()
-
+                conn.commit()
                 return json.dumps(
                     {"message": "processed"},
                     ensure_ascii=False,
@@ -518,7 +535,7 @@ def show(request):
                 # check duplication
                 cur.execute(
                     "SELECT * FROM tskb_combination WHERE name = ?;",
-                    [bleach.clean(_dataDict["name"], strip=True)],
+                    [safe_string(_dataDict["name"])],
                 )
                 _room = cur.fetchone()
                 if _room != None:
@@ -528,11 +545,10 @@ def show(request):
                     )
                 cur.execute(
                     "INSERT INTO tskb_combination "
-                    "(name,tag,description,userid,user,passhash,timestamp,contents) "
-                    "values(?,?,?,?,?,?,?,?)",
+                    "(name,description,userid,user,passhash,timestamp,contents) "
+                    "values(?,?,?,?,?,?,?)",
                     [
-                        bleach.clean(_dataDict["name"], strip=True),
-                        ",".join([]),
+                        safe_string(_dataDict["name"]),
                         _dataDict["description"],
                         token["id"],
                         _dataDict["user"],
@@ -652,11 +668,12 @@ def show(request):
                         ensure_ascii=False,
                     )
                 cur.execute(
-                    "UPDATE tskb_combination SET name = ?, description = ?,"
+                    "UPDATE tskb_combination SET name = ?, tag = ?, description = ?,"
                     " userid = ?, user = ?, passhash = ? ,contents = ? WHERE id = ?;",
                     [
-                        bleach.clean(_combination["name"], strip=True),
-                        _combination["description"],
+                        safe_string(_combination["name"]),
+                        safe_string(_combination["tag"]),
+                        safe_string(_combination["description"]),
                         token["id"],
                         _dataDict["user"],
                         _combination["passhash"],
