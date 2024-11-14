@@ -4,7 +4,6 @@ import os
 import jwt
 from PIL import Image
 import re
-import bleach
 import flask
 import sys
 from contextlib import closing
@@ -94,6 +93,10 @@ def isfloat(_s):
         return _f
 
 
+def safe_string(_s):
+    return re.sub("[<(.*)>|＜(.*)＞|\\|/]", "", _s).replace("　", " ")
+
+
 def show(request):
 
     if request.method == "GET":
@@ -111,7 +114,7 @@ def show(request):
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             if token["timestamp"] + pyJWT_timeout < int(time.time()):
                 return json.dumps(
-                    {"message": "tokenTimeout", "text": "JWT期限切れ"},
+                    {"message": "tokenTimeout", "text": "JWT期限切れ_要再ログイン"},
                     ensure_ascii=False,
                 )
             encoded_new_token = jwt.encode(
@@ -245,7 +248,7 @@ def show(request):
                 # register material
                 cur.execute(
                     "SELECT * FROM tskb_material WHERE name = ?;",
-                    [bleach.clean(re.sub('<(.*)>', '',_dataDict["material"]["name"]), strip=True)],
+                    [safe_string(_dataDict["material"]["name"])],
                 )
                 _material = cur.fetchone()
                 if _dataDict["material"]["id"] == -1:
@@ -258,11 +261,8 @@ def show(request):
                         "(name,description,userid,user,passhash,timestamp) "
                         "values(?,?,?,?,?,?)",
                         [
-                            bleach.clean(re.sub('<(.*)>', '',_dataDict["material"]["name"]),
-                             strip=True),
-                            bleach.clean(re.sub('<(.*)>', '',
-                                _dataDict["material"]["description"]), strip=True
-                            ),
+                            safe_string(_dataDict["material"]["name"]),
+                            safe_string(_dataDict["material"]["description"]),
                             token["id"],
                             _dataDict["user"],
                             _dataDict["material"]["passhash"],
@@ -305,9 +305,9 @@ def show(request):
                     "vb9 = ?,vb12 = ?,vc = ?,vd = ?,ve = ?,vk = ?,"
                     "colin = ?,kcal = ? WHERE id = ?;",
                     [
-                        bleach.clean(re.sub('<(.*)>', '',_material["name"]), strip=True),
-                        bleach.clean(re.sub('<(.*)>', '',_material["tag"]), strip=True),
-                        bleach.clean(re.sub('<(.*)>', '',_material["description"]), strip=True),
+                        safe_string(_material["name"]),
+                        safe_string(_material["tag"]),
+                        safe_string(_material["description"]),
                         token["id"],
                         _dataDict["user"],
                         _material["passhash"],
@@ -380,7 +380,7 @@ def show(request):
                     # make record
                     cur.execute(
                         "SELECT * FROM tskb_material WHERE name = ?;",
-                        [bleach.clean(re.sub('<(.*)>', '',_updata_dicts["name"]), strip=True)],
+                        [safe_string(_updata_dicts["name"])],
                     )
                     _material = cur.fetchone()
                     if _material == None:
@@ -389,14 +389,13 @@ def show(request):
                             "(name,userid,user,passhash,timestamp) "
                             "values(?,?,?,?,?)",
                             [
-                                bleach.clean(re.sub('<(.*)>', '',_updata_dicts["name"]), strip=True),
+                                safe_string(_updata_dicts["name"]),
                                 token["id"],
                                 _dataDict["user"],
                                 "",
                                 int(time.time()),
                             ],
                         )
-                        conn.commit()
                         cur.execute(
                             "SELECT * FROM tskb_material WHERE ROWID = last_insert_rowid();",
                             [],
@@ -420,9 +419,9 @@ def show(request):
                         "vb9 = ?,vb12 = ?,vc = ?,vd = ?,ve = ?,vk = ?,"
                         "colin = ?,kcal = ? WHERE id = ?;",
                         [
-                            bleach.clean(re.sub('<(.*)>', '',_material["name"]), strip=True),
-                            bleach.clean(re.sub('<(.*)>', '',_material["tag"]), strip=True),
-                            bleach.clean(re.sub('<(.*)>', '',_material["description"]), strip=True),
+                            safe_string(_material["name"]),
+                            safe_string(_material["tag"]),
+                            safe_string(_material["description"]),
                             token["id"],
                             _dataDict["user"],
                             _material["passhash"],
@@ -469,8 +468,7 @@ def show(request):
                             _material["id"],
                         ],
                     )
-                    conn.commit()
-
+                conn.commit()
                 return json.dumps(
                     {"message": "processed"},
                     ensure_ascii=False,
@@ -537,7 +535,7 @@ def show(request):
                 # check duplication
                 cur.execute(
                     "SELECT * FROM tskb_combination WHERE name = ?;",
-                    [bleach.clean(re.sub('<(.*)>', '',_dataDict["name"]), strip=True)],
+                    [safe_string(_dataDict["name"])],
                 )
                 _room = cur.fetchone()
                 if _room != None:
@@ -550,7 +548,7 @@ def show(request):
                     "(name,description,userid,user,passhash,timestamp,contents) "
                     "values(?,?,?,?,?,?,?)",
                     [
-                        bleach.clean(re.sub('<(.*)>', '',_dataDict["name"]), strip=True),
+                        safe_string(_dataDict["name"]),
                         _dataDict["description"],
                         token["id"],
                         _dataDict["user"],
@@ -673,9 +671,9 @@ def show(request):
                     "UPDATE tskb_combination SET name = ?, tag = ?, description = ?,"
                     " userid = ?, user = ?, passhash = ? ,contents = ? WHERE id = ?;",
                     [
-                        bleach.clean(re.sub('<(.*)>', '',_combination["name"]), strip=True),
-                        bleach.clean(re.sub('<(.*)>', '',_combination["tag"]), strip=True),
-                        bleach.clean(re.sub('<(.*)>', '',_combination["description"]), strip=True),
+                        safe_string(_combination["name"]),
+                        safe_string(_combination["tag"]),
+                        safe_string(_combination["description"]),
                         token["id"],
                         _dataDict["user"],
                         _combination["passhash"],
