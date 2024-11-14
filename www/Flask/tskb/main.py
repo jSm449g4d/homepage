@@ -8,6 +8,7 @@ import flask
 import sys
 from contextlib import closing
 import time
+import glob
 
 FUNC_NAME = "tskb"
 
@@ -32,13 +33,14 @@ def get_response(_statusDict={"STATUS": "VALUE"}):
 tmp_dir = "./tmp/" + FUNC_NAME + "/"
 os.makedirs(tmp_dir + "combination/", exist_ok=True)
 os.makedirs(tmp_dir + "material/", exist_ok=True)
-key_dir = "./keys/keys.json"
+key_dir = "./keys/"
+os.makedirs(key_dir + "tskb/", exist_ok=True)
 db_dir = "./tmp/sqlite.db"
 pyJWT_pass = "test"
 pyJWT_timeout = 3600
 keys = {}
-if os.path.exists(key_dir):
-    with open(key_dir) as f:
+if os.path.exists(key_dir + "keys.json"):
+    with open(key_dir + "keys.json") as f:
         keys = json.load(f)
         if "db" in keys:
             db_dir = keys["db"]
@@ -59,6 +61,7 @@ with closing(sqlite3.connect(db_dir)) as conn:
         "contents TEXT NOT NULL)"
     )
     # passhash="": public ,"0": private
+    # tag="Requirements": special
     "(id,name,tag,description,userid,user,passhash,timestamp,"
     "unit,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
     "ca,cl,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
@@ -84,6 +87,107 @@ with closing(sqlite3.connect(db_dir)) as conn:
     conn.commit()
 
 
+def load_reference_file():
+    _reference_files = glob.glob(key_dir + "tskb/" + "*.json")
+    for _filename in _reference_files:
+        with open(_filename, "r",encoding="utf-8") as _f:
+            _updata_dicts = json.loads(_f.read())
+            with closing(sqlite3.connect(db_dir)) as conn:
+                for _updata_dict in _updata_dicts:
+                    conn.row_factory = sqlite3.Row
+                    cur = conn.cursor()
+                    # make record
+                    cur.execute(
+                        "SELECT * FROM tskb_material WHERE name = ?;",
+                        [safe_string(_updata_dict["name"])],
+                    )
+                    _material = cur.fetchone()
+                    if _material == None:
+                        cur.execute(
+                            "INSERT INTO tskb_material "
+                            "(name,userid,user,passhash,timestamp) "
+                            "values(?,?,?,?,?)",
+                            [
+                                safe_string(_updata_dict["name"]),
+                                0,
+                                "admin",
+                                "",
+                                int(time.time()),
+                            ],
+                        )
+                        cur.execute(
+                            "SELECT * FROM tskb_material WHERE ROWID = last_insert_rowid();",
+                            [],
+                        )
+                        _material = cur.fetchone()
+                    _material = dict(_material)
+                    # upgrade record
+                    _material.update(_updata_dict)
+                    if isfloat(_material["unit"]) < 1:
+                        _material["unit"] = 1
+                    cur.execute(
+                        "UPDATE tskb_material SET name = ?,tag = ?,description = ?,"
+                        "userid = ?,user = ?,passhash = ?,timestamp = ?,"
+                        "unit = ?,cost = ?,carbo = ?,fiber= ? ,protein = ?,"
+                        "fat = ?,saturated_fat = ?,n3 = ?,DHA_EPA = ?,n6 = ?,"
+                        "ca = ?,cl = ?,cr = ?,cu = ?,i = ?,fe = ?,mg = ?,mn = ?,"
+                        "mo = ?,p = ?,k = ?,se = ?,na = ?,zn = ?,va = ?,vb1 = ?,"
+                        "vb2 = ?,vb3 = ?,vb5 = ?,vb6 = ?,vb7 = ?,"
+                        "vb9 = ?,vb12 = ?,vc = ?,vd = ?,ve = ?,vk = ?,"
+                        "colin = ?,kcal = ? WHERE id = ?;",
+                        [
+                            safe_string(_material["name"]),
+                            safe_string(_material["tag"]),
+                            safe_string(_material["description"]),
+                            0,
+                            "admin",
+                            _material["passhash"],
+                            _material["timestamp"],
+                            isfloat(_material["unit"]),
+                            isfloat(_material["cost"]),
+                            isfloat(_material["carbo"]),
+                            isfloat(_material["fiber"]),
+                            isfloat(_material["protein"]),
+                            isfloat(_material["fat"]),
+                            isfloat(_material["saturated_fat"]),
+                            isfloat(_material["n3"]),
+                            isfloat(_material["DHA_EPA"]),
+                            isfloat(_material["n6"]),
+                            isfloat(_material["ca"]),
+                            isfloat(_material["cl"]),
+                            isfloat(_material["cr"]),
+                            isfloat(_material["cu"]),
+                            isfloat(_material["i"]),
+                            isfloat(_material["fe"]),
+                            isfloat(_material["mg"]),
+                            isfloat(_material["mn"]),
+                            isfloat(_material["mo"]),
+                            isfloat(_material["p"]),
+                            isfloat(_material["k"]),
+                            isfloat(_material["se"]),
+                            isfloat(_material["na"]),
+                            isfloat(_material["zn"]),
+                            isfloat(_material["va"]),
+                            isfloat(_material["vb1"]),
+                            isfloat(_material["vb2"]),
+                            isfloat(_material["vb3"]),
+                            isfloat(_material["vb5"]),
+                            isfloat(_material["vb6"]),
+                            isfloat(_material["vb7"]),
+                            isfloat(_material["vb9"]),
+                            isfloat(_material["vb12"]),
+                            isfloat(_material["vc"]),
+                            isfloat(_material["vd"]),
+                            isfloat(_material["ve"]),
+                            isfloat(_material["vk"]),
+                            isfloat(_material["colin"]),
+                            isfloat(_material["kcal"]),
+                            _material["id"],
+                        ],
+                    )
+                conn.commit()
+
+
 def isfloat(_s):
     try:
         _f = round(float(_s), 4)
@@ -95,6 +199,9 @@ def isfloat(_s):
 
 def safe_string(_s):
     return re.sub("[<(.*)>|＜(.*)＞|\\|/]", "", _s).replace("　", " ")
+
+
+load_reference_file()
 
 
 def show(request):
@@ -224,11 +331,22 @@ def show(request):
                         if _material["userid"] != _userid:
                             continue
                     _materials.append(dict(_material))
+                # requirements
+                cur.execute(
+                    "SELECT * FROM tskb_material WHERE tag = 'Requirements' "
+                    "AND passhash = '' LIMIT 20;",
+                    [],
+                )
+                _requirements = [
+                    {key: value for key, value in dict(result).items()}
+                    for result in cur.fetchall()
+                ]
                 return json.dumps(
                     {
                         "message": "processed",
                         "materials": _materials,
                         "combination": dict(_combination),
+                        "requirements": _requirements,
                         "token": encoded_new_token,
                     },
                     ensure_ascii=False,
@@ -374,13 +492,13 @@ def show(request):
             _updata = request.files["updata"]
             _updata_dicts = json.loads(_updata.read())
             with closing(sqlite3.connect(db_dir)) as conn:
-                for _updata_dicts in _updata_dicts:
+                for _updata_dict in _updata_dicts:
                     conn.row_factory = sqlite3.Row
                     cur = conn.cursor()
                     # make record
                     cur.execute(
                         "SELECT * FROM tskb_material WHERE name = ?;",
-                        [safe_string(_updata_dicts["name"])],
+                        [safe_string(_updata_dict["name"])],
                     )
                     _material = cur.fetchone()
                     if _material == None:
@@ -389,7 +507,7 @@ def show(request):
                             "(name,userid,user,passhash,timestamp) "
                             "values(?,?,?,?,?)",
                             [
-                                safe_string(_updata_dicts["name"]),
+                                safe_string(_updata_dict["name"]),
                                 token["id"],
                                 _dataDict["user"],
                                 "",
@@ -405,7 +523,7 @@ def show(request):
                         continue
                     _material = dict(_material)
                     # upgrade record
-                    _material.update(_updata_dicts)
+                    _material.update(_updata_dict)
                     if isfloat(_material["unit"]) < 1:
                         _material["unit"] = 1
                     cur.execute(

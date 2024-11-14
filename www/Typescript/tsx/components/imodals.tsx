@@ -26,7 +26,7 @@ export const IModalsRender = () => {
                                 help
                             </h4>
                         </div>
-                        <div className="modal-body" id="helpInfoModalText"></div>
+                        <div className="modal-body" id="helpInfoModalText" style={{ "wordBreak": "break-all" }}></div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-outline-secondary" data-bs-dismiss="modal">
                                 <i className="fa-solid fa-otter mx-1" style={{ pointerEvents: "none" }} />Close
@@ -50,7 +50,7 @@ export const IModalsRender = () => {
                                 caution
                             </h4>
                         </div>
-                        <div className="modal-body" id="cautionInfoModalText"></div>
+                        <div className="modal-body" id="cautionInfoModalText" style={{ "wordBreak": "break-all" }}></div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-outline-secondary" data-bs-dismiss="modal">
                                 <i className="fa-solid fa-otter mx-1" style={{ pointerEvents: "none" }} />Close

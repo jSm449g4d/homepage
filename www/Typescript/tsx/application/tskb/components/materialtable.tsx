@@ -8,6 +8,7 @@ import { useAppSelector, useAppDispatch } from '../../../components/store'
 
 export const MTable = () => {
     const [contents, setContents] = useState([])
+    const [requirements, setRequirements] = useState([])
     //tmpAttachment -1: delete, 1: alreadyExist null: noImage, else: uploadImage
     const [tmpAttachment, setTmpAttachment] = useState(null)
     const [tmpCombination, setTmpCombination] = useState({
@@ -59,6 +60,10 @@ export const MTable = () => {
             const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
             setContents(_contents.sort(_sortContents))
         }
+        const sortSetRequirements = (_contents: any = []) => {
+            const _sortContents = (a: any, b: any) => { return a["id"] - b["id"] }
+            setRequirements(_contents.sort(_sortContents))
+        }
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
@@ -76,6 +81,7 @@ export const MTable = () => {
                     case "processed": {
                         AppDispatch(tskbSetState({ combination: resJ["combination"] }));
                         sortSetContents(resJ["materials"]);
+                        sortSetRequirements(resJ["requirements"]);
                         AppDispatch(accountSetState({ token: resJ["token"] }));
                         downloadImage();
                         break;
@@ -462,7 +468,15 @@ export const MTable = () => {
             <th scope="col">炭水化物<br />g</th>
             <th scope="col">タンパク質<br />g	</th>
             <th scope="col">脂質<br />g</th>
-            <th scope="col">飽和脂肪酸<br />g</th>
+            <th scope="col">飽和脂肪酸<br />g
+                <i className="text-info fa-solid fa-circle-question mx-1"
+                    onClick={() => {
+                        HIModal("上限量", "飽和脂肪酸は、体内合成が可能であり、必須栄養素ではない。" +
+                            "、高 LDLコレステロール血症の主な危険因子の 1 つであり、" +
+                            "心筋梗塞を始めとする循環器疾患の危険因子でもある。"
+                        )
+                    }}>
+                </i></th>
             <th scope="col">n-3脂肪酸<br />g</th>
             <th scope="col">DHA-EPA<br />g</th>
             <th scope="col">n-6脂肪酸<br />g</th>
@@ -500,145 +514,206 @@ export const MTable = () => {
     const _tmpRecord = [];
     const _ccontents = JSON.parse(tmpCombination.contents)
 
-    if (0 < contents.length) {
-        var _nutrition = JSON.parse(JSON.stringify(contents[0]))
-        for (let _key in _nutrition) { _nutrition[_key] = 0 }
-        for (let _i = 0; _i < contents.length; _i++) {
-            if (contents[_i]["id"] in _ccontents == false) continue
-            for (let _key in _nutrition) {
-                _nutrition[_key] +=
-                    parseFloat("0" + (contents[_i][_key]) *
-                        parseFloat("0" + _ccontents[contents[_i]["id"]])) /
-                    parseFloat("0" + contents[_i]["unit"])
-            }
+    if (0 == requirements.length) {
+        return(
+        <div style={{ overflow: "auto" }}>
+            工事中⇒必要栄養素テーブルをセットしてください
+        </div>)
+    }
+    var _nutrition = JSON.parse(JSON.stringify(requirements[0]))
+    for (let _key in _nutrition) { _nutrition[_key] = 0 }
+    for (let _i = 0; _i < contents.length; _i++) {
+        if (contents[_i]["id"] in _ccontents == false) continue
+        for (let _key in _nutrition) {
+            _nutrition[_key] +=
+                parseFloat("0" + (contents[_i][_key]) *
+                    parseFloat("0" + _ccontents[contents[_i]["id"]])) /
+                parseFloat("0" + contents[_i]["unit"])
         }
-        for (let _key in _nutrition) { _nutrition[_key] = toSignificantDigits(_nutrition[_key]) }
-        _tmpRecord.push(
-            <tr>
-                <td></td>
-                <td>総計</td>
-                <td></td>
-                <td>{_nutrition["cost"]}</td>
-                <td>{_nutrition["kcal"]}</td>
-                <td>{_nutrition["carbo"]}</td>
-                <td>{_nutrition["protein"]}</td>
-                <td>{_nutrition["fat"]}</td>
-                <td>{_nutrition["saturated_fat"]}</td>
-                <td>{_nutrition["n3"]}</td>
-                <td>{_nutrition["DHA_EPA"]}</td>
-                <td>{_nutrition["n6"]}</td>
-                <td>{_nutrition["fiber"]}</td>
-                <td>{_nutrition["colin"]}</td>
-                <td>{_nutrition["ca"]}</td>
-                <td>{_nutrition["cl"]}</td>
-                <td>{_nutrition["cr"]}</td>
-                <td>{_nutrition["cu"]}</td>
-                <td>{_nutrition["i"]}</td>
-                <td>{_nutrition["fe"]}</td>
-                <td>{_nutrition["mg"]}</td>
-                <td>{_nutrition["mn"]}</td>
-                <td>{_nutrition["mo"]}</td>
-                <td>{_nutrition["p"]}</td>
-                <td>{_nutrition["k"]}</td>
-                <td>{_nutrition["se"]}</td>
-                <td>{_nutrition["na"]}</td>
-                <td>{_nutrition["zn"]}</td>
-                <td>{_nutrition["va"]}</td>
-                <td>{_nutrition["vb1"]}</td>
-                <td>{_nutrition["vb2"]}</td>
-                <td>{_nutrition["vb3"]}</td>
-                <td>{_nutrition["vb5"]}</td>
-                <td>{_nutrition["vb6"]}</td>
-                <td>{_nutrition["vb7"]}</td>
-                <td>{_nutrition["vb9"]}</td>
-                <td>{_nutrition["vb12"]}</td>
-                <td>{_nutrition["vc"]}</td>
-                <td>{_nutrition["vd"]}</td>
-                <td>{_nutrition["ve"]}</td>
-                <td>{_nutrition["vk"]}</td>
-            </tr>
-        )
-        _tmpRecord.push(
-            <tr className="">
-            </tr>
-        )
-        for (let i = 0; i < contents.length; i++) {
-            const _button = (
-                <td>
-                    {combination["userid"] == userId ?
-                        <button type="button" className="btn btn-outline-danger rounded-pill"
-                            onClick={(evt: any) => { combineCombination(evt.target.value) }}
-                            value={contents[i]["id"]}>
-                            <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
-                        </button> :
-                        <button type="button" className="btn btn-outline-danger rounded-pill"
-                            disabled>
-                            <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
-                        </button>
-                    }
-                </td>)
-            if (contents[i]["id"] in _ccontents == false) {
-                _tmpRecord.push(
-                    <tr>
-                        <td>{_button}</td>
-                        <td>未使用の素材です</td>
-                    </tr>)
-                continue
-            }
-            const _amount = parseFloat("0" + _ccontents[contents[i]["id"]])
-            const _unit = _amount / parseFloat("0" + contents[i]["unit"])
+    }
+    for (let _key in _nutrition) { _nutrition[_key] = toSignificantDigits(_nutrition[_key]) }
+    _tmpRecord.push(
+        <tr>
+            <td></td>
+            <td>総計</td>
+            <td></td>
+            <td>{_nutrition["cost"]}</td>
+            <td>{_nutrition["kcal"]}</td>
+            <td>{_nutrition["carbo"]}</td>
+            <td>{_nutrition["protein"]}</td>
+            <td>{_nutrition["fat"]}</td>
+            <td>{_nutrition["saturated_fat"]}</td>
+            <td>{_nutrition["n3"]}</td>
+            <td>{_nutrition["DHA_EPA"]}</td>
+            <td>{_nutrition["n6"]}</td>
+            <td>{_nutrition["fiber"]}</td>
+            <td>{_nutrition["colin"]}</td>
+            <td>{_nutrition["ca"]}</td>
+            <td>{_nutrition["cl"]}</td>
+            <td>{_nutrition["cr"]}</td>
+            <td>{_nutrition["cu"]}</td>
+            <td>{_nutrition["i"]}</td>
+            <td>{_nutrition["fe"]}</td>
+            <td>{_nutrition["mg"]}</td>
+            <td>{_nutrition["mn"]}</td>
+            <td>{_nutrition["mo"]}</td>
+            <td>{_nutrition["p"]}</td>
+            <td>{_nutrition["k"]}</td>
+            <td>{_nutrition["se"]}</td>
+            <td>{_nutrition["na"]}</td>
+            <td>{_nutrition["zn"]}</td>
+            <td>{_nutrition["va"]}</td>
+            <td>{_nutrition["vb1"]}</td>
+            <td>{_nutrition["vb2"]}</td>
+            <td>{_nutrition["vb3"]}</td>
+            <td>{_nutrition["vb5"]}</td>
+            <td>{_nutrition["vb6"]}</td>
+            <td>{_nutrition["vb7"]}</td>
+            <td>{_nutrition["vb9"]}</td>
+            <td>{_nutrition["vb12"]}</td>
+            <td>{_nutrition["vc"]}</td>
+            <td>{_nutrition["vd"]}</td>
+            <td>{_nutrition["ve"]}</td>
+            <td>{_nutrition["vk"]}</td>
+        </tr>
+    )
+
+
+
+
+    var _nutrition = JSON.parse(JSON.stringify(requirements[0]))
+    for (let _key in _nutrition) { _nutrition[_key] = 0 }
+    for (let _i = 0; _i < contents.length; _i++) {
+        if (contents[_i]["id"] in _ccontents == false) continue
+        for (let _key in _nutrition) {
+            _nutrition[_key] +=
+                parseFloat("0" + (contents[_i][_key]) *
+                    parseFloat("0" + _ccontents[contents[_i]["id"]])) /
+                parseFloat("0" + contents[_i]["unit"])
+        }
+    }
+    for (let _key in _nutrition) { _nutrition[_key] = toSignificantDigits(_nutrition[_key]) }
+    _tmpRecord.push(
+        <tr>
+            <td></td>
+            <td>総計</td>
+            <td></td>
+            <td>{_nutrition["cost"]}</td>
+            <td>{_nutrition["kcal"]}</td>
+            <td>{_nutrition["carbo"]}</td>
+            <td>{_nutrition["protein"]}</td>
+            <td>{_nutrition["fat"]}</td>
+            <td>{_nutrition["saturated_fat"]}</td>
+            <td>{_nutrition["n3"]}</td>
+            <td>{_nutrition["DHA_EPA"]}</td>
+            <td>{_nutrition["n6"]}</td>
+            <td>{_nutrition["fiber"]}</td>
+            <td>{_nutrition["colin"]}</td>
+            <td>{_nutrition["ca"]}</td>
+            <td>{_nutrition["cl"]}</td>
+            <td>{_nutrition["cr"]}</td>
+            <td>{_nutrition["cu"]}</td>
+            <td>{_nutrition["i"]}</td>
+            <td>{_nutrition["fe"]}</td>
+            <td>{_nutrition["mg"]}</td>
+            <td>{_nutrition["mn"]}</td>
+            <td>{_nutrition["mo"]}</td>
+            <td>{_nutrition["p"]}</td>
+            <td>{_nutrition["k"]}</td>
+            <td>{_nutrition["se"]}</td>
+            <td>{_nutrition["na"]}</td>
+            <td>{_nutrition["zn"]}</td>
+            <td>{_nutrition["va"]}</td>
+            <td>{_nutrition["vb1"]}</td>
+            <td>{_nutrition["vb2"]}</td>
+            <td>{_nutrition["vb3"]}</td>
+            <td>{_nutrition["vb5"]}</td>
+            <td>{_nutrition["vb6"]}</td>
+            <td>{_nutrition["vb7"]}</td>
+            <td>{_nutrition["vb9"]}</td>
+            <td>{_nutrition["vb12"]}</td>
+            <td>{_nutrition["vc"]}</td>
+            <td>{_nutrition["vd"]}</td>
+            <td>{_nutrition["ve"]}</td>
+            <td>{_nutrition["vk"]}</td>
+        </tr>
+    )
+    for (let i = 0; i < contents.length; i++) {
+        const _button = (
+            <td>
+                {combination["userid"] == userId ?
+                    <button type="button" className="btn btn-outline-danger rounded-pill"
+                        onClick={(evt: any) => { combineCombination(evt.target.value) }}
+                        value={contents[i]["id"]}>
+                        <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
+                    </button> :
+                    <button type="button" className="btn btn-outline-danger rounded-pill"
+                        disabled>
+                        <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
+                    </button>
+                }
+            </td>)
+        if (contents[i]["id"] in _ccontents == false) {
             _tmpRecord.push(
                 <tr>
                     <td>{_button}</td>
-                    <td>{contents[i]["name"]}</td>
-                    <td><input type="text" size={4} value={_amount}
-                        onChange={(evt: any) => {
-                            setTmpCombinationContents(evt.target.name, evt.target.value)
-                        }}
-                        id={"MTamount_" + i} name={String(contents[i]["id"])} /></td>
-                    <td>{toSignificantDigits(contents[i]["cost"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["kcal"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["carbo"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["protein"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["fat"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["saturated_fat"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["n3"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["DHA_EPA"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["n6"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["fiber"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["colin"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["ca"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["cl"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["cr"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["cu"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["i"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["fe"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["mg"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["mn"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["mo"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["p"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["k"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["se"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["na"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["zn"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["va"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vb1"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vb2"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vb3"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vb5"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vb6"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vb7"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vb9"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vb12"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vc"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vd"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["ve"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vk"] * _unit)}</td>
-                </tr>
-            )
+                    <td>未使用の素材です</td>
+                </tr>)
+            continue
         }
-
+        const _amount = parseFloat("0" + _ccontents[contents[i]["id"]])
+        const _unit = _amount / parseFloat("0" + contents[i]["unit"])
+        _tmpRecord.push(
+            <tr>
+                <td>{_button}</td>
+                <td>{contents[i]["name"]}</td>
+                <td><input type="text" size={4} value={_amount}
+                    onChange={(evt: any) => {
+                        setTmpCombinationContents(evt.target.name, evt.target.value)
+                    }}
+                    id={"MTamount_" + i} name={String(contents[i]["id"])} /></td>
+                <td>{toSignificantDigits(contents[i]["cost"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["kcal"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["carbo"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["protein"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["fat"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["saturated_fat"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["n3"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["DHA_EPA"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["n6"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["fiber"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["colin"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["ca"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["cl"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["cr"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["cu"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["i"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["fe"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["mg"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["mn"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["mo"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["p"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["k"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["se"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["na"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["zn"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["va"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb1"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb2"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb3"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb5"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb6"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb7"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb9"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb12"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vc"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vd"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["ve"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vk"] * _unit)}</td>
+            </tr>
+        )
     }
+
     return (
         <div className="p-1" style={{
             background: "linear-gradient(45deg,rgba(60,160,250,0.2), rgba(60,60,60,0.0))"
