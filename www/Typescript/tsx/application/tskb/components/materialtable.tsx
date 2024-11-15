@@ -8,6 +8,8 @@ import { useAppSelector, useAppDispatch } from '../../../components/store'
 
 export const MTable = () => {
     const [contents, setContents] = useState([])
+    const [requirements, setRequirements] = useState([])
+    const [requirementNumber, setRequirementNumber] = useState(0)
     //tmpAttachment -1: delete, 1: alreadyExist null: noImage, else: uploadImage
     const [tmpAttachment, setTmpAttachment] = useState(null)
     const [tmpCombination, setTmpCombination] = useState({
@@ -59,6 +61,10 @@ export const MTable = () => {
             const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
             setContents(_contents.sort(_sortContents))
         }
+        const sortSetRequirements = (_contents: any = []) => {
+            const _sortContents = (a: any, b: any) => { return a["id"] - b["id"] }
+            setRequirements(_contents.sort(_sortContents))
+        }
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
@@ -76,13 +82,15 @@ export const MTable = () => {
                     case "processed": {
                         AppDispatch(tskbSetState({ combination: resJ["combination"] }));
                         sortSetContents(resJ["materials"]);
+                        sortSetRequirements(resJ["requirements"]);
                         AppDispatch(accountSetState({ token: resJ["token"] }));
                         downloadImage();
                         break;
                     }
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]);
-                        searchCombination(); break;
+                        AppDispatch(startTable({ tableStatus: "CTable", combitation: null }));
+                        break;
                     }
                 }
             })
@@ -115,7 +123,7 @@ export const MTable = () => {
                 switch (resJ["message"]) {
                     case "processed": {
                         sortSetExploreContents(resJ["materials"]);
-                        AppDispatch(tskbSetState({ combination: resJ["combination"] }));
+                        setTimeout(() => fetchMaterial(), xhrDelay)
                         break;
                     }
                     default: {
@@ -159,46 +167,11 @@ export const MTable = () => {
                 switch (resJ["message"]) {
                     case "processed": {
                         HIModal("更新完了")
-                        AppDispatch(tskbSetState({ combination: resJ["combination"] }));
+                        setTimeout(() => fetchMaterial(), xhrDelay)
                         break;
                     }
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]); break;
-                    }
-                }
-            })
-            .catch(error => {
-                CIModal("通信エラー")
-                console.error(error.message)
-            });
-    }
-    const searchCombination = () => {
-        const sortSetContentsRev = (_contents: any = []) => {
-            const _sortContentsRev = (a: any, b: any) => { return b["timestamp"] - a["timestamp"] }
-            setContents(_contents.sort(_sortContentsRev))
-        }
-        const headers = new Headers();
-        const formData = new FormData();
-        formData.append("info", stringForSend())
-        formData.append("search", JSON.stringify({}))
-        const request = new Request("/tskb/main.py", {
-            method: 'POST',
-            headers: headers,
-            body: formData,
-            signal: AbortSignal.timeout(xhrTimeout)
-        });
-        fetch(request)
-            .then(response => response.json())
-            .then(resJ => {
-                switch (resJ["message"]) {
-                    case "processed": {
-                        AppDispatch(startTable({ tableStatus: "CTable", combitation: null }))
-                        sortSetContentsRev(resJ["combinations"]);
-                        AppDispatch(accountSetState({ token: resJ["token"] })); break;
-                    }
-                    default: {
-                        if ("text" in resJ) CIModal(resJ["text"]);
-                        break;
                     }
                 }
             })
@@ -294,7 +267,7 @@ export const MTable = () => {
                 <div className="col-12 my-1">
                     <div className="input-group d-flex justify-content-center align-items-center">
                         <button className="btn btn-outline-dark btn-lg" type="button"
-                            onClick={() => { searchCombination() }}>
+                            onClick={() => { AppDispatch(startTable({ tableStatus: "CTable", combitation: null })) }}>
                             <i className="fa-solid fa-right-from-bracket mx-1"></i>レシピ一覧に戻る
                         </button>
                         <button className="btn btn-outline-success btn-lg" type="button"
@@ -452,200 +425,301 @@ export const MTable = () => {
             <th scope="col">量
                 <i className="text-info fa-solid fa-circle-question mx-1"
                     onClick={() => {
-                        HIModal("単位となる数量", "基本的に素材100[g]当たりの栄養価\n" +
-                            "サプリ等は1[個]当たりの栄養価")
+                        HIModal("単位となる数量", "基本的に素材100[g]当たりの栄養価." +
+                            "サプリは1[個]当たりの栄養価." +
+                            "人間は体重[kg].")
                     }}>
-                </i>
+                </i><br />{"[g|1|kg]"}
             </th>
-            <th scope="col">単価<br />円</th>
-            <th scope="col">熱量<br />kcal</th>
-            <th scope="col">炭水化物<br />g</th>
-            <th scope="col">タンパク質<br />g	</th>
-            <th scope="col">脂質<br />g</th>
-            <th scope="col">飽和脂肪酸<br />g</th>
-            <th scope="col">n-3脂肪酸<br />g</th>
-            <th scope="col">DHA-EPA<br />g</th>
-            <th scope="col">n-6脂肪酸<br />g</th>
-            <th scope="col">食物繊維<br />g</th>
-            <th scope="col">コリン<br />mg</th>
-            <th scope="col">カルシウム<br />mg</th>
-            <th scope="col">塩素<br />mg</th>
-            <th scope="col">クロム<br />μg</th>
-            <th scope="col">銅<br />μg</th>
-            <th scope="col">ヨウ素<br />μg</th>
-            <th scope="col">鉄<br />mg</th>
-            <th scope="col">マグネシウム<br />mg</th>
-            <th scope="col">マンガン<br />mg</th>
-            <th scope="col">モリブデン<br />μg</th>
-            <th scope="col">リン<br />mg</th>
-            <th scope="col">カリウム<br />mg</th>
-            <th scope="col">セレン<br />μg</th>
-            <th scope="col">ナトリウム<br />mg</th>
-            <th scope="col">亜鉛<br />mg</th>
-            <th scope="col">VA<br />μgRE</th>
-            <th scope="col">VB1<br />mg</th>
-            <th scope="col">VB2<br />mg</th>
-            <th scope="col">VB3<br />mgNE</th>
-            <th scope="col">VB5<br />mg</th>
-            <th scope="col">VB6<br />mg</th>
-            <th scope="col">VB7<br />μg</th>
-            <th scope="col">VB9<br />μg</th>
-            <th scope="col">VB12<br />μg</th>
-            <th scope="col">VC<br />mg</th>
-            <th scope="col">VD<br />μg</th>
-            <th scope="col">VE<br />mg</th>
-            <th scope="col">VK<br />μg</th>
+            <th scope="col">単価<br />{"[円]"}</th>
+            <th scope="col">熱量<br />{"[kcal]"}</th>
+            <th scope="col">炭水化物<br />{"[g]"}</th>
+            <th scope="col">タンパク質<br />{"[g]"}	</th>
+            <th scope="col">脂質<br />{"[g]"}</th>
+            <th scope="col">飽和脂肪酸<br />{"[g]"}
+                <i className="text-info fa-solid fa-circle-question mx-1"
+                    onClick={() => {
+                        HIModal("上限量", "飽和脂肪酸は、体内合成が可能であり、必須栄養素ではない。" +
+                            "、高 LDLコレステロール血症の主な危険因子の 1 つであり、" +
+                            "心筋梗塞を始めとする循環器疾患の危険因子でもある。"
+                        )
+                    }}>
+                </i></th>
+            <th scope="col">n-3脂肪酸<br />{"[g]"}</th>
+            <th scope="col">DHA-EPA<br />{"[g]"}</th>
+            <th scope="col">n-6脂肪酸<br />{"[g]"}</th>
+            <th scope="col">食物繊維<br />{"[g]"}</th>
+            <th scope="col">コリン<br />{"[mg]"}</th>
+            <th scope="col">カルシウム<br />{"[mg]"}</th>
+            <th scope="col">塩素<br />{"[mg]"}</th>
+            <th scope="col">クロム<br />{"[μg]"}</th>
+            <th scope="col">銅<br />{"[μg]"}</th>
+            <th scope="col">ヨウ素<br />{"[μg]"}</th>
+            <th scope="col">鉄<br />{"[mg]"}</th>
+            <th scope="col">マグネシウム<br />{"[mg]"}</th>
+            <th scope="col">マンガン<br />{"[mg]"}</th>
+            <th scope="col">モリブデン<br />{"[μg]"}</th>
+            <th scope="col">リン<br />{"[mg]"}</th>
+            <th scope="col">カリウム<br />{"[mg]"}</th>
+            <th scope="col">セレン<br />{"[μg]"}</th>
+            <th scope="col">ナトリウム<br />{"[mg]"}</th>
+            <th scope="col">亜鉛<br />{"[mg]"}</th>
+            <th scope="col">VA<br />{"[μgRE]"}</th>
+            <th scope="col">VB1<br />{"[mg]"}</th>
+            <th scope="col">VB2<br />{"[mg]"}</th>
+            <th scope="col">VB3<br />{"[mgNE]"}</th>
+            <th scope="col">VB5<br />{"[mg]"}</th>
+            <th scope="col">VB6<br />{"[mg]"}</th>
+            <th scope="col">VB7<br />{"[μg]"}</th>
+            <th scope="col">VB9<br />{"[μg]"}</th>
+            <th scope="col">VB12<br />{"[μg]"}</th>
+            <th scope="col">VC<br />{"[mg]"}</th>
+            <th scope="col">VD<br />{"[μg]"}</th>
+            <th scope="col">VE<br />{"[mg]"}</th>
+            <th scope="col">VK<br />{"[μg]"}</th>
         </tr>
     )
     const _tmpRecord = [];
     const _ccontents = JSON.parse(tmpCombination.contents)
 
-    if (0 < contents.length) {
-        var _nutrition = JSON.parse(JSON.stringify(contents[0]))
-        for (let _key in _nutrition) { _nutrition[_key] = 0 }
-        for (let _i = 0; _i < contents.length; _i++) {
-            if (contents[_i]["id"] in _ccontents == false) continue
-            for (let _key in _nutrition) {
-                _nutrition[_key] +=
-                    parseFloat("0" + (contents[_i][_key]) *
-                        parseFloat("0" + _ccontents[contents[_i]["id"]])) /
-                    parseFloat("0" + contents[_i]["unit"])
-            }
+    if (0 == requirements.length) {
+        return (
+            <div style={{ overflow: "auto" }}>
+                工事中⇒必要栄養素テーブルをセットしてください
+            </div>)
+    }
+    var _nutrition = JSON.parse(JSON.stringify(requirements[requirementNumber]))
+    const requirementNameDrop = () => {
+        const _tmpItems = []
+        for (let _i = 0; _i < requirements.length; _i++) {
+            _tmpItems.push(
+                <li>
+                    <button className="dropdown-item" value={_i}
+                        onClick={(evt: any) => setRequirementNumber(evt.target.value)}>
+                        {requirements[_i]["name"]}
+                    </button>
+                </li>)
         }
-        for (let _key in _nutrition) { _nutrition[_key] = toSignificantDigits(_nutrition[_key]) }
-        _tmpRecord.push(
-            <tr>
-                <td></td>
-                <td>総計</td>
-                <td></td>
-                <td>{_nutrition["cost"]}</td>
-                <td>{_nutrition["kcal"]}</td>
-                <td>{_nutrition["carbo"]}</td>
-                <td>{_nutrition["protein"]}</td>
-                <td>{_nutrition["fat"]}</td>
-                <td>{_nutrition["saturated_fat"]}</td>
-                <td>{_nutrition["n3"]}</td>
-                <td>{_nutrition["DHA_EPA"]}</td>
-                <td>{_nutrition["n6"]}</td>
-                <td>{_nutrition["fiber"]}</td>
-                <td>{_nutrition["colin"]}</td>
-                <td>{_nutrition["ca"]}</td>
-                <td>{_nutrition["cl"]}</td>
-                <td>{_nutrition["cr"]}</td>
-                <td>{_nutrition["cu"]}</td>
-                <td>{_nutrition["i"]}</td>
-                <td>{_nutrition["fe"]}</td>
-                <td>{_nutrition["mg"]}</td>
-                <td>{_nutrition["mn"]}</td>
-                <td>{_nutrition["mo"]}</td>
-                <td>{_nutrition["p"]}</td>
-                <td>{_nutrition["k"]}</td>
-                <td>{_nutrition["se"]}</td>
-                <td>{_nutrition["na"]}</td>
-                <td>{_nutrition["zn"]}</td>
-                <td>{_nutrition["va"]}</td>
-                <td>{_nutrition["vb1"]}</td>
-                <td>{_nutrition["vb2"]}</td>
-                <td>{_nutrition["vb3"]}</td>
-                <td>{_nutrition["vb5"]}</td>
-                <td>{_nutrition["vb6"]}</td>
-                <td>{_nutrition["vb7"]}</td>
-                <td>{_nutrition["vb9"]}</td>
-                <td>{_nutrition["vb12"]}</td>
-                <td>{_nutrition["vc"]}</td>
-                <td>{_nutrition["vd"]}</td>
-                <td>{_nutrition["ve"]}</td>
-                <td>{_nutrition["vk"]}</td>
-            </tr>
+        return (
+            <div className="dropdown">
+                <button className="btn btn-dark dropdown-toggle"
+                    type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    {_nutrition["name"]}
+                </button>
+                <ul className="dropdown-menu">
+                    {_tmpItems}
+                </ul>
+            </div>
+
         )
-        _tmpRecord.push(
-            <tr className="">
-            </tr>
-        )
-        for (let i = 0; i < contents.length; i++) {
-            const _button = (
-                <td>
-                    {combination["userid"] == userId ?
-                        <button type="button" className="btn btn-outline-danger rounded-pill"
-                            onClick={(evt: any) => { combineCombination(evt.target.value) }}
-                            value={contents[i]["id"]}>
-                            <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
-                        </button> :
-                        <button type="button" className="btn btn-outline-danger rounded-pill"
-                            disabled>
-                            <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
-                        </button>
-                    }
-                </td>)
-            if (contents[i]["id"] in _ccontents == false) {
-                _tmpRecord.push(
-                    <tr>
-                        <td>{_button}</td>
-                        <td>未使用の素材です</td>
-                    </tr>)
-                continue
-            }
-            const _amount = parseFloat("0" + _ccontents[contents[i]["id"]])
-            const _unit = _amount / parseFloat("0" + contents[i]["unit"])
+    }
+    _tmpRecord.push(
+        <tr>
+            <td></td>
+            <td>
+                <div className="d-flex">
+                    {requirementNameDrop()}
+                    <i className="text-primary fa-solid fa-message mx-1"
+                        onClick={() => {
+                            HIModal("概説", $("#MTrequirementDescription").attr("value"))
+                        }}>
+                    </i>
+                    <button value={_nutrition["description"]} id="MTrequirementDescription"
+                        style={{ visibility: "hidden" }} />
+                </div>
+            </td>
+            <td>{_nutrition["unit"]}</td>
+            <td></td>
+            <td>{toSignificantDigits(_nutrition["kcal"])}</td>
+            <td>{toSignificantDigits(_nutrition["carbo"])}</td>
+            <td>{toSignificantDigits(_nutrition["protein"])}</td>
+            <td>{toSignificantDigits(_nutrition["fat"])}</td>
+            <td>{toSignificantDigits(_nutrition["saturated_fat"])}</td>
+            <td>{toSignificantDigits(_nutrition["n3"])}</td>
+            <td>{toSignificantDigits(_nutrition["DHA_EPA"])}</td>
+            <td>{toSignificantDigits(_nutrition["n6"])}</td>
+            <td>{toSignificantDigits(_nutrition["fiber"])}</td>
+            <td>{toSignificantDigits(_nutrition["colin"])}</td>
+            <td>{toSignificantDigits(_nutrition["ca"])}</td>
+            <td>{toSignificantDigits(_nutrition["cl"])}</td>
+            <td>{toSignificantDigits(_nutrition["cr"])}</td>
+            <td>{toSignificantDigits(_nutrition["cu"])}</td>
+            <td>{toSignificantDigits(_nutrition["i"])}</td>
+            <td>{toSignificantDigits(_nutrition["fe"])}</td>
+            <td>{toSignificantDigits(_nutrition["mg"])}</td>
+            <td>{toSignificantDigits(_nutrition["mn"])}</td>
+            <td>{toSignificantDigits(_nutrition["mo"])}</td>
+            <td>{toSignificantDigits(_nutrition["p"])}</td>
+            <td>{toSignificantDigits(_nutrition["k"])}</td>
+            <td>{toSignificantDigits(_nutrition["se"])}</td>
+            <td>{toSignificantDigits(_nutrition["na"])}</td>
+            <td>{toSignificantDigits(_nutrition["zn"])}</td>
+            <td>{toSignificantDigits(_nutrition["va"])}</td>
+            <td>{toSignificantDigits(_nutrition["vb1"])}</td>
+            <td>{toSignificantDigits(_nutrition["vb2"])}</td>
+            <td>{toSignificantDigits(_nutrition["vb3"])}</td>
+            <td>{toSignificantDigits(_nutrition["vb5"])}</td>
+            <td>{toSignificantDigits(_nutrition["vb6"])}</td>
+            <td>{toSignificantDigits(_nutrition["vb7"])}</td>
+            <td>{toSignificantDigits(_nutrition["vb9"])}</td>
+            <td>{toSignificantDigits(_nutrition["vb12"])}</td>
+            <td>{toSignificantDigits(_nutrition["vc"])}</td>
+            <td>{toSignificantDigits(_nutrition["vd"])}</td>
+            <td>{toSignificantDigits(_nutrition["ve"])}</td>
+            <td>{toSignificantDigits(_nutrition["vk"])}</td>
+        </tr>
+    )
+    const _totalNutritionRender = (_val_: number, _stand_: number, _reverse = false) => {
+        var _val = _val_, _stand = _stand_
+        if (_reverse == true) { _val = _stand_, _stand = _val_ }
+        if (_val < _stand * 0.8) { return (<b style={{ "color": "deeppink" }}>{_val_}</b>) }
+        if (_val < _stand) { return (<b style={{ "color": "lightpink" }}>{_val_}</b>) }
+        if (_val < _stand * 1.2 || _val == _stand) { return (<b>{_val_}</b>) }
+        if (_val < _stand * 2) { return (<b style={{ "color": "lightskyblue" }}>{_val_}</b>) }
+        else { return (<b style={{ "color": "deepskyblue" }}>{_val_}</b>) }
+    }
+    var _nutrition = JSON.parse(JSON.stringify(requirements[0]))
+    for (let _key in _nutrition) { _nutrition[_key] = 0 }
+    for (let _i = 0; _i < contents.length; _i++) {
+        if (contents[_i]["id"] in _ccontents == false) continue
+        for (let _key in _nutrition) {
+            _nutrition[_key] +=
+                parseFloat("0" + (contents[_i][_key]) *
+                    parseFloat("0" + _ccontents[contents[_i]["id"]])) /
+                parseFloat("0" + contents[_i]["unit"])
+        }
+    }
+    for (let _key in _nutrition) { _nutrition[_key] = toSignificantDigits(_nutrition[_key]) }
+    _tmpRecord.push(
+        <tr>
+            <td></td>
+            <td>総計</td>
+            <td></td>
+            <td>{_nutrition["cost"]}</td>
+            <td>{_totalNutritionRender(_nutrition["kcal"], requirements[requirementNumber]["kcal"])}</td>
+            <td>{_totalNutritionRender(_nutrition["carbo"], requirements[requirementNumber]["carbo"])}</td>
+            <td>{_totalNutritionRender(_nutrition["protein"], requirements[requirementNumber]["protein"])}</td>
+            <td>{_totalNutritionRender(_nutrition["fat"], requirements[requirementNumber]["fat"])}</td>
+            <td>{_totalNutritionRender(_nutrition["saturated_fat"],
+                requirements[requirementNumber]["saturated_fat"], true)}</td>
+            <td>{_totalNutritionRender(_nutrition["n3"], requirements[requirementNumber]["n3"])}</td>
+            <td>{_totalNutritionRender(_nutrition["DHA_EPA"], requirements[requirementNumber]["DHA_EPA"])}</td>
+            <td>{_totalNutritionRender(_nutrition["n6"], requirements[requirementNumber]["n6"])}</td>
+            <td>{_totalNutritionRender(_nutrition["fiber"], requirements[requirementNumber]["fiber"])}</td>
+            <td>{_totalNutritionRender(_nutrition["colin"], requirements[requirementNumber]["colin"])}</td>
+            <td>{_totalNutritionRender(_nutrition["ca"], requirements[requirementNumber]["ca"])}</td>
+            <td>{_totalNutritionRender(_nutrition["cl"], requirements[requirementNumber]["cl"])}</td>
+            <td>{_totalNutritionRender(_nutrition["cr"], requirements[requirementNumber]["cr"])}</td>
+            <td>{_totalNutritionRender(_nutrition["cu"], requirements[requirementNumber]["cu"])}</td>
+            <td>{_totalNutritionRender(_nutrition["i"], requirements[requirementNumber]["i"])}</td>
+            <td>{_totalNutritionRender(_nutrition["fe"], requirements[requirementNumber]["fe"])}</td>
+            <td>{_totalNutritionRender(_nutrition["mg"], requirements[requirementNumber]["mg"])}</td>
+            <td>{_totalNutritionRender(_nutrition["mn"], requirements[requirementNumber]["mn"])}</td>
+            <td>{_totalNutritionRender(_nutrition["mo"], requirements[requirementNumber]["mo"])}</td>
+            <td>{_totalNutritionRender(_nutrition["p"], requirements[requirementNumber]["p"])}</td>
+            <td>{_totalNutritionRender(_nutrition["k"], requirements[requirementNumber]["k"])}</td>
+            <td>{_totalNutritionRender(_nutrition["se"], requirements[requirementNumber]["se"])}</td>
+            <td>{_totalNutritionRender(_nutrition["na"], requirements[requirementNumber]["na"])}</td>
+            <td>{_totalNutritionRender(_nutrition["zn"], requirements[requirementNumber]["zn"])}</td>
+            <td>{_totalNutritionRender(_nutrition["va"], requirements[requirementNumber]["va"])}</td>
+            <td>{_totalNutritionRender(_nutrition["vb1"], requirements[requirementNumber]["vb1"])}</td>
+            <td>{_totalNutritionRender(_nutrition["vb2"], requirements[requirementNumber]["vb2"])}</td>
+            <td>{_totalNutritionRender(_nutrition["vb3"], requirements[requirementNumber]["vb3"])}</td>
+            <td>{_totalNutritionRender(_nutrition["vb5"], requirements[requirementNumber]["vb5"])}</td>
+            <td>{_totalNutritionRender(_nutrition["vb6"], requirements[requirementNumber]["vb6"])}</td>
+            <td>{_totalNutritionRender(_nutrition["vb7"], requirements[requirementNumber]["vb7"])}</td>
+            <td>{_totalNutritionRender(_nutrition["vb9"], requirements[requirementNumber]["vb9"])}</td>
+            <td>{_totalNutritionRender(_nutrition["vb12"], requirements[requirementNumber]["vb12"])}</td>
+            <td>{_totalNutritionRender(_nutrition["vc"], requirements[requirementNumber]["vc"])}</td>
+            <td>{_totalNutritionRender(_nutrition["vd"], requirements[requirementNumber]["vd"])}</td>
+            <td>{_totalNutritionRender(_nutrition["ve"], requirements[requirementNumber]["ve"])}</td>
+            <td>{_totalNutritionRender(_nutrition["vk"], requirements[requirementNumber]["vk"])}</td>
+        </tr>
+    )
+    for (let i = 0; i < contents.length; i++) {
+        const _button = (
+            <td>
+                {combination["userid"] == userId ?
+                    <button type="button" className="btn btn-outline-danger rounded-pill"
+                        onClick={(evt: any) => { combineCombination(evt.target.value) }}
+                        value={contents[i]["id"]}>
+                        <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
+                    </button> :
+                    <button type="button" className="btn btn-outline-danger rounded-pill"
+                        disabled>
+                        <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
+                    </button>
+                }
+            </td>)
+        if (contents[i]["id"] in _ccontents == false) {
             _tmpRecord.push(
                 <tr>
                     <td>{_button}</td>
-                    <td>{contents[i]["name"]}</td>
-                    <td><input type="text" size={4} value={_amount}
-                        onChange={(evt: any) => {
-                            setTmpCombinationContents(evt.target.name, evt.target.value)
-                        }}
-                        id={"MTamount_" + i} name={String(contents[i]["id"])} /></td>
-                    <td>{toSignificantDigits(contents[i]["cost"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["kcal"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["carbo"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["protein"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["fat"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["saturated_fat"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["n3"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["DHA_EPA"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["n6"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["fiber"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["colin"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["ca"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["cl"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["cr"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["cu"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["i"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["fe"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["mg"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["mn"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["mo"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["p"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["k"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["se"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["na"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["zn"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["va"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vb1"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vb2"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vb3"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vb5"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vb6"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vb7"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vb9"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vb12"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vc"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vd"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["ve"] * _unit)}</td>
-                    <td>{toSignificantDigits(contents[i]["vk"] * _unit)}</td>
-                </tr>
-            )
+                    <td>未使用の素材です</td>
+                </tr>)
+            continue
         }
-
+        const _amount = parseFloat("0" + _ccontents[contents[i]["id"]])
+        const _unit = _amount / parseFloat("0" + contents[i]["unit"])
+        _tmpRecord.push(
+            <tr>
+                <td>{_button}</td>
+                <td>{contents[i]["name"]}</td>
+                <td><input type="text" size={4} value={_amount}
+                    onChange={(evt: any) => {
+                        setTmpCombinationContents(evt.target.name, evt.target.value)
+                    }}
+                    id={"MTamount_" + i} name={String(contents[i]["id"])} />
+                </td>
+                <td>{toSignificantDigits(contents[i]["cost"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["kcal"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["carbo"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["protein"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["fat"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["saturated_fat"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["n3"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["DHA_EPA"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["n6"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["fiber"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["colin"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["ca"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["cl"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["cr"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["cu"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["i"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["fe"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["mg"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["mn"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["mo"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["p"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["k"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["se"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["na"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["zn"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["va"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb1"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb2"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb3"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb5"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb6"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb7"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb9"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vb12"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vc"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vd"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["ve"] * _unit)}</td>
+                <td>{toSignificantDigits(contents[i]["vk"] * _unit)}</td>
+            </tr>
+        )
     }
+
     return (
         <div className="p-1" style={{
             background: "linear-gradient(45deg,rgba(60,160,250,0.2), rgba(60,60,60,0.0))"
         }}>
             {combinationDestroyModal1()}
             {topForm()}
-            <div style={{ overflow: "auto" }}>
+            <div className="slidein-1" style={{ overflow: "auto" }}>
                 <table className="table table-dark table-striped-columns table-bordered"
                     style={{ whiteSpace: "nowrap" }}>
                     <thead>{_tmpElementColumn}</thead>

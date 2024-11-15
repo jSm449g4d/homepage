@@ -452,7 +452,7 @@ export const AppWidgetHead = () => {
                                 <i className="fa-solid fa-book mx-1" style={{ pointerEvents: "none" }}></i>栄養計算 α版
                             </a></li>
                         </ul>
-                        <button className="btn btn-primary dropdown-toggle"
+                        <button className="btn btn-outline-primary dropdown-toggle"
                             type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i className="fa-solid fa-book mx-1" style={{ pointerEvents: "none" }} />アプリ一覧
                         </button>

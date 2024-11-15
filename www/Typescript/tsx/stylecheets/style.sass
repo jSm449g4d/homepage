@@ -13,19 +13,19 @@ $nine: 9
 
 @for $i from $zero through $nine
   .slidein-#{$i}
-    animation: slidein #{$i}s ease 0s 1 normal
+    animation: slidein #{$i}s ease-out normal
 @keyframes slidein
   0%
-    transform: translateX(400px)
+    transform: translateX(500px)
   100%
     transform: translateX(0px) translateY(0px) rotate(0deg)
 
 @for $i from $zero through $nine
   .slidein-#{$i}-reverse
-    animation: slidein-reverse #{$i}s ease 0s 1 normal
+    animation: slidein-reverse #{$i}s ease-out normal
 @keyframes slidein-reverse
   0%
-    transform: translateX(-400px)
+    transform: translateX(-500px)
   100%
     transform: translateX(0px) translateY(0px) rotate(0deg)
 

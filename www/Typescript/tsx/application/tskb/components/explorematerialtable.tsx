@@ -28,10 +28,13 @@ export const EMTable = () => {
     useEffect(() => {
         if (tableStatus == "MTable") setTimeout(() => exploreMaterial(), xhrDelay)
         if (tableStatus == "CMTable") setTimeout(() => exploreMaterial(), xhrDelay)
-        setTmpeMaterial("")
         setTmpAttachment(null)
-        setTmpsearchRadio("name")
     }, [reloadFlag])
+
+    useEffect(() => {
+        setTmpeMaterial("")
+        setTmpsearchRadio("name")
+    }, [userId])
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
