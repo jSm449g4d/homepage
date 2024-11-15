@@ -198,9 +198,10 @@ def isfloat(_s):
         return _f
 
 
-def safe_string(_s):
-    _s=re.sub("[\[(.*)\]|<(.*)>|\\|/]", "", unicodedata.normalize('NFKC', _s))
-    return re.sub('\s+', ' ', _s).strip()
+def safe_string(_s, _max=500):
+    _s = re.sub("[\[(.*)\]|<(.*)>|\\|/]", "", unicodedata.normalize("NFKC", _s))
+    _s = re.sub("\s+", " ", _s).strip()
+    return _s[:_max]
 
 
 load_reference_file()
@@ -231,6 +232,30 @@ def show(request):
                 pyJWT_pass,
                 algorithm="HS256",
             )
+        if "listtag" in request.form:
+            _dataDict.update(json.loads(request.form["listtag"]))
+            with closing(sqlite3.connect(db_dir)) as conn:
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                _tags = []
+                # process start
+                cur.execute(
+                    "SELECT tag FROM tskb_material WHERE passhash = '' ",
+                    [],
+                )
+                for result in cur.fetchall():
+                    if result["tag"] in _tags:
+                        continue
+                    _tags.append(result["tag"])
+                return json.dumps(
+                    {
+                        "message": "processed",
+                        "tags": _tags,
+                    },
+                    ensure_ascii=False,
+                )
+            return json.dumps({"message": "rejected", "text": "不明なエラー"})
+
         if "explore" in request.form:
             _dataDict.update(json.loads(request.form["explore"]))
             with closing(sqlite3.connect(db_dir)) as conn:
@@ -255,6 +280,7 @@ def show(request):
                             {
                                 "message": "processed",
                                 "materials": _materials,
+                                "token": encoded_new_token,
                             },
                             ensure_ascii=False,
                         )
@@ -272,6 +298,7 @@ def show(request):
                             {
                                 "message": "processed",
                                 "materials": _materials,
+                                "token": encoded_new_token,
                             },
                             ensure_ascii=False,
                         )
@@ -289,6 +316,7 @@ def show(request):
                             {
                                 "message": "processed",
                                 "materials": _materials,
+                                "token": encoded_new_token,
                             },
                             ensure_ascii=False,
                         )

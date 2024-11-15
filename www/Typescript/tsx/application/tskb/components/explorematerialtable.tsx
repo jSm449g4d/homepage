@@ -8,9 +8,10 @@ import { useAppSelector, useAppDispatch } from '../../../components/store'
 
 export const EMTable = () => {
     const [contents, setContents] = useState([])
-    const [tmpMaterial, setTmpeMaterial] = useState("")
+    const [tmpKeyword, setTmpKeyword] = useState("")
     const [tmpAttachment, setTmpAttachment] = useState(null)
-    const [tmpsearchRadio, setTmpsearchRadio] = useState("name")
+    const [tmpSearchRadio, setTmpSearchRadio] = useState("name")
+    const [tmpListTags, setTmpListTags] = useState([])
 
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
@@ -26,25 +27,53 @@ export const EMTable = () => {
 
 
     useEffect(() => {
-        if (tableStatus == "MTable") setTimeout(() => exploreMaterial(), xhrDelay)
-        if (tableStatus == "CMTable") setTimeout(() => exploreMaterial(), xhrDelay)
+        if (tableStatus == "MTable") setTimeout(() => listTag(), xhrDelay)
+        if (tableStatus == "CMTable") setTimeout(() => listTag(), xhrDelay)
         setTmpAttachment(null)
     }, [reloadFlag])
 
     useEffect(() => {
-        setTmpeMaterial("")
-        setTmpsearchRadio("name")
+        setTmpKeyword("")
+        setTmpSearchRadio("name")
     }, [userId])
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
-            {
-                "token": token, "user": user, roomKey: roomKey,
-            }, _additionalDict)
+            { "token": token, "user": user, roomKey: roomKey, }, _additionalDict)
         return (JSON.stringify(_sendDict))
     }
     // fetchAPI
-    const exploreMaterial = (_tmpPrivateFlag = false) => {
+    const listTag = (_tmpPrivateFlag = false) => {
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("listtag", JSON.stringify({}))
+        const request = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed": {
+                        setTmpListTags(resJ["tags"])
+                        setTimeout(() => exploreMaterial(), xhrDelay);
+                        break;
+                    }
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]); break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
+    const exploreMaterial = (_keyword = tmpKeyword, _searchRadio = tmpSearchRadio) => {
         const sortSetExploreContents = (_contents: any = []) => {
             const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
             setContents(_contents.sort(_sortContents))
@@ -53,7 +82,7 @@ export const EMTable = () => {
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("explore", JSON.stringify({
-            "keyword": tmpMaterial, "search_radio": tmpsearchRadio
+            "keyword": _keyword, "search_radio": _searchRadio
         }))
         const request = new Request("/tskb/main.py", {
             method: 'POST',
@@ -66,7 +95,9 @@ export const EMTable = () => {
             .then(resJ => {
                 switch (resJ["message"]) {
                     case "processed": {
-                        sortSetExploreContents(resJ["materials"]); break;
+                        sortSetExploreContents(resJ["materials"]);
+                        AppDispatch(accountSetState({ token: resJ["token"] }));
+                        break;
                     }
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]); break;
@@ -188,6 +219,43 @@ export const EMTable = () => {
     }
     // app
     const topForm = () => {
+        const _searchNameForm = (
+            <div className="input-group d-flex justify-content-center my-1">
+                <button className="btn btn-outline-success btn-lg" type="button" id="EMTExploreButton"
+                    onClick={() => { exploreMaterial() }}>
+                    <i className="fa-solid fa-magnifying-glass mx-1" style={{ pointerEvents: "none" }} />
+                    素材検索
+                </button>
+                <input className="flex-fill form-control form-control-lg" type="text" value={tmpKeyword}
+                    placeholder="検索文字列"
+                    onChange={(evt: any) => setTmpKeyword(evt.target.value)}
+                    onKeyDown={(evt: any) => {
+                        if (evt.key == "Enter") $("#EMTExploreButton").trigger("click")
+                    }} />
+            </div>
+        )
+        const _selectTagForm = () => {
+            const _tagButton = []
+            for (let _i = 0; _i < tmpListTags.length; _i++) {
+                _tagButton.push(
+                    <button className="btn btn-outline-dark rounded-pill m-1"
+                        type="button" value={tmpListTags[_i]}
+                        onClick={(evt: any) => {
+                            setTmpKeyword(evt.target.value)
+                            exploreMaterial(evt.target.value)
+                        }}>
+                        <i className="fa-solid fa-tag mx-1" style={{ pointerEvents: "none" }} />
+                        {tmpListTags[_i]}
+                    </button>
+                )
+            }
+
+            return (
+                <div className="my-1">
+                    {_tagButton}
+                </div>
+            )
+        }
         return (<div>
             <div className="my-1 d-flex justify-content-center">
                 <h3>素材フォーム</h3>
@@ -196,16 +264,16 @@ export const EMTable = () => {
                 <div className="input-group d-flex justify-content-evenly my-1">
                     <div className="form-check form-check-inline">
                         <input className="form-check-input" type="radio" name="exampleRadios"
-                            checked={tmpsearchRadio == "name"}
-                            onChange={() => setTmpsearchRadio("name")} />
+                            checked={tmpSearchRadio == "name"}
+                            onChange={() => setTmpSearchRadio("name")} />
                         <label className="form-check-label">
                             名前検索
                         </label>
                     </div>
                     <div className="form-check form-check-inline">
                         <input className="form-check-input" type="radio" name="exampleRadios"
-                            checked={tmpsearchRadio == "tag"}
-                            onChange={() => setTmpsearchRadio("tag")} />
+                            checked={tmpSearchRadio == "tag"}
+                            onChange={() => setTmpSearchRadio("tag")} />
                         <label className="form-check-label">
                             タグ検索
                         </label>
@@ -213,28 +281,20 @@ export const EMTable = () => {
                     {userId != -1 ?
                         <div className="form-check form-check-inline">
                             <input className="form-check-input" type="radio" name="exampleRadios"
-                                checked={tmpsearchRadio == "private"}
-                                onChange={() => setTmpsearchRadio("private")} />
+                                checked={tmpSearchRadio == "private"}
+                                onChange={() => {
+                                    setTmpSearchRadio("private")
+                                    exploreMaterial("", "private")
+                                }} />
                             <label className="form-check-label">
-                                非公開名前検索
+                                非公開素材表示
                             </label>
                         </div> :
                         <div />
                     }
                 </div>
-                <div className="input-group d-flex justify-content-center my-1">
-                    <button className="btn btn-outline-success btn-lg" type="button" id="EMTExploreButton"
-                        onClick={() => { exploreMaterial() }}>
-                        <i className="fa-solid fa-magnifying-glass mx-1" style={{ pointerEvents: "none" }} />
-                        素材検索
-                    </button>
-                    <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial}
-                        placeholder="検索文字列"
-                        onChange={(evt: any) => setTmpeMaterial(evt.target.value)}
-                        onKeyDown={(evt: any) => {
-                            if (evt.key == "Enter") $("#EMTExploreButton").trigger("click")
-                        }} />
-                </div>
+                {tmpSearchRadio == "name" ? _searchNameForm : <div />}
+                {tmpSearchRadio == "tag" ? _selectTagForm() : <div />}
                 <div className="d-flex justify-content-between my-1">
                     {token == "" ?
                         <button className="btn btn-outline-dark btn-sm" type="button" disabled>
@@ -314,7 +374,8 @@ export const EMTable = () => {
             <div className="col-12 col-md-12 p-1">
                 {contents[i]["tag"] != "" ?
                     <button className="btn btn-outline-dark btn-sm rounded-pill" disabled>
-                        <i className="fa-solid fa-tag mx-1" />{contents[i]["tag"]}
+                        <i className="fa-solid fa-tag mx-1" style={{ pointerEvents: "none" }} />
+                        {contents[i]["tag"]}
                     </button > :
                     <div />}
                 {contents[i]["description"]}
