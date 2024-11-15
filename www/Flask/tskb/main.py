@@ -3,6 +3,7 @@ import json
 import os
 import jwt
 from PIL import Image
+import unicodedata
 import re
 import flask
 import sys
@@ -90,7 +91,7 @@ with closing(sqlite3.connect(db_dir)) as conn:
 def load_reference_file():
     _reference_files = glob.glob(key_dir + "tskb/" + "*.json")
     for _filename in _reference_files:
-        with open(_filename, "r",encoding="utf-8") as _f:
+        with open(_filename, "r", encoding="utf-8") as _f:
             _updata_dicts = json.loads(_f.read())
             with closing(sqlite3.connect(db_dir)) as conn:
                 for _updata_dict in _updata_dicts:
@@ -198,7 +199,8 @@ def isfloat(_s):
 
 
 def safe_string(_s):
-    return re.sub("[<(.*)>|＜(.*)＞|\\|/]", "", _s).replace("　", " ")
+    _s=re.sub("[\[(.*)\]|<(.*)>|\\|/]", "", unicodedata.normalize('NFKC', _s))
+    return re.sub('\s+', ' ', _s).strip()
 
 
 load_reference_file()

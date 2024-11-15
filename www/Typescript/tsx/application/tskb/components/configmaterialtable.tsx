@@ -338,19 +338,20 @@ export const CMTable = () => {
                 <tbody>
                     <tr>
                         <th scope="col"><h4>基本</h4></th>
-                        <th scope="col">単位数量<br />
+                        <th scope="col">単位数量
                             <i className="text-info fa-solid fa-circle-question"
                                 onClick={() => {
                                     HIModal("単位となる数量", "基本的に素材100[g]当たりの栄養価\n" +
-                                        "サプリ等は1[個]当たりの栄養価")
+                                        "サプリ等は1[個]当たりの栄養価." +
+                                        "人間は体重[kg].")
                                 }}>
-                            </i>
+                            </i><br />{"[g|1|kg]"}
                         </th>
-                        <th scope="col">単価<br />円</th>
-                        <th scope="col">熱量<br />kcal</th>
-                        <th scope="col">炭水化物<br />g</th>
-                        <th scope="col">タンパク質<br />g</th>
-                        <th scope="col">脂質<br />g</th>
+                        <th scope="col">単価<br />{"[円]"}</th>
+                        <th scope="col">熱量<br />{"[kcal]"}</th>
+                        <th scope="col">炭水化物<br />{"[g]"}</th>
+                        <th scope="col">タンパク質<br />{"[g]"}</th>
+                        <th scope="col">脂質<br />{"[g]"}</th>
                     </tr>
                     <tr>
                         <td><button className="btn btn-success" type="button"
@@ -375,12 +376,12 @@ export const CMTable = () => {
                     </tr>
                     <tr>
                         <th scope="col"><h4>詳細</h4></th>
-                        <th scope="col">飽和脂肪酸<br />g</th>
-                        <th scope="col">n-3脂肪酸<br />g</th>
-                        <th scope="col">DHA-EPA<br />g</th>
-                        <th scope="col">n-6脂肪酸<br />g</th>
-                        <th scope="col">食物繊維<br />g</th>
-                        <th scope="col">コリン<br />mg</th>
+                        <th scope="col">飽和脂肪酸<br />{"[g]"}</th>
+                        <th scope="col">n-3脂肪酸<br />{"[g]"}</th>
+                        <th scope="col">DHA-EPA<br />{"[g]"}</th>
+                        <th scope="col">n-6脂肪酸<br />{"[g]"}</th>
+                        <th scope="col">食物繊維<br />{"[g]"}</th>
+                        <th scope="col">コリン<br />{"[mg]"}</th>
                     </tr>
                     <tr>
                         <td><button className="btn btn-success" type="button"
@@ -405,20 +406,20 @@ export const CMTable = () => {
                     </tr>
                     <tr>
                         <th scope="col"><h4>ミネラル</h4></th>
-                        <th scope="col">カルシウム<br />mg</th>
-                        <th scope="col">塩素<br />mg</th>
-                        <th scope="col">クロム<br />μg</th>
-                        <th scope="col">銅<br />μg</th>
-                        <th scope="col">ヨウ素<br />μg</th>
-                        <th scope="col">鉄<br />mg</th>
-                        <th scope="col">マグネシウム<br />mg</th>
-                        <th scope="col">マンガン<br />mg</th>
-                        <th scope="col">モリブデン<br />μg</th>
-                        <th scope="col">リン<br />mg</th>
-                        <th scope="col">カリウム<br />mg</th>
-                        <th scope="col">セレン<br />μg</th>
-                        <th scope="col">ナトリウム<br />mg</th>
-                        <th scope="col">亜鉛<br />mg</th>
+                        <th scope="col">カルシウム<br />{"[mg]"}</th>
+                        <th scope="col">塩素<br />{"[mg]"}</th>
+                        <th scope="col">クロム<br />{"[μg]"}</th>
+                        <th scope="col">銅<br />{"[μg]"}</th>
+                        <th scope="col">ヨウ素<br />{"[μg]"}</th>
+                        <th scope="col">鉄<br />{"[mg]"}</th>
+                        <th scope="col">マグネシウム<br />{"[mg]"}</th>
+                        <th scope="col">マンガン<br />{"[mg]"}</th>
+                        <th scope="col">モリブデン<br />{"[μg]"}</th>
+                        <th scope="col">リン<br />{"[mg]"}</th>
+                        <th scope="col">カリウム<br />{"[mg]"}</th>
+                        <th scope="col">セレン<br />{"[μg]"}</th>
+                        <th scope="col">ナトリウム<br />{"[mg]"}</th>
+                        <th scope="col">亜鉛<br />{"[mg]"}</th>
                     </tr>
                     <tr>
                         <td><button className="btn btn-success" type="button"
@@ -459,19 +460,19 @@ export const CMTable = () => {
                     </tr>
                     <tr>
                         <th scope="col"><h4>ビタミン</h4></th>
-                        <th scope="col">VA<br />μgRE</th>
-                        <th scope="col">VB1<br />mg</th>
-                        <th scope="col">VB2<br />mg</th>
-                        <th scope="col">VB3<br />mgNE</th>
-                        <th scope="col">VB5<br />mg</th>
-                        <th scope="col">VB6<br />mg</th>
-                        <th scope="col">VB7<br />μg</th>
-                        <th scope="col">VB9<br />μg</th>
-                        <th scope="col">VB12<br />μg</th>
-                        <th scope="col">VC<br />mg</th>
-                        <th scope="col">VD<br />μg</th>
-                        <th scope="col">VE<br />mg</th>
-                        <th scope="col">VK<br />μg</th>
+                        <th scope="col">VA<br />{"[μgRE]"}</th>
+                        <th scope="col">VB1<br />{"[mg]"}</th>
+                        <th scope="col">VB2<br />{"[mg]"}</th>
+                        <th scope="col">VB3<br />{"[mgNE]"}</th>
+                        <th scope="col">VB5<br />{"[mg]"}</th>
+                        <th scope="col">VB6<br />{"[mg]"}</th>
+                        <th scope="col">VB7<br />{"[μg]"}</th>
+                        <th scope="col">VB9<br />{"[μg]"}</th>
+                        <th scope="col">VB12<br />{"[μg]"}</th>
+                        <th scope="col">VC<br />{"[mg]"}</th>
+                        <th scope="col">VD<br />{"[μg]"}</th>
+                        <th scope="col">VE<br />{"[mg]"}</th>
+                        <th scope="col">VK<br />{"[μg]"}</th>
                     </tr>
                     <tr>
                         <td><button className="btn btn-success" type="button"

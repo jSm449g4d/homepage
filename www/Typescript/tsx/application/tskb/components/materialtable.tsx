@@ -9,6 +9,7 @@ import { useAppSelector, useAppDispatch } from '../../../components/store'
 export const MTable = () => {
     const [contents, setContents] = useState([])
     const [requirements, setRequirements] = useState([])
+    const [requirementNumber, setRequirementNumber] = useState(0)
     //tmpAttachment -1: delete, 1: alreadyExist null: noImage, else: uploadImage
     const [tmpAttachment, setTmpAttachment] = useState(null)
     const [tmpCombination, setTmpCombination] = useState({
@@ -458,17 +459,18 @@ export const MTable = () => {
             <th scope="col">量
                 <i className="text-info fa-solid fa-circle-question mx-1"
                     onClick={() => {
-                        HIModal("単位となる数量", "基本的に素材100[g]当たりの栄養価\n" +
-                            "サプリ等は1[個]当たりの栄養価")
+                        HIModal("単位となる数量", "基本的に素材100[g]当たりの栄養価." +
+                            "サプリは1[個]当たりの栄養価." +
+                            "人間は体重[kg].")
                     }}>
-                </i>
+                </i><br />{"[g|1|kg]"}
             </th>
-            <th scope="col">単価<br />円</th>
-            <th scope="col">熱量<br />kcal</th>
-            <th scope="col">炭水化物<br />g</th>
-            <th scope="col">タンパク質<br />g	</th>
-            <th scope="col">脂質<br />g</th>
-            <th scope="col">飽和脂肪酸<br />g
+            <th scope="col">単価<br />{"[円]"}</th>
+            <th scope="col">熱量<br />{"[kcal]"}</th>
+            <th scope="col">炭水化物<br />{"[g]"}</th>
+            <th scope="col">タンパク質<br />{"[g]"}	</th>
+            <th scope="col">脂質<br />{"[g]"}</th>
+            <th scope="col">飽和脂肪酸<br />{"[g]"}
                 <i className="text-info fa-solid fa-circle-question mx-1"
                     onClick={() => {
                         HIModal("上限量", "飽和脂肪酸は、体内合成が可能であり、必須栄養素ではない。" +
@@ -477,104 +479,128 @@ export const MTable = () => {
                         )
                     }}>
                 </i></th>
-            <th scope="col">n-3脂肪酸<br />g</th>
-            <th scope="col">DHA-EPA<br />g</th>
-            <th scope="col">n-6脂肪酸<br />g</th>
-            <th scope="col">食物繊維<br />g</th>
-            <th scope="col">コリン<br />mg</th>
-            <th scope="col">カルシウム<br />mg</th>
-            <th scope="col">塩素<br />mg</th>
-            <th scope="col">クロム<br />μg</th>
-            <th scope="col">銅<br />μg</th>
-            <th scope="col">ヨウ素<br />μg</th>
-            <th scope="col">鉄<br />mg</th>
-            <th scope="col">マグネシウム<br />mg</th>
-            <th scope="col">マンガン<br />mg</th>
-            <th scope="col">モリブデン<br />μg</th>
-            <th scope="col">リン<br />mg</th>
-            <th scope="col">カリウム<br />mg</th>
-            <th scope="col">セレン<br />μg</th>
-            <th scope="col">ナトリウム<br />mg</th>
-            <th scope="col">亜鉛<br />mg</th>
-            <th scope="col">VA<br />μgRE</th>
-            <th scope="col">VB1<br />mg</th>
-            <th scope="col">VB2<br />mg</th>
-            <th scope="col">VB3<br />mgNE</th>
-            <th scope="col">VB5<br />mg</th>
-            <th scope="col">VB6<br />mg</th>
-            <th scope="col">VB7<br />μg</th>
-            <th scope="col">VB9<br />μg</th>
-            <th scope="col">VB12<br />μg</th>
-            <th scope="col">VC<br />mg</th>
-            <th scope="col">VD<br />μg</th>
-            <th scope="col">VE<br />mg</th>
-            <th scope="col">VK<br />μg</th>
+            <th scope="col">n-3脂肪酸<br />{"[g]"}</th>
+            <th scope="col">DHA-EPA<br />{"[g]"}</th>
+            <th scope="col">n-6脂肪酸<br />{"[g]"}</th>
+            <th scope="col">食物繊維<br />{"[g]"}</th>
+            <th scope="col">コリン<br />{"[mg]"}</th>
+            <th scope="col">カルシウム<br />{"[mg]"}</th>
+            <th scope="col">塩素<br />{"[mg]"}</th>
+            <th scope="col">クロム<br />{"[μg]"}</th>
+            <th scope="col">銅<br />{"[μg]"}</th>
+            <th scope="col">ヨウ素<br />{"[μg]"}</th>
+            <th scope="col">鉄<br />{"[mg]"}</th>
+            <th scope="col">マグネシウム<br />{"[mg]"}</th>
+            <th scope="col">マンガン<br />{"[mg]"}</th>
+            <th scope="col">モリブデン<br />{"[μg]"}</th>
+            <th scope="col">リン<br />{"[mg]"}</th>
+            <th scope="col">カリウム<br />{"[mg]"}</th>
+            <th scope="col">セレン<br />{"[μg]"}</th>
+            <th scope="col">ナトリウム<br />{"[mg]"}</th>
+            <th scope="col">亜鉛<br />{"[mg]"}</th>
+            <th scope="col">VA<br />{"[μgRE]"}</th>
+            <th scope="col">VB1<br />{"[mg]"}</th>
+            <th scope="col">VB2<br />{"[mg]"}</th>
+            <th scope="col">VB3<br />{"[mgNE]"}</th>
+            <th scope="col">VB5<br />{"[mg]"}</th>
+            <th scope="col">VB6<br />{"[mg]"}</th>
+            <th scope="col">VB7<br />{"[μg]"}</th>
+            <th scope="col">VB9<br />{"[μg]"}</th>
+            <th scope="col">VB12<br />{"[μg]"}</th>
+            <th scope="col">VC<br />{"[mg]"}</th>
+            <th scope="col">VD<br />{"[μg]"}</th>
+            <th scope="col">VE<br />{"[mg]"}</th>
+            <th scope="col">VK<br />{"[μg]"}</th>
         </tr>
     )
     const _tmpRecord = [];
     const _ccontents = JSON.parse(tmpCombination.contents)
 
     if (0 == requirements.length) {
-        return(
-        <div style={{ overflow: "auto" }}>
-            工事中⇒必要栄養素テーブルをセットしてください
-        </div>)
+        return (
+            <div style={{ overflow: "auto" }}>
+                工事中⇒必要栄養素テーブルをセットしてください
+            </div>)
     }
-    var _nutrition = JSON.parse(JSON.stringify(requirements[0]))
-    for (let _key in _nutrition) { _nutrition[_key] = 0 }
-    for (let _i = 0; _i < contents.length; _i++) {
-        if (contents[_i]["id"] in _ccontents == false) continue
-        for (let _key in _nutrition) {
-            _nutrition[_key] +=
-                parseFloat("0" + (contents[_i][_key]) *
-                    parseFloat("0" + _ccontents[contents[_i]["id"]])) /
-                parseFloat("0" + contents[_i]["unit"])
+    var _nutrition = JSON.parse(JSON.stringify(requirements[requirementNumber]))
+    const requirementNameDrop = () => {
+        const _tmpItems = []
+        for (let _i = 0; _i < requirements.length; _i++) {
+            _tmpItems.push(
+                <li>
+                    <button className="dropdown-item" value={_i}
+                        onClick={(evt: any) => setRequirementNumber(evt.target.value)}>
+                        {requirements[_i]["name"]}
+                    </button>
+                </li>)
         }
+        return (
+            <div className="dropdown">
+                <button className="btn btn-dark dropdown-toggle"
+                    type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    {_nutrition["name"]}
+                </button>
+                <ul className="dropdown-menu">
+                    {_tmpItems}
+                </ul>
+            </div>
+
+        )
     }
-    for (let _key in _nutrition) { _nutrition[_key] = toSignificantDigits(_nutrition[_key]) }
     _tmpRecord.push(
         <tr>
             <td></td>
-            <td>総計</td>
+            <td>
+                <div className="d-flex">
+                    {requirementNameDrop()}
+                    <i className="text-primary fa-solid fa-message mx-1"
+                        onClick={() => {
+                            HIModal("概説", $("#MTrequirementDescription").attr("value"))
+                        }}>
+                    </i>
+                    <button value={_nutrition["description"]} id="MTrequirementDescription"
+                        style={{ visibility: "hidden" }} />
+                </div>
+            </td>
+            <td>{_nutrition["unit"]}</td>
             <td></td>
-            <td>{_nutrition["cost"]}</td>
-            <td>{_nutrition["kcal"]}</td>
-            <td>{_nutrition["carbo"]}</td>
-            <td>{_nutrition["protein"]}</td>
-            <td>{_nutrition["fat"]}</td>
-            <td>{_nutrition["saturated_fat"]}</td>
-            <td>{_nutrition["n3"]}</td>
-            <td>{_nutrition["DHA_EPA"]}</td>
-            <td>{_nutrition["n6"]}</td>
-            <td>{_nutrition["fiber"]}</td>
-            <td>{_nutrition["colin"]}</td>
-            <td>{_nutrition["ca"]}</td>
-            <td>{_nutrition["cl"]}</td>
-            <td>{_nutrition["cr"]}</td>
-            <td>{_nutrition["cu"]}</td>
-            <td>{_nutrition["i"]}</td>
-            <td>{_nutrition["fe"]}</td>
-            <td>{_nutrition["mg"]}</td>
-            <td>{_nutrition["mn"]}</td>
-            <td>{_nutrition["mo"]}</td>
-            <td>{_nutrition["p"]}</td>
-            <td>{_nutrition["k"]}</td>
-            <td>{_nutrition["se"]}</td>
-            <td>{_nutrition["na"]}</td>
-            <td>{_nutrition["zn"]}</td>
-            <td>{_nutrition["va"]}</td>
-            <td>{_nutrition["vb1"]}</td>
-            <td>{_nutrition["vb2"]}</td>
-            <td>{_nutrition["vb3"]}</td>
-            <td>{_nutrition["vb5"]}</td>
-            <td>{_nutrition["vb6"]}</td>
-            <td>{_nutrition["vb7"]}</td>
-            <td>{_nutrition["vb9"]}</td>
-            <td>{_nutrition["vb12"]}</td>
-            <td>{_nutrition["vc"]}</td>
-            <td>{_nutrition["vd"]}</td>
-            <td>{_nutrition["ve"]}</td>
-            <td>{_nutrition["vk"]}</td>
+            <td>{toSignificantDigits(_nutrition["kcal"])}</td>
+            <td>{toSignificantDigits(_nutrition["carbo"])}</td>
+            <td>{toSignificantDigits(_nutrition["protein"])}</td>
+            <td>{toSignificantDigits(_nutrition["fat"])}</td>
+            <td>{toSignificantDigits(_nutrition["saturated_fat"])}</td>
+            <td>{toSignificantDigits(_nutrition["n3"])}</td>
+            <td>{toSignificantDigits(_nutrition["DHA_EPA"])}</td>
+            <td>{toSignificantDigits(_nutrition["n6"])}</td>
+            <td>{toSignificantDigits(_nutrition["fiber"])}</td>
+            <td>{toSignificantDigits(_nutrition["colin"])}</td>
+            <td>{toSignificantDigits(_nutrition["ca"])}</td>
+            <td>{toSignificantDigits(_nutrition["cl"])}</td>
+            <td>{toSignificantDigits(_nutrition["cr"])}</td>
+            <td>{toSignificantDigits(_nutrition["cu"])}</td>
+            <td>{toSignificantDigits(_nutrition["i"])}</td>
+            <td>{toSignificantDigits(_nutrition["fe"])}</td>
+            <td>{toSignificantDigits(_nutrition["mg"])}</td>
+            <td>{toSignificantDigits(_nutrition["mn"])}</td>
+            <td>{toSignificantDigits(_nutrition["mo"])}</td>
+            <td>{toSignificantDigits(_nutrition["p"])}</td>
+            <td>{toSignificantDigits(_nutrition["k"])}</td>
+            <td>{toSignificantDigits(_nutrition["se"])}</td>
+            <td>{toSignificantDigits(_nutrition["na"])}</td>
+            <td>{toSignificantDigits(_nutrition["zn"])}</td>
+            <td>{toSignificantDigits(_nutrition["va"])}</td>
+            <td>{toSignificantDigits(_nutrition["vb1"])}</td>
+            <td>{toSignificantDigits(_nutrition["vb2"])}</td>
+            <td>{toSignificantDigits(_nutrition["vb3"])}</td>
+            <td>{toSignificantDigits(_nutrition["vb5"])}</td>
+            <td>{toSignificantDigits(_nutrition["vb6"])}</td>
+            <td>{toSignificantDigits(_nutrition["vb7"])}</td>
+            <td>{toSignificantDigits(_nutrition["vb9"])}</td>
+            <td>{toSignificantDigits(_nutrition["vb12"])}</td>
+            <td>{toSignificantDigits(_nutrition["vc"])}</td>
+            <td>{toSignificantDigits(_nutrition["vd"])}</td>
+            <td>{toSignificantDigits(_nutrition["ve"])}</td>
+            <td>{toSignificantDigits(_nutrition["vk"])}</td>
         </tr>
     )
 
@@ -667,11 +693,6 @@ export const MTable = () => {
             <tr>
                 <td>{_button}</td>
                 <td>{contents[i]["name"]}</td>
-                <td><input type="text" size={4} value={_amount}
-                    onChange={(evt: any) => {
-                        setTmpCombinationContents(evt.target.name, evt.target.value)
-                    }}
-                    id={"MTamount_" + i} name={String(contents[i]["id"])} /></td>
                 <td>{toSignificantDigits(contents[i]["cost"] * _unit)}</td>
                 <td>{toSignificantDigits(contents[i]["kcal"] * _unit)}</td>
                 <td>{toSignificantDigits(contents[i]["carbo"] * _unit)}</td>
