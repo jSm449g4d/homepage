@@ -521,7 +521,7 @@ export const CMTable = () => {
             {CMTMaterialTagModal()}
             {CMTMaterialDeleteModal()}
             {topForm()}
-            {_tmpTable}
+        <div className="slidein-1">{_tmpTable}</div>
             {bottomForm()}
         </div>)
 }

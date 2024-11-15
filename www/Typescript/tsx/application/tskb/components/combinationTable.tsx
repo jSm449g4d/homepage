@@ -307,7 +307,7 @@ export const CTable = () => {
             {combinationCreateModal()}
             {combinationDestroyModal()}
             {topForm()}
-            <div className="row m-1">
+            <div className="row m-1 slidein-1-reverse">
                 {_tmpRecord}
             </div>
         </div>)

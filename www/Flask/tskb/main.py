@@ -750,13 +750,8 @@ def show(request):
                     ],
                 )
                 conn.commit()
-                cur.execute(
-                    "SELECT * FROM tskb_combination WHERE id = ?;",
-                    [_combination["id"]],
-                )
-                _Ccombination = cur.fetchone()
                 return json.dumps(
-                    {"message": "processed", "combination": dict(_Ccombination)},
+                    {"message": "processed"},
                     ensure_ascii=False,
                 )
             return json.dumps({"message": "rejected"})
@@ -822,7 +817,7 @@ def show(request):
                     _im = _im.resize((round(300 * _im.width / _im.height), 300))
                     _im.save(_target_dir)
                 return json.dumps(
-                    {"message": "processed", "combination": dict(_Ccombination)},
+                    {"message": "processed"},
                     ensure_ascii=False,
                 )
             return json.dumps({"message": "rejected"})

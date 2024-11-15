@@ -89,7 +89,8 @@ export const MTable = () => {
                     }
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]);
-                        searchCombination(); break;
+                        AppDispatch(startTable({ tableStatus: "CTable", combitation: null }));
+                        break;
                     }
                 }
             })
@@ -122,7 +123,7 @@ export const MTable = () => {
                 switch (resJ["message"]) {
                     case "processed": {
                         sortSetExploreContents(resJ["materials"]);
-                        AppDispatch(tskbSetState({ combination: resJ["combination"] }));
+                        setTimeout(() => fetchMaterial(), xhrDelay)
                         break;
                     }
                     default: {
@@ -166,46 +167,11 @@ export const MTable = () => {
                 switch (resJ["message"]) {
                     case "processed": {
                         HIModal("更新完了")
-                        AppDispatch(tskbSetState({ combination: resJ["combination"] }));
+                        setTimeout(() => fetchMaterial(), xhrDelay)
                         break;
                     }
                     default: {
                         if ("text" in resJ) CIModal(resJ["text"]); break;
-                    }
-                }
-            })
-            .catch(error => {
-                CIModal("通信エラー")
-                console.error(error.message)
-            });
-    }
-    const searchCombination = () => {
-        const sortSetContentsRev = (_contents: any = []) => {
-            const _sortContentsRev = (a: any, b: any) => { return b["timestamp"] - a["timestamp"] }
-            setContents(_contents.sort(_sortContentsRev))
-        }
-        const headers = new Headers();
-        const formData = new FormData();
-        formData.append("info", stringForSend())
-        formData.append("search", JSON.stringify({}))
-        const request = new Request("/tskb/main.py", {
-            method: 'POST',
-            headers: headers,
-            body: formData,
-            signal: AbortSignal.timeout(xhrTimeout)
-        });
-        fetch(request)
-            .then(response => response.json())
-            .then(resJ => {
-                switch (resJ["message"]) {
-                    case "processed": {
-                        AppDispatch(startTable({ tableStatus: "CTable", combitation: null }))
-                        sortSetContentsRev(resJ["combinations"]);
-                        AppDispatch(accountSetState({ token: resJ["token"] })); break;
-                    }
-                    default: {
-                        if ("text" in resJ) CIModal(resJ["text"]);
-                        break;
                     }
                 }
             })
@@ -301,7 +267,7 @@ export const MTable = () => {
                 <div className="col-12 my-1">
                     <div className="input-group d-flex justify-content-center align-items-center">
                         <button className="btn btn-outline-dark btn-lg" type="button"
-                            onClick={() => { searchCombination() }}>
+                            onClick={() => { AppDispatch(startTable({ tableStatus: "CTable", combitation: null })) }}>
                             <i className="fa-solid fa-right-from-bracket mx-1"></i>レシピ一覧に戻る
                         </button>
                         <button className="btn btn-outline-success btn-lg" type="button"
@@ -693,6 +659,12 @@ export const MTable = () => {
             <tr>
                 <td>{_button}</td>
                 <td>{contents[i]["name"]}</td>
+                <td><input type="text" size={4} value={_amount}
+                    onChange={(evt: any) => {
+                        setTmpCombinationContents(evt.target.name, evt.target.value)
+                    }}
+                    id={"MTamount_" + i} name={String(contents[i]["id"])} />
+                </td>
                 <td>{toSignificantDigits(contents[i]["cost"] * _unit)}</td>
                 <td>{toSignificantDigits(contents[i]["kcal"] * _unit)}</td>
                 <td>{toSignificantDigits(contents[i]["carbo"] * _unit)}</td>
@@ -741,7 +713,7 @@ export const MTable = () => {
         }}>
             {combinationDestroyModal1()}
             {topForm()}
-            <div style={{ overflow: "auto" }}>
+            <div className="slidein-1" style={{ overflow: "auto" }}>
                 <table className="table table-dark table-striped-columns table-bordered"
                     style={{ whiteSpace: "nowrap" }}>
                     <thead>{_tmpElementColumn}</thead>
