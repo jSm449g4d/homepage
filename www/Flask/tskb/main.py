@@ -237,16 +237,20 @@ def show(request):
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
-                _tags = []
                 # process start
                 cur.execute(
                     "SELECT tag FROM tskb_material WHERE passhash = '' ",
                     [],
                 )
+                _tags = {}
                 for result in cur.fetchall():
-                    if result["tag"] in _tags:
-                        continue
-                    _tags.append(result["tag"])
+                    if result["tag"] not in _tags:
+                        _tags[result["tag"]] = 0
+                    _tags[result["tag"]] += 1
+                _tags_list = sorted(_tags.items(), key=lambda x: x[1],reverse=True)
+                _tags=[]
+                for _dict in _tags_list:
+                    _tags.append(_dict[0])
                 return json.dumps(
                     {
                         "message": "processed",
