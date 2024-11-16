@@ -245,6 +245,8 @@ def show(request):
                 )
                 _tags = {}
                 for result in cur.fetchall():
+                    if result["tag"]=="":
+                        continue
                     if result["tag"] not in _tags:
                         _tags[result["tag"]] = 0
                     _tags[result["tag"]] += 1
@@ -385,7 +387,7 @@ def show(request):
                 # requirements
                 cur.execute(
                     "SELECT * FROM tskb_material WHERE tag = 'Requirements' "
-                    "AND passhash = '' LIMIT 20;",
+                    "AND passhash = '' AND userid = 0 LIMIT 20;",
                     [],
                 )
                 _requirements = [
@@ -674,6 +676,8 @@ def show(request):
                 )
                 _tags = {}
                 for result in cur.fetchall():
+                    if result["tag"]=="":
+                        continue
                     if result["tag"] not in _tags:
                         _tags[result["tag"]] = 0
                     _tags[result["tag"]] += 1

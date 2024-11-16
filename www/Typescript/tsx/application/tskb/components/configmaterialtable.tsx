@@ -219,11 +219,13 @@ export const CMTable = () => {
                             <i className="fa-solid fa-lemon mx-1" />
                         </span>
                         {tmpMaterial["userid"] == userId || tmpMaterial["userid"] == -1 ?
-                            <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial["name"]}
+                            <input className="flex-fill form-control form-control-lg" type="text"
+                                value={tmpMaterial["name"].slice(0, 50)}
                                 placeholder='素材名を入力してください'
                                 onChange={(evt: any) => { setTmpMaterialDict("name", evt.target.value) }}>
                             </input > :
-                            <input className="flex-fill form-control form-control-lg" type="text" value={tmpMaterial["name"]}
+                            <input className="flex-fill form-control form-control-lg" type="text"
+                                value={tmpMaterial["name"].slice(0, 50)}
                                 disabled >
                             </input >
                         }
@@ -235,7 +237,8 @@ export const CMTable = () => {
                     <div className="input-group">
                         <span className="input-group-text"><i className="fa-solid fa-tag mx-1" /></span>
                         <input className="form-control" type="text" placeholder="タグ名"
-                            value={tmpMaterial.tag} onChange={(evt: any) => setTmpMaterialDict("tag", evt.target.value)} />
+                            value={tmpMaterial.tag.slice(0, 50)}
+                            onChange={(evt: any) => setTmpMaterialDict("tag", evt.target.value)} />
                     </div>
                     <div className="border border-2 bg-light p-2">
                         <p><i className="far fa-user mx-1"></i>作成者{": " + material["user"]}</p>

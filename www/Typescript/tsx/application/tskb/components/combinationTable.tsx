@@ -170,7 +170,8 @@ export const CTable = () => {
                                 <div className="input-group col-12 m-1">
                                     <span className="input-group-text">レシピ名</span>
                                     <input type="text" className="form-control" placeholder="レシピ名" aria-label="user"
-                                        value={tmpName} onChange={(evt) => { setTmpName(evt.target.value) }} />
+                                        value={tmpName.slice(0, 50)}
+                                        onChange={(evt) => { setTmpName(evt.target.value) }} />
                                 </div>
                                 {tmpPrivateFlag == false ?
                                     <button className="btn btn-outline-warning btn-lg col-12" type="button"
@@ -185,7 +186,8 @@ export const CTable = () => {
                                     </button>
                                 }
                                 <h4 className="mx-3 col-12">概説</h4>
-                                <textarea className="form-control w-80 col-12" rows={4} value={tmpDescription}
+                                <textarea className="form-control w-80 col-12" rows={4}
+                                    value={tmpDescription.slice(0, 200)}
                                     onChange={(evt) => { setTpDescription(evt.target.value) }} />
                             </div>
                             <div className="modal-footer d-flex col-12">
@@ -361,7 +363,7 @@ export const CTable = () => {
                 {contents[i]["description"]}
             </div>)
         _tmpRecord.push(
-            <div className="col-12 col-md-6" style={{
+            <div className="col-12 col-md-6 col-lg-4" style={{
                 border: "1px inset silver", borderRadius: "5px", marginBottom: "3px", boxShadow: "2px 2px 1px rgba(60,60,60,0.2)"
             }}>
                 <div className="row p-1">{_tmpData}</div>

@@ -278,10 +278,12 @@ export const MTable = () => {
                             <i className="fa-solid fa-stroopwafel mx-1" />
                         </span>
                         {combination["userid"] == userId ?
-                            <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
+                            <input className="flex-fill form-control form-control-lg" type="text"
+                                value={tmpCombination["name"].slice(0, 50)}
                                 onChange={(evt: any) => { setTmpCombinationDict("name", evt.target.value) }}>
                             </input > :
-                            <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
+                            <input className="flex-fill form-control form-control-lg" type="text"
+                                value={tmpCombination["name"].slice(0, 50)}
                                 disabled>
                             </input >
                         }
@@ -334,7 +336,7 @@ export const MTable = () => {
                     <div className="input-group">
                         <span className="input-group-text"><i className="fa-solid fa-tag mx-1" /></span>
                         <input className="form-control" type="text" placeholder="タグ名"
-                            value={tmpCombination.tag}
+                            value={tmpCombination.tag.slice(0, 50)}
                             onChange={(evt: any) => setTmpCombinationDict("tag", evt.target.value)} />
                     </div>
                     <div className="border border-2 bg-light p-2">
