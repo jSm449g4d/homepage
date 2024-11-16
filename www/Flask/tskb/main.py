@@ -209,8 +209,24 @@ load_reference_file()
 
 
 def show(request):
-
     if request.method == "GET":
+        _query = request.args
+        # fetch combination image
+        if "combination_imgid" in _query:
+            _target_file = os.path.normpath(
+                os.path.join(
+                    tmp_dir + "combination/",
+                    safe_string(_query["combination_imgid"],10)+".png",
+                )
+            )
+            if os.path.exists(_target_file):
+                return flask.send_file(
+                    _target_file,
+                    mimetype="image/png",
+                )
+            return json.dumps(
+                {"message": "notExist", "text": "ファイル無"}, ensure_ascii=False
+            )
         return get_response()
     if request.method == "POST":
         if "info" not in request.form:
@@ -245,7 +261,7 @@ def show(request):
                 )
                 _tags = {}
                 for result in cur.fetchall():
-                    if result["tag"]=="":
+                    if result["tag"] == "":
                         continue
                     if result["tag"] not in _tags:
                         _tags[result["tag"]] = 0
@@ -676,7 +692,7 @@ def show(request):
                 )
                 _tags = {}
                 for result in cur.fetchall():
-                    if result["tag"]=="":
+                    if result["tag"] == "":
                         continue
                     if result["tag"] not in _tags:
                         _tags[result["tag"]] = 0

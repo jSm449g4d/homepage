@@ -353,13 +353,20 @@ export const CTable = () => {
                 </button>
             </div>)
         _tmpData.push(
+            <div className="col-12 col-md-12 p-1">
+                <div className="d-flex justify-content-center">
+                    <img className="img-fluid" src={"/tskb/main.py?combination_imgid=" + contents[i]["id"]}
+                        onError={(evt: any) => { evt.target.style.visibility = "hidden" }}
+                        style={{ height: 300, objectFit: "contain" }} />
+                </div>
+            </div>)
+        _tmpData.push(
             <div className="col-12 col-md-12 p-1" style={{ "wordBreak": "break-all" }}>
                 {contents[i]["tag"] != "" ?
                     <button className="btn btn-outline-dark btn-sm rounded-pill" disabled>
                         <i className="fa-solid fa-tag mx-1" />{contents[i]["tag"]}
                     </button > :
                     <div />}
-
                 {contents[i]["description"]}
             </div>)
         _tmpRecord.push(
