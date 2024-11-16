@@ -384,7 +384,7 @@ export const EMTable = () => {
                     </button>
                 }
                 {combination["userid"] == userId ?
-                    <button className="btn btn-outline-primary rounded-pill"
+                    <button className="btn btn-outline-success rounded-pill"
                         onClick={(evt: any) => {
                             combineMaterial(evt.target.value)
                             window.scrollTo({ top: 0, behavior: "smooth", });
@@ -395,7 +395,7 @@ export const EMTable = () => {
                 }
             </div >)
         _tmpData.push(
-            <div className="col-12 col-md-12 p-1">
+            <div className="col-12 col-md-12 p-1" style={{ "wordBreak": "break-all" }}>
                 {contents[i]["tag"] != "" ?
                     <button className="btn btn-outline-dark btn-sm rounded-pill" disabled>
                         <i className="fa-solid fa-tag mx-1" style={{ pointerEvents: "none" }} />

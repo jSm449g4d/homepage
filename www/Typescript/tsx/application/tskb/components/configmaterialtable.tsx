@@ -289,22 +289,17 @@ export const CMTable = () => {
                                             registerMaterial();
                                             window.scrollTo({ top: 0, behavior: "smooth", });
                                         }}>
-                                        <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
+                                        <i className="fa-solid fa-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
                                         更新
                                     </button>
                                 }
                             </div>
                         }
                         <div>
-                            {tmpMaterial["name"] == "" ?
-                                <button className="btn btn-outline-info btn-lg" type="button"
-                                    onClick={() => { HIModal("素材名入力が必要") }}>
-                                    <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>素材破棄
-                                </button> :
-                                <button className="btn btn-outline-danger btn-lg" type="button"
-                                    onClick={() => { $("#CMTMaterialDeleteModal").modal('show') }}>
-                                    <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>素材破棄
-                                </button>}
+                            <button className="btn btn-outline-danger btn-lg" type="button"
+                                onClick={() => { $("#CMTMaterialDeleteModal").modal('show') }}>
+                                <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>素材破棄
+                            </button>
                         </div>
                     </div> :
                     <div className="d-flex justify-content-between align-items-center my-1">
@@ -318,18 +313,21 @@ export const CMTable = () => {
                                 非公開
                             </button>
                         }
-                        <button className="btn btn-outline-info btn-lg" type="button"
-                            onClick={() => { HIModal("作成者のみ許可された操作") }}>
-                            <i className="fa-solid fa-cheese mx-1" style={{ pointerEvents: "none" }} />
-                            更新
-                        </button>
-                        <button className="btn btn-outline-info btn-lg" type="button"
-                            onClick={() => { HIModal("作成者のみ許可された操作") }}>
-                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>
-                            素材破棄
-                        </button>
+                        <div />
+                        <div />
                     </div>
                 }
+            </div>)
+    }
+    const tableElementTextForm = (_key: string,) => {
+        if (material["userid"] == userId) {
+            return (<input type="text" size={4}
+                value={String(JSON.parse(JSON.stringify(tmpMaterial))[_key]).replace(/[^0-9|.]/g, '')}
+                onChange={(evt: any) => { setTmpMaterialDict(_key, evt.target.value) }} />)
+        }
+        return (
+            <div >
+                {String(JSON.parse(JSON.stringify(tmpMaterial))[_key]).replace(/[^0-9|.]/g, '')}
             </div>)
     }
     const _tmpTable = (
@@ -354,25 +352,22 @@ export const CMTable = () => {
                         <th scope="col">脂質<br />{"[g]"}</th>
                     </tr>
                     <tr>
-                        <td><button className="btn btn-success" type="button"
-                            onClick={() => {
-                                reSetTmpMaterialDict(
-                                    ["unit", "cost", "kcal", "carbo", "protein", "fat"])
-                            }}>
-                            <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
-                        </button></td>
-                        <td><input type="text" size={4} value={parseFloat("0" + tmpMaterial["unit"])}
-                            onChange={(evt: any) => { setTmpMaterialDict("unit", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["cost"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("cost", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["kcal"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("kcal", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["carbo"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("carbo", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["protein"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("protein", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["fat"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("fat", evt.target.value) }} /></td>
+                        <td>
+                            {material["userid"] == userId ?
+                                <button className="btn btn-success btn-sm" type="button"
+                                    onClick={() => {
+                                        reSetTmpMaterialDict(
+                                            ["unit", "cost", "kcal", "carbo", "protein", "fat"])
+                                    }}>
+                                    <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
+                                </button> : <div />}
+                        </td>
+                        <td>{tableElementTextForm("unit")}</td>
+                        <td>{tableElementTextForm("cost")}</td>
+                        <td>{tableElementTextForm("kcal")}</td>
+                        <td>{tableElementTextForm("carbo")}</td>
+                        <td>{tableElementTextForm("protein")}</td>
+                        <td>{tableElementTextForm("fat")}</td>
                     </tr>
                     <tr>
                         <th scope="col"><h4>詳細</h4></th>
@@ -384,25 +379,22 @@ export const CMTable = () => {
                         <th scope="col">コリン<br />{"[mg]"}</th>
                     </tr>
                     <tr>
-                        <td><button className="btn btn-success" type="button"
-                            onClick={() => {
-                                reSetTmpMaterialDict(
-                                    ["fiber", "colin", "saturated_fat", "n3", "DHA_EPA", "n6"])
-                            }}>
-                            <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
-                        </button></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["saturated_fat"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("saturated_fat", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["n3"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("n3", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["DHA_EPA"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("DHA_EPA", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["n6"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("n6", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["fiber"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("fiber", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["colin"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("colin", evt.target.value) }} /></td>
+                        <td>
+                            {material["userid"] == userId ?
+                                <button className="btn btn-success btn-sm" type="button"
+                                    onClick={() => {
+                                        reSetTmpMaterialDict(
+                                            ["fiber", "colin", "saturated_fat", "n3", "DHA_EPA", "n6"])
+                                    }}>
+                                    <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
+                                </button> : <div />}
+                        </td>
+                        <td>{tableElementTextForm("saturated_fat")}</td>
+                        <td>{tableElementTextForm("n3")}</td>
+                        <td>{tableElementTextForm("DHA_EPA")}</td>
+                        <td>{tableElementTextForm("n6")}</td>
+                        <td>{tableElementTextForm("fiber")}</td>
+                        <td>{tableElementTextForm("colin")}</td>
                     </tr>
                     <tr>
                         <th scope="col"><h4>ミネラル</h4></th>
@@ -422,41 +414,31 @@ export const CMTable = () => {
                         <th scope="col">亜鉛<br />{"[mg]"}</th>
                     </tr>
                     <tr>
-                        <td><button className="btn btn-success" type="button"
-                            onClick={() => {
-                                reSetTmpMaterialDict(
-                                    ["ca", "cl", "cr", "cu", "i", "fe", "mg", "mn", "mo", "p", "ca", "se", "na", "zn"])
-                            }}>
-                            <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
-                        </button></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["ca"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("ca", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["cl"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("cl", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["cr"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("cr", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["cu"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("cu", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["i"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("i", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["fe"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("fe", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["mg"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("mg", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["mn"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("mn", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["mo"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("mo", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["p"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("p", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["ca"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("ca", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["se"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("se", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["na"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("na", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["zn"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("zn", evt.target.value) }} /></td>
+                        <td>
+                            {material["userid"] == userId ?
+                                <button className="btn btn-success btn-sm" type="button"
+                                    onClick={() => {
+                                        reSetTmpMaterialDict(
+                                            ["ca", "cl", "cr", "cu", "i", "fe", "mg",
+                                                "mn", "mo", "p", "ca", "se", "na", "zn"])
+                                    }}>
+                                    <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
+                                </button> : <div />}
+                        </td>
+                        <td>{tableElementTextForm("ca")}</td>
+                        <td>{tableElementTextForm("cl")}</td>
+                        <td>{tableElementTextForm("cr")}</td>
+                        <td>{tableElementTextForm("cu")}</td>
+                        <td>{tableElementTextForm("i")}</td>
+                        <td>{tableElementTextForm("fe")}</td>
+                        <td>{tableElementTextForm("mg")}</td>
+                        <td>{tableElementTextForm("mn")}</td>
+                        <td>{tableElementTextForm("mo")}</td>
+                        <td>{tableElementTextForm("p")}</td>
+                        <td>{tableElementTextForm("ca")}</td>
+                        <td>{tableElementTextForm("se")}</td>
+                        <td>{tableElementTextForm("na")}</td>
+                        <td>{tableElementTextForm("zn")}</td>
                     </tr>
                     <tr>
                         <th scope="col"><h4>ビタミン</h4></th>
@@ -475,39 +457,30 @@ export const CMTable = () => {
                         <th scope="col">VK<br />{"[μg]"}</th>
                     </tr>
                     <tr>
-                        <td><button className="btn btn-success" type="button"
-                            onClick={() => {
-                                reSetTmpMaterialDict(
-                                    ["va", "vb1", "vb2", "vb3", "vb5", "vb6", "vb7", "vb9", "vb12", "vc", "vd", "ve", "vk"])
-                            }}>
-                            <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
-                        </button></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["va"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("va", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["vb1"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["vb2"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb2", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["vb3"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb3", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["vb5"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb5", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["vb6"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb6", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["vb7"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb7", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["vb9"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb9", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["vb12"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("vb12", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["vc"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("vc", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["vd"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("vd", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["ve"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("ve", evt.target.value) }} /></td>
-                        <td><input type="text" size={4} value={String(tmpMaterial["vk"]).replace(/[^0-9|.]/g, '')}
-                            onChange={(evt: any) => { setTmpMaterialDict("vk", evt.target.value) }} /></td>
+                        <td>
+                            {material["userid"] == userId ?
+                                <button className="btn btn-success btn-sm" type="button"
+                                    onClick={() => {
+                                        reSetTmpMaterialDict(
+                                            ["va", "vb1", "vb2", "vb3", "vb5", "vb6",
+                                                "vb7", "vb9", "vb12", "vc", "vd", "ve", "vk"])
+                                    }}>
+                                    <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
+                                </button> : <div />}
+                        </td>
+                        <td>{tableElementTextForm("va")}</td>
+                        <td>{tableElementTextForm("vb1")}</td>
+                        <td>{tableElementTextForm("vb2")}</td>
+                        <td>{tableElementTextForm("vb3")}</td>
+                        <td>{tableElementTextForm("vb5")}</td>
+                        <td>{tableElementTextForm("vb6")}</td>
+                        <td>{tableElementTextForm("vb7")}</td>
+                        <td>{tableElementTextForm("vb9")}</td>
+                        <td>{tableElementTextForm("vb12")}</td>
+                        <td>{tableElementTextForm("vc")}</td>
+                        <td>{tableElementTextForm("vd")}</td>
+                        <td>{tableElementTextForm("ve")}</td>
+                        <td>{tableElementTextForm("vk")}</td>
                     </tr>
                 </tbody>
             </table>
@@ -521,7 +494,7 @@ export const CMTable = () => {
             {CMTMaterialTagModal()}
             {CMTMaterialDeleteModal()}
             {topForm()}
-        <div className="slidein-1">{_tmpTable}</div>
+            <div className="slidein-1">{_tmpTable}</div>
             {bottomForm()}
         </div>)
 }
