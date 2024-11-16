@@ -262,6 +262,48 @@ export const MTable = () => {
     }
     // app
     const topForm = () => {
+        const _imgForm = (
+            <div className="d-flex justify-content-center">
+                {combination["userid"] == userId ?
+                    <div>
+                        {tmpAttachment == null || tmpAttachment == -1 ?
+                            <div>
+                                <h4>画像のアップロード</h4>
+                                <input type="file" className="form-control"
+                                    accept="image/*" placeholder='画像のアップロード'
+                                    onChange={(evt) => {
+                                        setTmpAttachment(evt.target.files[0])
+                                        if (!evt.target.files[0]) return
+                                        var _reader = new FileReader()
+                                        _reader.onload = () => {
+                                            $("#MTimage").attr({ "src": _reader.result })
+                                            $("#MTimage").css('visibility', '');
+                                            HIModal("画像登録", "更新してください")
+                                        };
+                                        _reader.readAsDataURL(evt.target.files[0])
+                                    }} />
+                            </div> :
+                            <button className="btn btn-outline-danger" type="button"
+                                onClick={() => {
+                                    setTmpAttachment(-1)
+                                    $("#MTimage").attr({ "src": "" })
+                                    $("#MTimage").css('visibility', 'hidden');
+                                    HIModal("画像削除", "更新してください")
+                                }}>
+                                <i className=" fa-solid fa-xmark" style={{ pointerEvents: "none" }} />
+                            </button>
+                        }
+                    </div> :
+                    <div>
+                        {tmpAttachment == null || tmpAttachment == -1 ?
+                            <h4>No Image</h4> : <div />
+                        }
+                    </div>
+                }
+                <img className="img-fluid" src="" id="MTimage"
+                    style={{ height: 300, objectFit: "contain", visibility: "hidden" }} />
+            </div>
+        )
         return (
             <div className="row m-1">
                 <div className="col-12 my-1">
@@ -278,63 +320,25 @@ export const MTable = () => {
                             <i className="fa-solid fa-stroopwafel mx-1" />
                         </span>
                         {combination["userid"] == userId ?
-                            <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
+                            <input className="flex-fill form-control form-control-lg" type="text"
+                                value={tmpCombination["name"].slice(0, 50)}
                                 onChange={(evt: any) => { setTmpCombinationDict("name", evt.target.value) }}>
                             </input > :
-                            <input className="flex-fill form-control form-control-lg" type="text" value={tmpCombination["name"]}
+                            <input className="flex-fill form-control form-control-lg" type="text"
+                                value={tmpCombination["name"].slice(0, 50)}
                                 disabled>
                             </input >
                         }
                     </div>
                 </div>
                 <div className="col-12 col-md-4 my-1">
-                    <div className="d-flex justify-content-center">
-                        {combination["userid"] == userId ?
-                            <div>
-                                {tmpAttachment == null || tmpAttachment == -1 ?
-                                    <div>
-                                        <h4>画像のアップロード</h4>
-                                        <input type="file" className="form-control"
-                                            accept="image/*" placeholder='画像のアップロード'
-                                            onChange={(evt) => {
-                                                setTmpAttachment(evt.target.files[0])
-                                                if (!evt.target.files[0]) return
-                                                var _reader = new FileReader()
-                                                _reader.onload = () => {
-                                                    $("#MTimage").attr({ "src": _reader.result })
-                                                    $("#MTimage").css('visibility', '');
-                                                    HIModal("画像登録", "更新してください")
-                                                };
-                                                _reader.readAsDataURL(evt.target.files[0])
-                                            }} />
-                                    </div> :
-                                    <button className="btn btn-outline-danger" type="button"
-                                        onClick={() => {
-                                            setTmpAttachment(-1)
-                                            $("#MTimage").attr({ "src": "" })
-                                            $("#MTimage").css('visibility', 'hidden');
-                                            HIModal("画像削除", "更新してください")
-                                        }}>
-                                        <i className=" fa-solid fa-xmark" style={{ pointerEvents: "none" }} />
-                                    </button>
-                                }
-                            </div> :
-                            <div>
-                                {tmpAttachment == null || tmpAttachment == -1 ?
-                                    <h4>No Image</h4>
-                                    : <div />
-                                }
-                            </div>
-                        }
-                        <img className="img-fluid" src="" id="MTimage"
-                            style={{ height: 200, objectFit: "contain", visibility: "hidden" }} />
-                    </div>
+                    {_imgForm}
                 </div>
                 <div className="col-12 col-md-4 my-1">
                     <div className="input-group">
                         <span className="input-group-text"><i className="fa-solid fa-tag mx-1" /></span>
                         <input className="form-control" type="text" placeholder="タグ名"
-                            value={tmpCombination.tag}
+                            value={tmpCombination.tag.slice(0, 50)}
                             onChange={(evt: any) => setTmpCombinationDict("tag", evt.target.value)} />
                     </div>
                     <div className="border border-2 bg-light p-2">
@@ -346,7 +350,7 @@ export const MTable = () => {
                     <div className="d-flex justify-content-center align-items-center">
                         <h4 className="mx-3">概説</h4>
                     </div>
-                    <textarea className="form-control col-12 w-80" rows={4} value={tmpCombination["description"]}
+                    <textarea className="form-control col-12 w-80" rows={4} value={tmpCombination["description"].slice(0, 200)}
                         onChange={(evt: any) => { setTmpCombinationDict("description", evt.target.value) }}
                         style={{ resize: "none" }} />
                 </div>
@@ -401,15 +405,7 @@ export const MTable = () => {
                                 非公開
                             </button>
                         }
-                        <button className="btn btn-outline-info btn-lg" type="button"
-                            onClick={() => { HIModal("作成者のみ許可された操作") }}>
-                            <i className="fa-solid fa-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
-                            更新
-                        </button>
-                        <button className="btn btn-outline-info btn-lg" type="button"
-                            onClick={() => { HIModal("作成者のみ許可された操作") }}>
-                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>レシピ破棄
-                        </button>
+                        <div /><div />
                     </div>
                 }
             </div>)

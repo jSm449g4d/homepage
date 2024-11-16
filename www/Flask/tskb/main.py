@@ -198,17 +198,35 @@ def isfloat(_s):
         return _f
 
 
-def safe_string(_s):
-    _s=re.sub("[\[(.*)\]|<(.*)>|\\|/]", "", unicodedata.normalize('NFKC', _s))
-    return re.sub('\s+', ' ', _s).strip()
+def safe_string(_s, _max=500):
+    _s = re.sub("[\[(.*)\]|<(.*)>|\\|/]", "", unicodedata.normalize("NFKC", _s))
+    _s = re.sub("\s+", " ", _s).strip()
+    return _s[:_max]
 
 
+RECORD_RETURN_MAX = 100
 load_reference_file()
 
 
 def show(request):
-
     if request.method == "GET":
+        _query = request.args
+        # fetch combination image
+        if "combination_imgid" in _query:
+            _target_file = os.path.normpath(
+                os.path.join(
+                    tmp_dir + "combination/",
+                    safe_string(_query["combination_imgid"],10)+".png",
+                )
+            )
+            if os.path.exists(_target_file):
+                return flask.send_file(
+                    _target_file,
+                    mimetype="image/png",
+                )
+            return json.dumps(
+                {"message": "notExist", "text": "ファイル無"}, ensure_ascii=False
+            )
         return get_response()
     if request.method == "POST":
         if "info" not in request.form:
@@ -231,6 +249,36 @@ def show(request):
                 pyJWT_pass,
                 algorithm="HS256",
             )
+        if "listtag" in request.form:
+            _dataDict.update(json.loads(request.form["listtag"]))
+            with closing(sqlite3.connect(db_dir)) as conn:
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                # process start
+                cur.execute(
+                    "SELECT tag FROM tskb_material WHERE passhash = '' ",
+                    [],
+                )
+                _tags = {}
+                for result in cur.fetchall():
+                    if result["tag"] == "":
+                        continue
+                    if result["tag"] not in _tags:
+                        _tags[result["tag"]] = 0
+                    _tags[result["tag"]] += 1
+                _tags_list = sorted(_tags.items(), key=lambda x: x[1], reverse=True)
+                _tags = []
+                for _dict in _tags_list:
+                    _tags.append(_dict[0])
+                return json.dumps(
+                    {
+                        "message": "processed",
+                        "tags": _tags,
+                    },
+                    ensure_ascii=False,
+                )
+            return json.dumps({"message": "rejected", "text": "不明なエラー"})
+
         if "explore" in request.form:
             _dataDict.update(json.loads(request.form["explore"]))
             with closing(sqlite3.connect(db_dir)) as conn:
@@ -239,13 +287,20 @@ def show(request):
                 _userid = -1
                 if token != "":
                     _userid = token["id"]
+                _material_offset = 0
+                if "offset" in _dataDict:
+                    _material_offset = int(_dataDict["offset"])
                 # process start
                 match _dataDict["search_radio"]:
                     case "name":
                         cur.execute(
                             "SELECT * FROM tskb_material WHERE name LIKE ? "
-                            "AND passhash = '' LIMIT 200;",
-                            ["%" + _dataDict["keyword"] + "%"],
+                            "AND passhash = '' LIMIT ? OFFSET ? ;",
+                            [
+                                "%" + _dataDict["keyword"] + "%",
+                                RECORD_RETURN_MAX,
+                                RECORD_RETURN_MAX * _material_offset,
+                            ],
                         )
                         _materials = [
                             {key: value for key, value in dict(result).items()}
@@ -255,14 +310,19 @@ def show(request):
                             {
                                 "message": "processed",
                                 "materials": _materials,
+                                "token": encoded_new_token,
                             },
                             ensure_ascii=False,
                         )
                     case "tag":
                         cur.execute(
                             "SELECT * FROM tskb_material WHERE tag LIKE ? "
-                            "AND passhash = '' LIMIT 200;",
-                            ["%" + _dataDict["keyword"] + "%"],
+                            "AND passhash = '' LIMIT ? OFFSET ? ;",
+                            [
+                                "%" + _dataDict["keyword"] + "%",
+                                RECORD_RETURN_MAX,
+                                RECORD_RETURN_MAX * _material_offset,
+                            ],
                         )
                         _materials = [
                             {key: value for key, value in dict(result).items()}
@@ -272,14 +332,21 @@ def show(request):
                             {
                                 "message": "processed",
                                 "materials": _materials,
+                                "token": encoded_new_token,
                             },
                             ensure_ascii=False,
                         )
                     case "private":
                         cur.execute(
                             "SELECT * FROM tskb_material WHERE name LIKE ? "
-                            "AND passhash = '0' AND userid = ? LIMIT 200;",
-                            ["%" + _dataDict["keyword"] + "%", _userid],
+                            "AND passhash = '0' AND userid = ? "
+                            "LIMIT ? OFFSET ? ;",
+                            [
+                                "%" + _dataDict["keyword"] + "%",
+                                _userid,
+                                RECORD_RETURN_MAX,
+                                RECORD_RETURN_MAX * _material_offset,
+                            ],
                         )
                         _materials = [
                             {key: value for key, value in dict(result).items()}
@@ -289,10 +356,10 @@ def show(request):
                             {
                                 "message": "processed",
                                 "materials": _materials,
+                                "token": encoded_new_token,
                             },
                             ensure_ascii=False,
                         )
-                # search closed material
             return json.dumps({"message": "rejected", "text": "不明なエラー"})
 
         if "fetch" in request.form:
@@ -336,7 +403,7 @@ def show(request):
                 # requirements
                 cur.execute(
                     "SELECT * FROM tskb_material WHERE tag = 'Requirements' "
-                    "AND passhash = '' LIMIT 20;",
+                    "AND passhash = '' AND userid = 0 LIMIT 20;",
                     [],
                 )
                 _requirements = [
@@ -613,31 +680,117 @@ def show(request):
                 return json.dumps({"message": "processed"}, ensure_ascii=False)
             return json.dumps({"message": "rejected", "text": "不明なエラー"})
 
+        if "gathertag" in request.form:
+            _dataDict.update(json.loads(request.form["gathertag"]))
+            with closing(sqlite3.connect(db_dir)) as conn:
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                # process start
+                cur.execute(
+                    "SELECT tag FROM tskb_combination WHERE passhash = '' ",
+                    [],
+                )
+                _tags = {}
+                for result in cur.fetchall():
+                    if result["tag"] == "":
+                        continue
+                    if result["tag"] not in _tags:
+                        _tags[result["tag"]] = 0
+                    _tags[result["tag"]] += 1
+                _tags_list = sorted(_tags.items(), key=lambda x: x[1], reverse=True)
+                _tags = []
+                for _dict in _tags_list:
+                    _tags.append(_dict[0])
+                return json.dumps(
+                    {
+                        "message": "processed",
+                        "tags": _tags,
+                    },
+                    ensure_ascii=False,
+                )
+            return json.dumps({"message": "rejected", "text": "不明なエラー"})
+
         if "search" in request.form:
             _dataDict.update(json.loads(request.form["search"]))
             _userid = -1
             if token != "":
                 _userid = token["id"]
+            _material_offset = 0
+            if "offset" in _dataDict:
+                _material_offset = int(_dataDict["offset"])
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
-                cur.execute(
-                    "SELECT * FROM tskb_combination where passhash == '' OR "
-                    "userid = ?;",
-                    [_userid],
-                )
-                _tskb_combinations = [
-                    {key: value for key, value in dict(result).items()}
-                    for result in cur.fetchall()
-                ]
-                return json.dumps(
-                    {
-                        "message": "processed",
-                        "combinations": _tskb_combinations,
-                        "token": encoded_new_token,
-                    },
-                    ensure_ascii=False,
-                )
+                # process start
+                match _dataDict["search_radio"]:
+                    case "name":
+                        cur.execute(
+                            "SELECT * FROM tskb_combination where name LIKE ? AND "
+                            "passhash == '' LIMIT ? OFFSET ? ;",
+                            [
+                                "%" + _dataDict["keyword"] + "%",
+                                RECORD_RETURN_MAX,
+                                RECORD_RETURN_MAX * _material_offset,
+                            ],
+                        )
+                        _tskb_combinations = [
+                            {key: value for key, value in dict(result).items()}
+                            for result in cur.fetchall()
+                        ]
+                        return json.dumps(
+                            {
+                                "message": "processed",
+                                "combinations": _tskb_combinations,
+                                "token": encoded_new_token,
+                            },
+                            ensure_ascii=False,
+                        )
+                    case "tag":
+                        cur.execute(
+                            "SELECT * FROM tskb_combination where tag LIKE ? AND "
+                            "passhash == '' LIMIT ? OFFSET ? ;",
+                            [
+                                "%" + _dataDict["keyword"] + "%",
+                                RECORD_RETURN_MAX,
+                                RECORD_RETURN_MAX * _material_offset,
+                            ],
+                        )
+                        _tskb_combinations = [
+                            {key: value for key, value in dict(result).items()}
+                            for result in cur.fetchall()
+                        ]
+                        return json.dumps(
+                            {
+                                "message": "processed",
+                                "combinations": _tskb_combinations,
+                                "token": encoded_new_token,
+                            },
+                            ensure_ascii=False,
+                        )
+                    case "private":
+                        cur.execute(
+                            "SELECT * FROM tskb_combination WHERE name LIKE ? "
+                            "AND passhash = '0' AND userid = ? "
+                            "LIMIT ? OFFSET ? ;",
+                            [
+                                "%" + _dataDict["keyword"] + "%",
+                                _userid,
+                                RECORD_RETURN_MAX,
+                                RECORD_RETURN_MAX * _material_offset,
+                            ],
+                        )
+                        _tskb_combinations = [
+                            {key: value for key, value in dict(result).items()}
+                            for result in cur.fetchall()
+                        ]
+                        return json.dumps(
+                            {
+                                "message": "processed",
+                                "combinations": _tskb_combinations,
+                                "token": encoded_new_token,
+                            },
+                            ensure_ascii=False,
+                        )
             return json.dumps({"message": "rejected", "text": "不明なエラー"})
 
         if "create" in request.form:
