@@ -346,7 +346,7 @@ export const MTable = () => {
                     <div className="d-flex justify-content-center align-items-center">
                         <h4 className="mx-3">概説</h4>
                     </div>
-                    <textarea className="form-control col-12 w-80" rows={4} value={tmpCombination["description"]}
+                    <textarea className="form-control col-12 w-80" rows={4} value={tmpCombination["description"].slice(0, 200)}
                         onChange={(evt: any) => { setTmpCombinationDict("description", evt.target.value) }}
                         style={{ resize: "none" }} />
                 </div>
@@ -401,15 +401,7 @@ export const MTable = () => {
                                 非公開
                             </button>
                         }
-                        <button className="btn btn-outline-info btn-lg" type="button"
-                            onClick={() => { HIModal("作成者のみ許可された操作") }}>
-                            <i className="fa-solid fa-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
-                            更新
-                        </button>
-                        <button className="btn btn-outline-info btn-lg" type="button"
-                            onClick={() => { HIModal("作成者のみ許可された操作") }}>
-                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>レシピ破棄
-                        </button>
+                        <div /><div />
                     </div>
                 }
             </div>)

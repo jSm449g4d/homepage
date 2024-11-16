@@ -253,13 +253,45 @@ export const EMTable = () => {
                     </button>
                 )
             }
-
             return (
                 <div className="my-1">
                     {_tagButton}
                 </div>
             )
         }
+        const _searchRadioForm = (
+            <div className="input-group d-flex justify-content-evenly my-1">
+                <div className="form-check form-check-inline">
+                    <input className="form-check-input" type="radio" name="exampleRadios"
+                        checked={tmpSearchRadio == "name"}
+                        onChange={() => setTmpSearchRadio("name")} />
+                    <label className="form-check-label">
+                        名前検索
+                    </label>
+                </div>
+                <div className="form-check form-check-inline">
+                    <input className="form-check-input" type="radio" name="exampleRadios"
+                        checked={tmpSearchRadio == "tag"}
+                        onChange={() => setTmpSearchRadio("tag")} />
+                    <label className="form-check-label">
+                        タグ検索
+                    </label>
+                </div>
+                {userId != -1 ?
+                    <div className="form-check form-check-inline">
+                        <input className="form-check-input" type="radio" name="exampleRadios"
+                            checked={tmpSearchRadio == "private"}
+                            onChange={() => {
+                                exploreMaterial("", "private")
+                            }} />
+                        <label className="form-check-label">
+                            非公開素材表示
+                        </label>
+                    </div> :
+                    <div />
+                }
+            </div>
+        )
         const _offsetButtonForm = () => {
             return (
                 <div className="btn-group" role="group">
@@ -288,37 +320,7 @@ export const EMTable = () => {
                 <h3>素材フォーム</h3>
             </div>
             <div>
-                <div className="input-group d-flex justify-content-evenly my-1">
-                    <div className="form-check form-check-inline">
-                        <input className="form-check-input" type="radio" name="exampleRadios"
-                            checked={tmpSearchRadio == "name"}
-                            onChange={() => setTmpSearchRadio("name")} />
-                        <label className="form-check-label">
-                            名前検索
-                        </label>
-                    </div>
-                    <div className="form-check form-check-inline">
-                        <input className="form-check-input" type="radio" name="exampleRadios"
-                            checked={tmpSearchRadio == "tag"}
-                            onChange={() => setTmpSearchRadio("tag")} />
-                        <label className="form-check-label">
-                            タグ検索
-                        </label>
-                    </div>
-                    {userId != -1 ?
-                        <div className="form-check form-check-inline">
-                            <input className="form-check-input" type="radio" name="exampleRadios"
-                                checked={tmpSearchRadio == "private"}
-                                onChange={() => {
-                                    exploreMaterial("", "private")
-                                }} />
-                            <label className="form-check-label">
-                                非公開素材表示
-                            </label>
-                        </div> :
-                        <div />
-                    }
-                </div>
+                {_searchRadioForm}
                 {tmpSearchRadio == "name" ? _searchNameForm : <div />}
                 {tmpSearchRadio == "tag" ? _selectTagForm() : <div />}
                 <div className="d-flex justify-content-between my-1">
@@ -334,10 +336,9 @@ export const EMTable = () => {
                     {token == "" ?
                         <div /> :
                         <button className="btn btn-outline-primary btn-lg" type="button"
-                            onClick={() =>
-                                AppDispatch(startTable({ material: null, tableStatus: "CMTable" }))
-                            } >
-                            + 新規作成
+                            onClick={() => AppDispatch(startTable({ material: null, tableStatus: "CMTable" }))} >
+                            <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
+                            新規作成
                         </button>}
                 </div>
             </div></div>)

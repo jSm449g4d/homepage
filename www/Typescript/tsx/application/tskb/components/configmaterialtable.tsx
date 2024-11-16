@@ -246,7 +246,7 @@ export const CMTable = () => {
                     <div className="d-flex justify-content-center align-items-center">
                         <h4 className="mx-3">概説</h4>
                     </div>
-                    <textarea className="form-control col-12 w-80" rows={4} value={tmpMaterial["description"]}
+                    <textarea className="form-control col-12 w-80" rows={4} value={tmpMaterial["description"].slice(0, 200)}
                         onChange={(evt: any) => { setTmpMaterialDict("description", evt.target.value) }}
                         style={{ resize: "none" }} />
                 </div>

@@ -8,8 +8,11 @@ import { useAppSelector, useAppDispatch } from '../../../components/store'
 
 export const CTable = () => {
     const [contents, setContents] = useState([])
-    const [tmpTargetId, setTmpTargetId] = useState(-1)
-    const [tmpCombination, setTmpCombination] = useState("")
+    const [tmpKeyword, setTmpKeyword] = useState("")
+    const [tmpOffset, setTmpOffset] = useState(0)
+    const [tmpListTags, setTmpListTags] = useState([])
+    const [tmpSearchRadio, setTmpSearchRadio] = useState("name")
+    const [tmpName, setTmpName] = useState("")
     const [tmpDescription, setTpDescription] = useState("")
     const [tmpPrivateFlag, setTmpPrivateFlag] = useState(false)
 
@@ -25,16 +28,21 @@ export const CTable = () => {
 
 
     useEffect(() => {
-        if (tableStatus == "CTable") setTimeout(() => searchCombination(), xhrDelay)
-        initTmps()
+        if (tableStatus == "CTable") setTimeout(() => gatherTag(), xhrDelay)
+        setTmpKeyword("")
+        setTmpListTags([])
+        initCreateForm()
     }, [reloadFlag])
-
-    const initTmps = () => {
-        setTmpTargetId(-1)
-        setTmpCombination("")
+    const initCreateForm = () => {
+        setTmpName("")
         setTpDescription("")
         setTmpPrivateFlag(false)
     }
+    useEffect(() => {
+        setTmpKeyword("")
+        setTmpOffset(0)
+        setTmpSearchRadio("name")
+    }, [userId])
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
@@ -43,7 +51,40 @@ export const CTable = () => {
         return (JSON.stringify(_sendDict))
     }
     // fetchAPI
-    const searchCombination = () => {
+    const gatherTag = (_tmpPrivateFlag = false) => {
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("gathertag", JSON.stringify({}))
+        const request = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed": {
+                        setTmpListTags(resJ["tags"])
+                        setTimeout(() => searchCombination(undefined, undefined, tmpOffset), xhrDelay);
+                        break;
+                    }
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]); break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
+    const searchCombination = (_keyword = tmpKeyword, _searchRadio = tmpSearchRadio, _offset: number = 0) => {
+        setTmpKeyword(_keyword)
+        setTmpOffset(_offset)
+        setTmpSearchRadio(_searchRadio)
         const sortSetContentsRev = (_contents: any = []) => {
             const _sortContentsRev = (a: any, b: any) => { return b["timestamp"] - a["timestamp"] }
             setContents(_contents.sort(_sortContentsRev))
@@ -51,7 +92,9 @@ export const CTable = () => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("search", JSON.stringify({}))
+        formData.append("search", JSON.stringify({
+            "keyword": _keyword, "offset": _offset, "search_radio": _searchRadio
+        }))
         const request = new Request("/tskb/main.py", {
             method: 'POST',
             headers: headers,
@@ -83,7 +126,7 @@ export const CTable = () => {
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("create", JSON.stringify({
-            "name": tmpCombination, "description": tmpDescription,
+            "name": tmpName, "description": tmpDescription,
             "privateFlag": tmpPrivateFlag,
         }))
         const request = new Request("/tskb/main.py", {
@@ -111,34 +154,6 @@ export const CTable = () => {
                 console.error(error.message)
             });
     }
-    const destroyCombination = () => {
-        const headers = new Headers();
-        const formData = new FormData();
-        formData.append("info", stringForSend())
-        formData.append("destroy", JSON.stringify({ "combination_id": tmpTargetId }))
-        const request = new Request("/tskb/main.py", {
-            method: 'POST',
-            headers: headers,
-            body: formData,
-            signal: AbortSignal.timeout(xhrTimeout)
-        });
-        fetch(request)
-            .then(response => response.json())
-            .then(resJ => {
-                switch (resJ["message"]) {
-                    case "processed":
-                        setTimeout(() => { searchCombination(); }, xhrDelay); break;
-                    default: {
-                        if ("text" in resJ) CIModal(resJ["text"]);
-                        searchCombination(); break;
-                    }
-                }
-            })
-            .catch(error => {
-                CIModal("通信エラー")
-                console.error(error.message)
-            });
-    }
     // modal
     const combinationCreateModal = () => {
         return (
@@ -155,7 +170,7 @@ export const CTable = () => {
                                 <div className="input-group col-12 m-1">
                                     <span className="input-group-text">レシピ名</span>
                                     <input type="text" className="form-control" placeholder="レシピ名" aria-label="user"
-                                        value={tmpCombination} onChange={(evt) => { setTmpCombination(evt.target.value) }} />
+                                        value={tmpName} onChange={(evt) => { setTmpName(evt.target.value) }} />
                                 </div>
                                 {tmpPrivateFlag == false ?
                                     <button className="btn btn-outline-warning btn-lg col-12" type="button"
@@ -177,7 +192,7 @@ export const CTable = () => {
                                 <button type="button" className="btn btn-secondary me-auto" data-bs-dismiss="modal">
                                     Close
                                 </button>
-                                {tmpCombination != "" && token != "" ? <div>
+                                {tmpName != "" && token != "" ? <div>
                                     <button type="button" className="btn btn-outline-primary " data-bs-dismiss="modal"
                                         onClick={() => createCombination()}>
                                         <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
@@ -194,53 +209,113 @@ export const CTable = () => {
             </div>
         )
     }
-    const combinationDestroyModal = () => {
-        return (
-            <div className="modal fade" id="combinationDestroyModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div className="modal-dialog">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h4 className="modal-title">
-                                <i className="fa-solid fa-circle-info mx-1" />レシピを破棄しますか?
-                            </h4>
-                        </div>
-                        <div className="modal-footer d-flex">
-                            <button type="button" className="btn btn-secondary me-auto" data-bs-dismiss="modal">Close</button>
-                            <button type="button" className="btn btn-danger" data-bs-dismiss="modal"
-                                onClick={() => { destroyCombination() }}>
-                                <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />破棄
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )
-    }
     // app
     const topForm = () => {
+        const _searchNameForm = (
+            <div className="input-group d-flex justify-content-center align-items-center my-1">
+                <button className="btn btn-outline-success btn-lg" type="button" id="CTSearchButton"
+                    onClick={() => { searchCombination() }}>
+                    <i className="fa-solid fa-magnifying-glass mx-1" style={{ pointerEvents: "none" }} />
+                    素材検索
+                </button>
+                <input className="flex-fill form-control form-control-lg" type="text" placeholder="レシピ検索"
+                    value={tmpKeyword} onChange={(evt: any) => { setTmpKeyword(evt.target.value) }}
+                    onKeyDown={(evt: any) => {
+                        if (evt.key == "Enter") $("#CTSearchButton").trigger("click")
+                    }} />
+            </div>
+        )
+        const _searchRadioForm = (
+            <div className="input-group d-flex justify-content-evenly my-1">
+                <div className="form-check form-check-inline">
+                    <input className="form-check-input" type="radio" name="exampleRadios"
+                        checked={tmpSearchRadio == "name"}
+                        onChange={() => setTmpSearchRadio("name")} />
+                    <label className="form-check-label">
+                        名前検索
+                    </label>
+                </div>
+                <div className="form-check form-check-inline">
+                    <input className="form-check-input" type="radio" name="exampleRadios"
+                        checked={tmpSearchRadio == "tag"}
+                        onChange={() => setTmpSearchRadio("tag")} />
+                    <label className="form-check-label">
+                        タグ検索
+                    </label>
+                </div>
+                {userId != -1 ?
+                    <div className="form-check form-check-inline">
+                        <input className="form-check-input" type="radio" name="exampleRadios"
+                            checked={tmpSearchRadio == "private"}
+                            onChange={() => {
+                                searchCombination("", "private")
+                            }} />
+                        <label className="form-check-label">
+                            非公開素材表示
+                        </label>
+                    </div> :
+                    <div />
+                }
+            </div>
+        )
+        const _selectTagForm = () => {
+            const _tagButton = []
+            for (let _i = 0; _i < tmpListTags.length; _i++) {
+                _tagButton.push(
+                    <button className="btn btn-outline-dark rounded-pill m-1"
+                        type="button" value={tmpListTags[_i]}
+                        onClick={(evt: any) => {
+                            searchCombination(evt.target.value)
+                        }}>
+                        <i className="fa-solid fa-tag mx-1" style={{ pointerEvents: "none" }} />
+                        {tmpListTags[_i]}
+                    </button>
+                )
+            }
+            return (
+                <div className="my-1">
+                    {_tagButton}
+                </div>
+            )
+        }
+        const _offsetButtonForm = () => {
+            return (
+                <div className="btn-group" role="group">
+                    {0 < tmpOffset ?
+                        <button type="button" className="btn btn-outline-primary"
+                            onClick={() => {
+                                searchCombination(undefined, undefined, tmpOffset - 1)
+                            }}>←prev</button> :
+                        <button type="button" className="btn btn-outline-primary"
+                            disabled>←prev</button>
+                    }
+                    <span className="input-group-text mx-1"><h4>{tmpOffset}</h4></span>
+                    {0 < contents.length ?
+                        <button type="button" className="btn btn-outline-primary"
+                            onClick={() => {
+                                searchCombination(undefined, undefined, tmpOffset + 1)
+                            }}>next→</button> :
+                        <button type="button" className="btn btn-outline-primary"
+                            disabled>next→</button>
+                    }
+                </div>
+            )
+        }
         return (
             <div>
-                <div className="input-group d-flex justify-content-center align-items-center my-1">
-
-                    <button className="btn btn-outline-success btn-lg" type="button"
-                        onClick={() => { searchCombination() }}>
-                        <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
-                    </button>
-                    <input className="flex-fill form-control form-control-lg" type="text" placeholder="レシピ検索"
-                        value={tmpCombination} onChange={(evt: any) => { setTmpCombination(evt.target.value) }} />
+                {_searchRadioForm}
+                {tmpSearchRadio == "name" ? _searchNameForm : <div />}
+                {tmpSearchRadio == "tag" ? _selectTagForm() : <div />}
+                <div className="d-flex justify-content-between my-1">
+                    <div />
+                    {_offsetButtonForm()}
                     {token == "" ?
-                        <button className="btn btn-outline-info btn-lg" type="button"
-                            onClick={() => {
-                                HIModal("レシピ作成にはログインが必要")
-                            }}>
-                            <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
-                            レシピ作成
-                        </button> :
+                        <div /> :
                         <button className="btn btn-outline-primary btn-lg" type="button"
                             onClick={() => {
-                                initTmps()
+                                initCreateForm();
                                 $('#combinationCreateModal').modal('show');
-                            }}>
+                            }} >
                             <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
                             レシピ作成
                         </button>}
@@ -249,13 +324,16 @@ export const CTable = () => {
 
     }
     const _tmpRecord = [];
-    if (0 < contents.length)
-        if (!satisfyDictKeys(contents[0], ["id", "name", "description", "userid", "user", "passhash", "timestamp", "contents"]))
-            return (<div className="row m-1">loading</div>)
+    if (contents.length == 0) {
+        _tmpRecord.push(
+            <div className="row d-flex justify-content-center my-1 ">
+                素材が存在しません
+            </div>)
+    }
     for (var i = 0; i < contents.length; i++) {
-        if (contents[i]["name"].indexOf(tmpCombination) == -1) continue
         const _tmpData = [];
         var _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }
+        if (contents[i]["userid"] == userId) { _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(100,200,150,0.3))" } }
         if (contents[i]["passhash"] == "0") { _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.3))" } }
         _tmpData.push(
             <div className="col-12 border d-flex" style={_style}>
@@ -271,16 +349,6 @@ export const CTable = () => {
                     }} value={JSON.stringify(contents[i])}>
                     <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>閲覧
                 </button>
-                {contents[i]["userid"] == userId ?
-                    <button className="btn btn-outline-danger rounded-pill"
-                        onClick={(evt: any) => {
-                            setTmpTargetId(evt.target.value)
-                            $('#combinationDestroyModal').modal('show')
-                        }} value={contents[i]["id"]}>
-                        <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>破棄
-                    </button> :
-                    <div></div>
-                }
             </div>)
         _tmpData.push(
             <div className="col-12 col-md-12 p-1" style={{ "wordBreak": "break-all" }}>
@@ -305,7 +373,6 @@ export const CTable = () => {
             background: "linear-gradient(45deg,rgba(250,200,200,0.2), rgba(60,60,60,0.0))"
         }}>
             {combinationCreateModal()}
-            {combinationDestroyModal()}
             {topForm()}
             <div className="row m-1 slidein-1-reverse">
                 {_tmpRecord}
