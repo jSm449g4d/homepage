@@ -204,6 +204,7 @@ def safe_string(_s, _max=500):
     return _s[:_max]
 
 
+RECORD_RETURN_MAX = 100
 load_reference_file()
 
 
@@ -247,8 +248,8 @@ def show(request):
                     if result["tag"] not in _tags:
                         _tags[result["tag"]] = 0
                     _tags[result["tag"]] += 1
-                _tags_list = sorted(_tags.items(), key=lambda x: x[1],reverse=True)
-                _tags=[]
+                _tags_list = sorted(_tags.items(), key=lambda x: x[1], reverse=True)
+                _tags = []
                 for _dict in _tags_list:
                     _tags.append(_dict[0])
                 return json.dumps(
@@ -268,13 +269,20 @@ def show(request):
                 _userid = -1
                 if token != "":
                     _userid = token["id"]
+                _material_offset = 0
+                if "offset" in _dataDict:
+                    _material_offset = int(_dataDict["offset"])
                 # process start
                 match _dataDict["search_radio"]:
                     case "name":
                         cur.execute(
                             "SELECT * FROM tskb_material WHERE name LIKE ? "
-                            "AND passhash = '' LIMIT 200;",
-                            ["%" + _dataDict["keyword"] + "%"],
+                            "AND passhash = '' LIMIT ? OFFSET ? ;",
+                            [
+                                "%" + _dataDict["keyword"] + "%",
+                                RECORD_RETURN_MAX,
+                                RECORD_RETURN_MAX * _material_offset,
+                            ],
                         )
                         _materials = [
                             {key: value for key, value in dict(result).items()}
@@ -291,8 +299,12 @@ def show(request):
                     case "tag":
                         cur.execute(
                             "SELECT * FROM tskb_material WHERE tag LIKE ? "
-                            "AND passhash = '' LIMIT 200;",
-                            ["%" + _dataDict["keyword"] + "%"],
+                            "AND passhash = '' LIMIT ? OFFSET ? ;",
+                            [
+                                "%" + _dataDict["keyword"] + "%",
+                                RECORD_RETURN_MAX,
+                                RECORD_RETURN_MAX * _material_offset,
+                            ],
                         )
                         _materials = [
                             {key: value for key, value in dict(result).items()}
@@ -309,8 +321,14 @@ def show(request):
                     case "private":
                         cur.execute(
                             "SELECT * FROM tskb_material WHERE name LIKE ? "
-                            "AND passhash = '0' AND userid = ? LIMIT 200;",
-                            ["%" + _dataDict["keyword"] + "%", _userid],
+                            "AND passhash = '0' AND userid = ? "
+                            "LIMIT ? OFFSET ? ;",
+                            [
+                                "%" + _dataDict["keyword"] + "%",
+                                _userid,
+                                RECORD_RETURN_MAX,
+                                RECORD_RETURN_MAX * _material_offset,
+                            ],
                         )
                         _materials = [
                             {key: value for key, value in dict(result).items()}
