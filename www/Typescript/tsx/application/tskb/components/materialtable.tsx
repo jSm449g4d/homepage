@@ -177,6 +177,7 @@ export const MTable = () => {
     const downloadImage = () => {
         const headers = new Headers();
         const formData = new FormData();
+        $("#MTimage").css('visibility', '');
         setTmpAttachment(null)
         formData.append("info", stringForSend())
         formData.append("dlimage", JSON.stringify({ "combination_id": combination["id"] }))

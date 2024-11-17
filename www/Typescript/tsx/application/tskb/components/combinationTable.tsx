@@ -139,7 +139,12 @@ export const CTable = () => {
             .then(resJ => {
                 switch (resJ["message"]) {
                     case "processed":
-                        setTimeout(() => { searchCombination() }, xhrDelay)
+                        setTimeout(() => {
+                            AppDispatch(startTable({
+                                tableStatus: "MTable",
+                                combination: resJ["combination"]
+                            }))
+                        }, xhrDelay)
                         HIModal("レシピ作成成功")
                         break;
                     default: {
@@ -348,7 +353,8 @@ export const CTable = () => {
                             combination: JSON.parse(evt.target.value)
                         }))
                     }} value={JSON.stringify(contents[i])}>
-                    <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>閲覧
+                    <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }} />
+                    閲覧
                 </button>
             </div>)
         _tmpData.push(

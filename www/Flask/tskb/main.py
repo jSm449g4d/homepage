@@ -461,7 +461,6 @@ def show(request):
                             0,
                         ],
                     )
-                    conn.commit()
                     cur.execute(
                         "SELECT * FROM tskb_material WHERE ROWID = last_insert_rowid();",
                         [],
@@ -835,9 +834,14 @@ def show(request):
                         json.dumps({}, ensure_ascii=False),
                     ],
                 )
+                cur.execute(
+                    "SELECT * FROM tskb_combination WHERE ROWID = last_insert_rowid();",
+                    [],
+                )
+                _combination = cur.fetchone()
                 conn.commit()
                 return json.dumps(
-                    {"message": "processed"},
+                    {"message": "processed","combination": dict(_combination)},
                     ensure_ascii=False,
                 )
             return json.dumps({"message": "rejected"})
