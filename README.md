@@ -9,7 +9,6 @@ https://homepage-tlnesjcoqq-an.a.run.app/?application=tskb/main
 https://homepage-tlnesjcoqq-an.a.run.app/?application=tptef
 
 ### 本番環境(VPS)
-※テスト環境よりだいぶ古く、時々データをリセットしてます  
 https://huxiin.com/
 - 栄養計算アプリ(α版)  
 https://huxiin.com/?application=tskb/main

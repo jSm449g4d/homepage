@@ -67,7 +67,7 @@ export const MTable = () => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("fetch", JSON.stringify({ "combinationid": combination["id"]}))
+        formData.append("fetch", JSON.stringify({ "combinationid": combination["id"] }))
         const request = new Request("/tskb/main.py", {
             method: 'POST',
             headers: headers,
@@ -420,7 +420,13 @@ export const MTable = () => {
             </th>
             <th scope="col">単価<br />{"[円]"}</th>
             <th scope="col">熱量<br />{"[kcal]"}</th>
-            <th scope="col">炭水化物<br />{"[g]"}</th>
+            <th scope="col">炭水化物<br />{"[g]"}
+                <i className="text-info fa-solid fa-circle-question mx-1"
+                    onClick={() => {
+                        HIModal("糖質", "糖質=炭水化物-食物繊維"
+                        )
+                    }}>
+                </i></th>
             <th scope="col">タンパク質<br />{"[g]"}	</th>
             <th scope="col">脂質<br />{"[g]"}</th>
             <th scope="col">飽和脂肪酸<br />{"[g]"}
@@ -491,7 +497,7 @@ export const MTable = () => {
             <div className="dropdown">
                 <button className="btn btn-dark dropdown-toggle"
                     type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    {_nutrition["name"]}
+                    {_nutrition["name"].slice(0, 20)}
                 </button>
                 <ul className="dropdown-menu">
                     {_tmpItems}
@@ -651,12 +657,12 @@ export const MTable = () => {
         _tmpRecord.push(
             <tr>
                 <td>{_button}</td>
-                <td>{contents[i]["name"]}</td>
-                <td><input type="text" size={4} value={_amount}
+                <td>{contents[i]["name"].slice(0, 20)}</td>
+                <td><input type="text" size={4} value={String(_amount).replace(/[^0-9|.]/g, '')}
                     onChange={(evt: any) => {
                         setTmpCombinationContents(evt.target.name, evt.target.value)
                     }}
-                    id={"MTamount_" + i} name={String(contents[i]["id"])} />
+                    name={String(contents[i]["id"])} />
                 </td>
                 <td>{toSignificantDigits(contents[i]["cost"] * _unit)}</td>
                 <td>{toSignificantDigits(contents[i]["kcal"] * _unit)}</td>
