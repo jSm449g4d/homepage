@@ -4,7 +4,7 @@ import { HIModal, CIModal } from "../../../components/imodals";
 import { satisfyDictKeys, Unixtime2String, toSignificantDigits } from "../../../components/util";
 import { accountSetState, tskbSetState, startTable } from '../../../components/slice'
 import { useAppSelector, useAppDispatch } from '../../../components/store'
-
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
 
 export const MTable = () => {
     const [contents, setContents] = useState([])
@@ -300,6 +300,66 @@ export const MTable = () => {
                     style={{ height: 300, objectFit: "contain", visibility: "hidden" }} />
             </div>
         )
+        const _raderCombination = () => {
+            const _data = [
+                {
+                    subject: "熱量",
+                    A: 100,
+                    fullMark: 100
+                },
+                {
+                    subject: "炭水化物",
+                    A: 120,
+                    B: 110,
+                    fullMark: 150
+                },
+                {
+                    subject: "タンパク質",
+                    A: 120,
+                    B: 110,
+                    fullMark: 150
+                },
+                {
+                    subject: "脂質",
+                    A: 120,
+                    B: 110,
+                    fullMark: 150
+                },
+                {
+                    subject: "ビタミン",
+                    A: 120,
+                    B: 110,
+                    fullMark: 150
+                },
+                {
+                    subject: "ミネラル",
+                    A: 120,
+                    B: 110,
+                    fullMark: 150
+                },
+            ]
+            return (
+
+                <RadarChart
+                    cx="50%"
+                    cy="50%"
+                    height={300}
+                    width={300}
+                    data={_data}
+                >
+                    <PolarGrid />
+                    <PolarAngleAxis dataKey="subject" />
+                    <PolarRadiusAxis />
+                    <Radar
+                        name="Mike"
+                        dataKey="A"
+                        stroke="#8884d8"
+                        fill="#8884d8"
+                        fillOpacity={0.6}
+                    />
+                </RadarChart>)
+
+        }
         return (
             <div className="row m-1">
                 <div className="col-12 my-1">
@@ -346,6 +406,9 @@ export const MTable = () => {
                     </div>
                 </div>
                 <div className="col-12 col-md-4 my-1">
+                    <div className="d-flex justify-content-center align-items-center">
+                        {/*工事中_raderCombination()*/}
+                    </div>
                     <div />
                 </div>
             </div>)
