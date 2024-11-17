@@ -93,11 +93,11 @@ export const CMTable = () => {
                 console.error(error.message)
             });
     }
-    const registerMaterial = (_tmpTargetId: Number = tmpTargetId) => {
+    const designMaterial = (_tmpTargetId: Number = tmpTargetId) => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("register", JSON.stringify(Object.assign({
+        formData.append("design", JSON.stringify(Object.assign({
             "material": tmpMaterial
         }),
 
@@ -273,24 +273,14 @@ export const CMTable = () => {
                                 素材名を入力してください
                             </button> :
                             <div>
-                                {material["id"] == -1 ?
-                                    <button className="btn btn-outline-primary btn-lg" type="button"
-                                        onClick={() => {
-                                            registerMaterial();
-                                            window.scrollTo({ top: 0, behavior: "smooth", });
-                                        }}>
-                                        <i className="fa-solid fa-lemon mx-1" style={{ pointerEvents: "none" }} />
-                                        登録
-                                    </button> :
-                                    <button className="btn btn-outline-success btn-lg" type="button"
-                                        onClick={() => {
-                                            registerMaterial();
-                                            window.scrollTo({ top: 0, behavior: "smooth", });
-                                        }}>
-                                        <i className="fa-solid fa-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
-                                        更新
-                                    </button>
-                                }
+                                <button className="btn btn-outline-success btn-lg" type="button"
+                                    onClick={() => {
+                                        designMaterial();
+                                        window.scrollTo({ top: 0, behavior: "smooth", });
+                                    }}>
+                                    <i className="fa-solid fa-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
+                                    更新
+                                </button>
                             </div>
                         }
                         <div>

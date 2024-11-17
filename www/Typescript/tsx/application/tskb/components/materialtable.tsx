@@ -16,6 +16,7 @@ export const MTable = () => {
         "id": -1, "name": "", "tag": "", "description": "", "userid": -1, "user": "",
         "passhash": "", "timestamp": 0, "contents": "{}"
     })
+
     const setTmpCombinationDict = (_key: string, _value: any) => {
         let _copy = JSON.parse(JSON.stringify(tmpCombination))
         _copy[_key] = _value
@@ -401,9 +402,6 @@ export const MTable = () => {
                 }
             </div>)
     }
-    "(id,name,tag,description,userid,user,passhash,timestamp,"
-    "g,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
-    "ca,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
     const _tmpElementColumn = [];
     _tmpElementColumn.push(
         <tr>

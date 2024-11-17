@@ -13,6 +13,9 @@ export const EMTable = () => {
     const [tmpAttachment, setTmpAttachment] = useState(null)
     const [tmpSearchRadio, setTmpSearchRadio] = useState("name")
     const [tmpListTags, setTmpListTags] = useState([])
+    const [tmpName, setTmpName] = useState("")
+    const [tmpDescription, setTpDescription] = useState("")
+    const [tmpPrivateFlag, setTmpPrivateFlag] = useState(false)
 
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
@@ -40,7 +43,7 @@ export const EMTable = () => {
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
-            { "token": token, "user": user,  }, _additionalDict)
+            { "token": token, "user": user, }, _additionalDict)
         return (JSON.stringify(_sendDict))
     }
     // fetchAPI
@@ -145,6 +148,40 @@ export const EMTable = () => {
                 console.error(error.message)
             });
     }
+    const registerMaterial = () => {
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("register", JSON.stringify(Object.assign({
+            "name": tmpName, "description": tmpDescription,
+            "privateFlag": tmpPrivateFlag,
+        }),
+
+        ))
+        const request = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed":
+                        HIModal("登録完了")
+                        AppDispatch(startTable({ tableStatus: "CMTable", material: resJ["material"] }));
+                        break;
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]); break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
     const updataMaterial = () => {
         if (tmpAttachment == null) return
         if (fileSizeMax <= tmpAttachment.size) {
@@ -215,6 +252,62 @@ export const EMTable = () => {
                         </div>
                         <div className="modal-footer d-flex">
                             <button type="button" className="btn btn-secondary me-auto" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+    const EMTMaterialRegisterModal = () => {
+        return (
+            <div>
+                <div className="modal fade" id="EMTMaterialRegisterModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h3 className="modal-title fs-5">
+                                    <i className="fa-solid fa-hammer mx-1" />素材作成
+                                </h3>
+                            </div>
+                            <div className="modal-body d-flex justify-content-center row">
+                                <div className="input-group col-12 m-1">
+                                    <span className="input-group-text">素材名</span>
+                                    <input type="text" className="form-control" placeholder="素材名" aria-label="user"
+                                        value={tmpName.slice(0, 50)}
+                                        onChange={(evt) => { setTmpName(evt.target.value) }} />
+                                </div>
+                                {tmpPrivateFlag == false ?
+                                    <button className="btn btn-outline-warning btn-lg col-12" type="button"
+                                        onClick={() => { setTmpPrivateFlag(true) }}>
+                                        <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
+                                        公開&nbsp;&nbsp;
+                                    </button> :
+                                    <button className="btn btn-warning btn-lg col-12" type="button"
+                                        onClick={() => { setTmpPrivateFlag(false) }}>
+                                        <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
+                                        非公開
+                                    </button>
+                                }
+                                <h4 className="mx-3 col-12">概説</h4>
+                                <textarea className="form-control w-80 col-12" rows={4}
+                                    value={tmpDescription.slice(0, 200)}
+                                    onChange={(evt) => { setTpDescription(evt.target.value) }} />
+                            </div>
+                            <div className="modal-footer d-flex col-12">
+                                <button type="button" className="btn btn-secondary me-auto" data-bs-dismiss="modal">
+                                    Close
+                                </button>
+                                {tmpName != "" && token != "" ? <div>
+                                    <button type="button" className="btn btn-outline-primary " data-bs-dismiss="modal"
+                                        onClick={() => registerMaterial()}>
+                                        <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
+                                    </button>
+                                </div> :
+                                    <button type="button" className="btn btn-outline-primary" disabled>
+                                        <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
+                                    </button>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -335,7 +428,7 @@ export const EMTable = () => {
                     {token == "" ?
                         <div /> :
                         <button className="btn btn-outline-primary btn-lg" type="button"
-                            onClick={() => AppDispatch(startTable({ material: null, tableStatus: "CMTable" }))} >
+                            onClick={() => $("#EMTMaterialRegisterModal").modal("show")} >
                             <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
                             新規作成
                         </button>}
@@ -418,6 +511,7 @@ export const EMTable = () => {
             background: "linear-gradient(45deg,rgba(240,150,110,0.2), rgba(60,60,60,0.0))"
         }}>
             {EMTUpdataModal()}
+            {EMTMaterialRegisterModal()}
             {topForm()}
             <div className="row m-1">
                 {_tmpRecord}
