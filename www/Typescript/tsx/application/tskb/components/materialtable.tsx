@@ -409,7 +409,7 @@ export const MTable = () => {
         <tr>
             <th scope="col">操作</th>
             <th scope="col">名称</th>
-            <th scope="col">量
+            <th scope="col" style={{ "position": "sticky" }}>量
                 <i className="text-info fa-solid fa-circle-question mx-1"
                     onClick={() => {
                         HIModal("単位となる数量", "基本的に素材100[g]当たりの栄養価." +
@@ -640,12 +640,12 @@ export const MTable = () => {
         const _button = (
             <td>
                 {combination["userid"] == userId ?
-                    <button type="button" className="btn btn-outline-danger rounded-pill"
+                    <button type="button" className="btn btn-outline-danger"
                         onClick={(evt: any) => { combineCombination(evt.target.value) }}
                         value={contents[i]["id"]}>
                         <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
                     </button> :
-                    <button type="button" className="btn btn-outline-danger rounded-pill"
+                    <button type="button" className="btn btn-outline-dark"
                         disabled>
                         <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
                     </button>
