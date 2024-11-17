@@ -168,7 +168,7 @@ export const CTable = () => {
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h3 className="modal-title fs-5">
+                                <h3 className="modal-title">
                                     <i className="fa-solid fa-hammer mx-1" />レシピ作成
                                 </h3>
                             </div>
