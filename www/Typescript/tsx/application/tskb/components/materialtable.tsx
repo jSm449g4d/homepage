@@ -409,7 +409,7 @@ export const MTable = () => {
         <tr>
             <th scope="col">操作</th>
             <th scope="col">名称</th>
-            <th scope="col" style={{ "position": "sticky" }}>量
+            <th scope="col">量
                 <i className="text-info fa-solid fa-circle-question mx-1"
                     onClick={() => {
                         HIModal("単位となる数量", "基本的に素材100[g]当たりの栄養価." +
@@ -591,7 +591,7 @@ export const MTable = () => {
     }
     for (let _key in _nutrition) { _nutrition[_key] = toSignificantDigits(_nutrition[_key]) }
     _tmpRecord.push(
-        <tr>
+        <tr className="tskb-material-table-tr2">
             <td></td>
             <td>総計</td>
             <td></td>
@@ -665,11 +665,12 @@ export const MTable = () => {
             <tr>
                 <td>{_button}</td>
                 <td>{contents[i]["name"].slice(0, 20)}</td>
-                <td><input type="text" size={4} value={String(_amount).replace(/[^0-9|.]/g, '')}
-                    onChange={(evt: any) => {
-                        setTmpCombinationContents(evt.target.name, evt.target.value)
-                    }}
-                    name={String(contents[i]["id"])} />
+                <td className="tskb-material-table-tl">
+                    <input type="text" size={4} value={String(_amount).replace(/[^0-9|.]/g, '')}
+                        onChange={(evt: any) => {
+                            setTmpCombinationContents(evt.target.name, evt.target.value)
+                        }}
+                        name={String(contents[i]["id"])} />
                 </td>
                 <td>{toSignificantDigits(contents[i]["cost"] * _unit)}</td>
                 <td>{toSignificantDigits(contents[i]["kcal"] * _unit)}</td>
@@ -719,8 +720,8 @@ export const MTable = () => {
         }}>
             {combinationDestroyModal1()}
             {topForm()}
-            <div className="slidein-1" style={{ overflow: "auto" }}>
-                <table className="table table-dark table-striped-columns table-bordered"
+            <div className="slidein-1 tskb-material-table">
+                <table className="table table-dark table-striped-columns table-bordered "
                     style={{ whiteSpace: "nowrap" }}>
                     <thead>{_tmpElementColumn}</thead>
                     <tbody>{_tmpRecord}</tbody>
