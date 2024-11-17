@@ -100,10 +100,6 @@ export const MTable = () => {
             });
     }
     const combineCombination = (_tmpTargetId: string) => {
-        const sortSetExploreContents = (_contents: any = []) => {
-            const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
-            setContents(_contents.sort(_sortContents))
-        }
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
@@ -122,7 +118,6 @@ export const MTable = () => {
             .then(resJ => {
                 switch (resJ["message"]) {
                     case "processed": {
-                        sortSetExploreContents(resJ["materials"]);
                         setTimeout(() => fetchMaterial(), xhrDelay)
                         break;
                     }

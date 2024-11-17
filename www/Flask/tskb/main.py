@@ -199,6 +199,7 @@ def isfloat(_s):
 
 
 def safe_string(_s, _max=500):
+    _s = str(_s)
     _s = re.sub("[\[(.*)\]|<(.*)>|\\|/]", "", unicodedata.normalize("NFKC", _s))
     _s = re.sub("\s+", " ", _s).strip()
     return _s[:_max]
@@ -216,7 +217,7 @@ def show(request):
             _target_file = os.path.normpath(
                 os.path.join(
                     tmp_dir + "combination/",
-                    safe_string(_query["combination_imgid"],10)+".png",
+                    safe_string(_query["combination_imgid"], 10) + ".png",
                 )
             )
             if os.path.exists(_target_file):
@@ -958,7 +959,7 @@ def show(request):
                 _target_dir = os.path.normpath(
                     os.path.join(
                         tmp_dir + "combination/",
-                        str(_Ccombination["id"]) + ".png",
+                        safe_string(_Ccombination["id"]) + ".png",
                     )
                 )
                 if "delimage" in request.form:
@@ -1001,7 +1002,7 @@ def show(request):
                 _target_file = os.path.normpath(
                     os.path.join(
                         tmp_dir + "combination/",
-                        str(_dataDict["combination_id"]) + ".png",
+                        safe_string(_dataDict["combination_id"]) + ".png",
                     )
                 )
                 if os.path.exists(_target_file):
@@ -1038,6 +1039,14 @@ def show(request):
                     "DELETE FROM tskb_combination WHERE id = ? AND userid = ?;",
                     [_dataDict["combination_id"], token["id"]],
                 )
+                _target_dir = os.path.normpath(
+                    os.path.join(
+                        tmp_dir + "combination/",
+                        safe_string(_dataDict["combination_id"]) + ".png",
+                    )
+                )
+                if os.path.exists(_target_dir):
+                    os.remove(_target_dir)
                 conn.commit()
                 return json.dumps({"message": "processed"}, ensure_ascii=False)
             return json.dumps({"message": "rejected", "text": "不明なエラー"})
