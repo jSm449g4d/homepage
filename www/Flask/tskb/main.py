@@ -344,8 +344,7 @@ def show(request):
                     case "private":
                         cur.execute(
                             "SELECT * FROM tskb_material WHERE name LIKE ? "
-                            "AND passhash = '0' AND userid = ? "
-                            "LIMIT ? OFFSET ? ;",
+                            "AND userid = ? LIMIT ? OFFSET ? ;",
                             [
                                 "%" + _dataDict["keyword"] + "%",
                                 _userid,
@@ -451,10 +450,11 @@ def show(request):
                     )
                 cur.execute(
                     "INSERT INTO tskb_material "
-                    "(name,description,userid,user,passhash,timestamp) "
-                    "values(?,?,?,?,?,?)",
+                    "(name,tag,description,userid,user,passhash,timestamp) "
+                    "values(?,?,?,?,?,?,?)",
                     [
                         safe_string(_dataDict["name"]),
+                        safe_string(_dataDict["tag"]),
                         safe_string(_dataDict["description"]),
                         token["id"],
                         _dataDict["user"],
@@ -792,8 +792,7 @@ def show(request):
                     case "private":
                         cur.execute(
                             "SELECT * FROM tskb_combination WHERE name LIKE ? "
-                            "AND passhash = '0' AND userid = ? "
-                            "LIMIT ? OFFSET ? ;",
+                            "AND userid = ? LIMIT ? OFFSET ? ;",
                             [
                                 "%" + _dataDict["keyword"] + "%",
                                 _userid,

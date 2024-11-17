@@ -257,7 +257,7 @@ export const CTable = () => {
                                 searchCombination("", "private")
                             }} />
                         <label className="form-check-label">
-                            非公開素材表示
+                            マイ素材表示
                         </label>
                     </div> :
                     <div />
@@ -339,8 +339,10 @@ export const CTable = () => {
     for (var i = 0; i < contents.length; i++) {
         const _tmpData = [];
         var _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }
-        if (contents[i]["userid"] == userId) { _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(100,200,150,0.3))" } }
-        if (contents[i]["passhash"] == "0") { _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.3))" } }
+        if (contents[i]["userid"] == userId)
+            _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(100,200,150,0.3))" }
+        if (contents[i]["passhash"] == "0")
+            _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.3))" }
         _tmpData.push(
             <div className="col-12 border d-flex" style={_style}>
                 <h5 className="me-auto">
