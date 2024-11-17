@@ -22,7 +22,7 @@ export const MTable = () => {
         _copy[_key] = _value
         setTmpCombination(_copy)
     }
-    const setTmpCombinationContents = (_key: string, _value: Number) => {
+    const setTmpCombinationContents = (_key: string, _value: any) => {
         let _copy = JSON.parse(tmpCombination.contents)
         _copy[_key] = _value
         _copy = JSON.stringify(_copy)
@@ -327,24 +327,26 @@ export const MTable = () => {
                     {_imgForm}
                 </div>
                 <div className="col-12 col-md-4 my-1">
-                    <div className="input-group">
+                    <div className="input-group my-1">
                         <span className="input-group-text"><i className="fa-solid fa-tag mx-1" /></span>
                         <input className="form-control" type="text" placeholder="タグ名"
                             value={tmpCombination.tag.slice(0, 50)}
                             onChange={(evt: any) => setTmpCombinationDict("tag", evt.target.value)} />
                     </div>
-                    <div className="border border-2 bg-light p-2">
+                    <div className="border border-2 bg-light p-2 my-1">
                         <p><i className="far fa-user mx-1"></i>作成者{": " + combination["user"]}</p>
                         <p>作成時間:<br />{Unixtime2String(Number(combination.timestamp))}</p>
                     </div>
+                    <div className="d-flex flex-column my-1">
+                        <h5 className="mx-3">概説</h5>
+                        <textarea className="form-control" rows={4}
+                            value={tmpCombination["description"].slice(0, 200)}
+                            onChange={(evt: any) => { setTmpCombinationDict("description", evt.target.value) }}
+                            style={{ resize: "none" }} />
+                    </div>
                 </div>
                 <div className="col-12 col-md-4 my-1">
-                    <div className="d-flex justify-content-center align-items-center">
-                        <h4 className="mx-3">概説</h4>
-                    </div>
-                    <textarea className="form-control col-12 w-80" rows={4} value={tmpCombination["description"].slice(0, 200)}
-                        onChange={(evt: any) => { setTmpCombinationDict("description", evt.target.value) }}
-                        style={{ resize: "none" }} />
+                    <div />
                 </div>
             </div>)
     }
@@ -440,7 +442,14 @@ export const MTable = () => {
             <th scope="col">DHA-EPA<br />{"[g]"}</th>
             <th scope="col">n-6脂肪酸<br />{"[g]"}</th>
             <th scope="col">食物繊維<br />{"[g]"}</th>
-            <th scope="col">コリン<br />{"[mg]"}</th>
+            <th scope="col">コリン<br />{"[mg]"}
+                <i className="text-info fa-solid fa-circle-question mx-1"
+                    onClick={() => {
+                        HIModal("必須栄養素", "米国での推奨量は男性550mg、女性425mg程度とされる。" +
+                            "細胞膜や神経細胞の構成に利用される。"
+                        )
+                    }}>
+                </i></th>
             <th scope="col">カルシウム<br />{"[mg]"}</th>
             <th scope="col">塩素<br />{"[mg]"}</th>
             <th scope="col">クロム<br />{"[μg]"}</th>
@@ -650,8 +659,8 @@ export const MTable = () => {
                 </tr>)
             continue
         }
-        const _amount = parseFloat("0" + _ccontents[contents[i]["id"]])
-        const _unit = _amount / parseFloat("0" + contents[i]["unit"])
+        const _amount = _ccontents[contents[i]["id"]]
+        const _unit = parseFloat("0" + _amount) / parseFloat("0" + contents[i]["unit"])
         _tmpRecord.push(
             <tr>
                 <td>{_button}</td>

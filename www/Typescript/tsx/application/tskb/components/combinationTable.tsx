@@ -168,9 +168,9 @@ export const CTable = () => {
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h3 className="modal-title">
+                                <h4 className="modal-title">
                                     <i className="fa-solid fa-hammer mx-1" />レシピ作成
-                                </h3>
+                                </h4>
                             </div>
                             <div className="modal-body d-flex flex-column justify-content-center">
                                 <div className="input-group m-1">
@@ -185,7 +185,7 @@ export const CTable = () => {
                                         value={tmpTag.slice(0, 20)}
                                         onChange={(evt: any) => setTmpTag(evt.target.value)} />
                                 </div>
-                                <h4 className="mx-3">概説</h4>
+                                <h5>概説</h5>
                                 <textarea className="form-control m-1" rows={4}
                                     value={tmpDescription.slice(0, 200)}
                                     onChange={(evt) => { setTmpDescription(evt.target.value) }} />

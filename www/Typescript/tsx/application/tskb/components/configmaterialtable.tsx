@@ -229,22 +229,22 @@ export const CMTable = () => {
                 <div className="col-12 col-md-4 my-1">
                 </div>
                 <div className="col-12 col-md-4 my-1">
-                    <div className="input-group">
+                    <div className="input-group my-1">
                         <span className="input-group-text"><i className="fa-solid fa-tag mx-1" /></span>
                         <input className="form-control" type="text" placeholder="タグ名"
                             value={tmpMaterial.tag.slice(0, 50)}
                             onChange={(evt: any) => setTmpMaterialDict("tag", evt.target.value)} />
                     </div>
-                    <div className="border border-2 bg-light p-2">
+                    <div className="border border-2 bg-light p-2 my-1">
                         <p><i className="far fa-user mx-1"></i>作成者{": " + material["user"]}</p>
                         <p>作成時間:<br />{Unixtime2String(Number(material.timestamp))}</p>
                     </div>
                 </div>
                 <div className="col-12 col-md-4 my-1">
-                    <div className="d-flex justify-content-center align-items-center">
-                        <h4 className="mx-3">概説</h4>
+                    <div className="d-flex flex-column">
+                        <h5 className="mx-3">概説</h5>
                     </div>
-                    <textarea className="form-control col-12 w-80" rows={4} value={tmpMaterial["description"].slice(0, 200)}
+                    <textarea className="form-control" rows={4} value={tmpMaterial["description"].slice(0, 200)}
                         onChange={(evt: any) => { setTmpMaterialDict("description", evt.target.value) }}
                         style={{ resize: "none" }} />
                 </div>
