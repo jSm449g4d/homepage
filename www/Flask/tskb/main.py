@@ -52,24 +52,28 @@ if os.path.exists(key_dir + "keys.json"):
 
 with closing(sqlite3.connect(db_dir)) as conn:
     cur = conn.cursor()
-    "(id,name,tag,description,userid,user,passhash,timestamp,contents)"
+    "(id,name,tag,description,userid,user,passhash,timestamp,img,contents)"
     # contents={material_id:amount}
     # passhash="": public ,"0": private
+    # img: reserved for the future
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_combination(id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "name TEXT UNIQUE NOT NULL,tag TEXT DEFAULT '',description TEXT DEFAULT '',"
         "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
+        "img TEXT DEFAULT '',"
         "contents TEXT NOT NULL)"
     )
     # passhash="": public ,"0": private
     # tag="Requirements": special
-    "(id,name,tag,description,userid,user,passhash,timestamp,"
+    # img: reserved for the future
+    "(id,name,tag,description,userid,user,passhash,timestamp,img,"
     "unit,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
     "ca,cl,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_material(id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "name TEXT UNIQUE NOT NULL,tag TEXT DEFAULT '',description TEXT DEFAULT '',"
         "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
+        "img TEXT DEFAULT '',"
         "unit REAL DEFAULT 100,cost REAL DEFAULT 0,"
         "carbo REAL DEFAULT 0,fiber REAL DEFAULT 0,"
         "protein REAL DEFAULT 0,fat REAL DEFAULT 0,saturated_fat REAL DEFAULT 0,"
@@ -199,6 +203,7 @@ def isfloat(_s):
 
 
 def safe_string(_s, _max=500):
+    _s = str(_s)
     _s = re.sub("[\[(.*)\]|<(.*)>|\\|/]", "", unicodedata.normalize("NFKC", _s))
     _s = re.sub("\s+", " ", _s).strip()
     return _s[:_max]
@@ -216,7 +221,7 @@ def show(request):
             _target_file = os.path.normpath(
                 os.path.join(
                     tmp_dir + "combination/",
-                    safe_string(_query["combination_imgid"],10)+".png",
+                    safe_string(_query["combination_imgid"], 10) + ".png",
                 )
             )
             if os.path.exists(_target_file):
@@ -339,8 +344,7 @@ def show(request):
                     case "private":
                         cur.execute(
                             "SELECT * FROM tskb_material WHERE name LIKE ? "
-                            "AND passhash = '0' AND userid = ? "
-                            "LIMIT ? OFFSET ? ;",
+                            "AND userid = ? LIMIT ? OFFSET ? ;",
                             [
                                 "%" + _dataDict["keyword"] + "%",
                                 _userid,
@@ -428,41 +432,63 @@ def show(request):
                 return json.dumps(
                     {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
                 )
+            _passhash = ""
+            if _dataDict["privateFlag"] == True:
+                _passhash = "0"
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # process start
-                # register material
+                cur.execute(
+                    "SELECT * FROM tskb_material WHERE name = ?;",
+                    [safe_string(_dataDict["name"])],
+                )
+                _material = cur.fetchone()
+                if _material != None:
+                    return json.dumps(
+                        {"message": "alreadyExisted", "text": "既存の名前"}
+                    )
+                cur.execute(
+                    "INSERT INTO tskb_material "
+                    "(name,tag,description,userid,user,passhash,timestamp) "
+                    "values(?,?,?,?,?,?,?)",
+                    [
+                        safe_string(_dataDict["name"]),
+                        safe_string(_dataDict["tag"]),
+                        safe_string(_dataDict["description"]),
+                        token["id"],
+                        _dataDict["user"],
+                        _passhash,
+                        int(time.time()),
+                    ],
+                )
+                cur.execute(
+                    "SELECT * FROM tskb_material WHERE ROWID = last_insert_rowid();",
+                    [],
+                )
+                _material = cur.fetchone()
+                conn.commit()
+                return json.dumps(
+                    {"message": "processed", "material": dict(_material)},
+                    ensure_ascii=False,
+                )
+            return json.dumps({"message": "rejected", "text": "不明なエラー"})
+
+        if "design" in request.form:
+            _dataDict.update(json.loads(request.form["design"]))
+            if token == "":
+                return json.dumps(
+                    {"message": "tokenNothing", "text": "JWT未提出"}, ensure_ascii=False
+                )
+            with closing(sqlite3.connect(db_dir)) as conn:
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                # process start
                 cur.execute(
                     "SELECT * FROM tskb_material WHERE name = ?;",
                     [safe_string(_dataDict["material"]["name"])],
                 )
                 _material = cur.fetchone()
-                if _dataDict["material"]["id"] == -1:
-                    if _material != None:
-                        return json.dumps(
-                            {"message": "alreadyExisted", "text": "既存の名前"}
-                        )
-                    cur.execute(
-                        "INSERT INTO tskb_material "
-                        "(name,description,userid,user,passhash,timestamp) "
-                        "values(?,?,?,?,?,?)",
-                        [
-                            safe_string(_dataDict["material"]["name"]),
-                            safe_string(_dataDict["material"]["description"]),
-                            token["id"],
-                            _dataDict["user"],
-                            _dataDict["material"]["passhash"],
-                            0,
-                        ],
-                    )
-                    conn.commit()
-                    cur.execute(
-                        "SELECT * FROM tskb_material WHERE ROWID = last_insert_rowid();",
-                        [],
-                    )
-                    _material = cur.fetchone()
-                # update material
                 if _material == None:
                     return json.dumps(
                         {"message": "notExist", "text": "素材不明"},
@@ -474,11 +500,7 @@ def show(request):
                         ensure_ascii=False,
                     )
                 _material = dict(_material)
-                _userid = _material["id"]
                 _material.update(_dataDict["material"])
-                if _dataDict["material"]["id"] == -1:
-                    _material["id"] = _userid
-                    _material["timestamp"] = int(time.time())
                 if isfloat(_material["unit"]) < 1:
                     _material["unit"] = 1
                 cur.execute(
@@ -770,8 +792,7 @@ def show(request):
                     case "private":
                         cur.execute(
                             "SELECT * FROM tskb_combination WHERE name LIKE ? "
-                            "AND passhash = '0' AND userid = ? "
-                            "LIMIT ? OFFSET ? ;",
+                            "AND userid = ? LIMIT ? OFFSET ? ;",
                             [
                                 "%" + _dataDict["keyword"] + "%",
                                 _userid,
@@ -818,11 +839,12 @@ def show(request):
                     )
                 cur.execute(
                     "INSERT INTO tskb_combination "
-                    "(name,description,userid,user,passhash,timestamp,contents) "
-                    "values(?,?,?,?,?,?,?)",
+                    "(name,tag,description,userid,user,passhash,timestamp,contents) "
+                    "values(?,?,?,?,?,?,?,?)",
                     [
                         safe_string(_dataDict["name"]),
-                        _dataDict["description"],
+                        safe_string(_dataDict["tag"]),
+                        safe_string(_dataDict["description"]),
                         token["id"],
                         _dataDict["user"],
                         _passhash,
@@ -830,9 +852,14 @@ def show(request):
                         json.dumps({}, ensure_ascii=False),
                     ],
                 )
+                cur.execute(
+                    "SELECT * FROM tskb_combination WHERE ROWID = last_insert_rowid();",
+                    [],
+                )
+                _combination = cur.fetchone()
                 conn.commit()
                 return json.dumps(
-                    {"message": "processed"},
+                    {"message": "processed", "combination": dict(_combination)},
                     ensure_ascii=False,
                 )
             return json.dumps({"message": "rejected"})
@@ -958,7 +985,7 @@ def show(request):
                 _target_dir = os.path.normpath(
                     os.path.join(
                         tmp_dir + "combination/",
-                        str(_Ccombination["id"]) + ".png",
+                        safe_string(_Ccombination["id"]) + ".png",
                     )
                 )
                 if "delimage" in request.form:
@@ -1001,7 +1028,7 @@ def show(request):
                 _target_file = os.path.normpath(
                     os.path.join(
                         tmp_dir + "combination/",
-                        str(_dataDict["combination_id"]) + ".png",
+                        safe_string(_dataDict["combination_id"]) + ".png",
                     )
                 )
                 if os.path.exists(_target_file):
@@ -1038,6 +1065,14 @@ def show(request):
                     "DELETE FROM tskb_combination WHERE id = ? AND userid = ?;",
                     [_dataDict["combination_id"], token["id"]],
                 )
+                _target_dir = os.path.normpath(
+                    os.path.join(
+                        tmp_dir + "combination/",
+                        safe_string(_dataDict["combination_id"]) + ".png",
+                    )
+                )
+                if os.path.exists(_target_dir):
+                    os.remove(_target_dir)
                 conn.commit()
                 return json.dumps({"message": "processed"}, ensure_ascii=False)
             return json.dumps({"message": "rejected", "text": "不明なエラー"})

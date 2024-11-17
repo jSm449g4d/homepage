@@ -3,6 +3,8 @@ import json
 import os
 import jwt
 import hashlib
+import re
+import unicodedata
 import flask
 import sys
 from contextlib import closing
@@ -28,7 +30,7 @@ def get_response(_statusDict={"STATUS": "VALUE"}):
 
 
 # load setting
-tmp_dir = "./tmp/" + FUNC_NAME+"/"
+tmp_dir = "./tmp/" + FUNC_NAME + "/"
 os.makedirs(tmp_dir, exist_ok=True)
 key_dir = "./keys/keys.json"
 db_dir = "./tmp/sqlite.db"
@@ -58,6 +60,13 @@ with closing(sqlite3.connect(db_dir)) as conn:
         "passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL)"
     )
     conn.commit()
+
+
+def safe_string(_s, _max=500):
+    _s = str(_s)
+    _s = re.sub("[\[(.*)\]|<(.*)>|\\|/]", "", unicodedata.normalize("NFKC", _s))
+    _s = re.sub("\s+", " ", _s).strip()
+    return _s[:_max]
 
 
 def show(request):
@@ -201,7 +210,7 @@ def show(request):
                 if _chat == None:
                     return json.dumps({"message": "unknownError"}, ensure_ascii=False)
                 request.files["upload"].save(
-                    os.path.normpath(os.path.join(tmp_dir, str(_chat["id"])))
+                    os.path.normpath(os.path.join(tmp_dir, safe_string(_chat["id"])))
                 )
                 return json.dumps(
                     {"message": "processed"},
@@ -230,7 +239,7 @@ def show(request):
                     return json.dumps({"message": "wrongPass"}, ensure_ascii=False)
                 # process start
                 _target_file = os.path.normpath(
-                    os.path.join(tmp_dir, str(_dataDict["chatid"]))
+                    os.path.join(tmp_dir, safe_string(_dataDict["chatid"]))
                 )
                 if os.path.exists(_target_file):
                     return flask.send_file(
@@ -269,7 +278,7 @@ def show(request):
                 )
                 conn.commit()
                 _remove_file = os.path.normpath(
-                    os.path.join(tmp_dir, str(_dataDict["chatid"]))
+                    os.path.join(tmp_dir, safe_string(_dataDict["chatid"]))
                 )
                 if os.path.exists(_remove_file):
                     os.remove(_remove_file)

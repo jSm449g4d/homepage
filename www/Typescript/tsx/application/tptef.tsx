@@ -718,7 +718,6 @@ export const AppMain = () => {
         )
     }
     // applicationRender
-
     const destroyRoomModal = () => {
         return (
             <div className="modal fade" id="destroyRoomModal"

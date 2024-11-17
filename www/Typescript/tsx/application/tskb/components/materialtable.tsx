@@ -16,12 +16,13 @@ export const MTable = () => {
         "id": -1, "name": "", "tag": "", "description": "", "userid": -1, "user": "",
         "passhash": "", "timestamp": 0, "contents": "{}"
     })
+
     const setTmpCombinationDict = (_key: string, _value: any) => {
         let _copy = JSON.parse(JSON.stringify(tmpCombination))
         _copy[_key] = _value
         setTmpCombination(_copy)
     }
-    const setTmpCombinationContents = (_key: string, _value: Number) => {
+    const setTmpCombinationContents = (_key: string, _value: any) => {
         let _copy = JSON.parse(tmpCombination.contents)
         _copy[_key] = _value
         _copy = JSON.stringify(_copy)
@@ -31,7 +32,6 @@ export const MTable = () => {
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
     const token = useAppSelector((state) => state.account.token)
-    const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
     const combination = useAppSelector((state) => state.tskb.combination)
     const reloadFlag = useAppSelector((state) => state.tskb.reloadFlag)
@@ -51,7 +51,7 @@ export const MTable = () => {
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
-                "token": token, "user": user, roomKey: roomKey,
+                "token": token, "user": user,
             }, _additionalDict)
         return (JSON.stringify(_sendDict))
     }
@@ -68,7 +68,7 @@ export const MTable = () => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("fetch", JSON.stringify({ "combinationid": combination["id"], "roomKey": roomKey }))
+        formData.append("fetch", JSON.stringify({ "combinationid": combination["id"] }))
         const request = new Request("/tskb/main.py", {
             method: 'POST',
             headers: headers,
@@ -100,10 +100,6 @@ export const MTable = () => {
             });
     }
     const combineCombination = (_tmpTargetId: string) => {
-        const sortSetExploreContents = (_contents: any = []) => {
-            const _sortContents = (a: any, b: any) => { return a["timestamp"] - b["timestamp"] }
-            setContents(_contents.sort(_sortContents))
-        }
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
@@ -122,7 +118,6 @@ export const MTable = () => {
             .then(resJ => {
                 switch (resJ["message"]) {
                     case "processed": {
-                        sortSetExploreContents(resJ["materials"]);
                         setTimeout(() => fetchMaterial(), xhrDelay)
                         break;
                     }
@@ -183,6 +178,7 @@ export const MTable = () => {
     const downloadImage = () => {
         const headers = new Headers();
         const formData = new FormData();
+        $("#MTimage").css('visibility', '');
         setTmpAttachment(null)
         formData.append("info", stringForSend())
         formData.append("dlimage", JSON.stringify({ "combination_id": combination["id"] }))
@@ -316,18 +312,14 @@ export const MTable = () => {
                             onClick={() => { fetchMaterial() }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button>
-                        <span className="input-group-text form-control-lg">
-                            <i className="fa-solid fa-stroopwafel mx-1" />
-                        </span>
                         {combination["userid"] == userId ?
                             <input className="flex-fill form-control form-control-lg" type="text"
                                 value={tmpCombination["name"].slice(0, 50)}
                                 onChange={(evt: any) => { setTmpCombinationDict("name", evt.target.value) }}>
                             </input > :
-                            <input className="flex-fill form-control form-control-lg" type="text"
-                                value={tmpCombination["name"].slice(0, 50)}
-                                disabled>
-                            </input >
+                            <span className="input-group-text flex-fill">
+                                <h4>{tmpCombination["name"].slice(0, 50)}</h4>
+                            </span>
                         }
                     </div>
                 </div>
@@ -335,24 +327,26 @@ export const MTable = () => {
                     {_imgForm}
                 </div>
                 <div className="col-12 col-md-4 my-1">
-                    <div className="input-group">
+                    <div className="input-group my-1">
                         <span className="input-group-text"><i className="fa-solid fa-tag mx-1" /></span>
                         <input className="form-control" type="text" placeholder="タグ名"
                             value={tmpCombination.tag.slice(0, 50)}
                             onChange={(evt: any) => setTmpCombinationDict("tag", evt.target.value)} />
                     </div>
-                    <div className="border border-2 bg-light p-2">
+                    <div className="border border-2 bg-light p-2 my-1">
                         <p><i className="far fa-user mx-1"></i>作成者{": " + combination["user"]}</p>
                         <p>作成時間:<br />{Unixtime2String(Number(combination.timestamp))}</p>
                     </div>
+                    <div className="d-flex flex-column my-1">
+                        <h5 className="mx-3">概説</h5>
+                        <textarea className="form-control" rows={4}
+                            value={tmpCombination["description"].slice(0, 200)}
+                            onChange={(evt: any) => { setTmpCombinationDict("description", evt.target.value) }}
+                            style={{ resize: "none" }} />
+                    </div>
                 </div>
                 <div className="col-12 col-md-4 my-1">
-                    <div className="d-flex justify-content-center align-items-center">
-                        <h4 className="mx-3">概説</h4>
-                    </div>
-                    <textarea className="form-control col-12 w-80" rows={4} value={tmpCombination["description"].slice(0, 200)}
-                        onChange={(evt: any) => { setTmpCombinationDict("description", evt.target.value) }}
-                        style={{ resize: "none" }} />
+                    <div />
                 </div>
             </div>)
     }
@@ -410,9 +404,6 @@ export const MTable = () => {
                 }
             </div>)
     }
-    "(id,name,tag,description,userid,user,passhash,timestamp,"
-    "g,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
-    "ca,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
     const _tmpElementColumn = [];
     _tmpElementColumn.push(
         <tr>
@@ -429,7 +420,13 @@ export const MTable = () => {
             </th>
             <th scope="col">単価<br />{"[円]"}</th>
             <th scope="col">熱量<br />{"[kcal]"}</th>
-            <th scope="col">炭水化物<br />{"[g]"}</th>
+            <th scope="col">炭水化物<br />{"[g]"}
+                <i className="text-info fa-solid fa-circle-question mx-1"
+                    onClick={() => {
+                        HIModal("糖質", "糖質=炭水化物-食物繊維"
+                        )
+                    }}>
+                </i></th>
             <th scope="col">タンパク質<br />{"[g]"}	</th>
             <th scope="col">脂質<br />{"[g]"}</th>
             <th scope="col">飽和脂肪酸<br />{"[g]"}
@@ -445,7 +442,14 @@ export const MTable = () => {
             <th scope="col">DHA-EPA<br />{"[g]"}</th>
             <th scope="col">n-6脂肪酸<br />{"[g]"}</th>
             <th scope="col">食物繊維<br />{"[g]"}</th>
-            <th scope="col">コリン<br />{"[mg]"}</th>
+            <th scope="col">コリン<br />{"[mg]"}
+                <i className="text-info fa-solid fa-circle-question mx-1"
+                    onClick={() => {
+                        HIModal("必須栄養素", "米国での推奨量は男性550mg、女性425mg程度とされる。" +
+                            "細胞膜や神経細胞の構成に利用される。"
+                        )
+                    }}>
+                </i></th>
             <th scope="col">カルシウム<br />{"[mg]"}</th>
             <th scope="col">塩素<br />{"[mg]"}</th>
             <th scope="col">クロム<br />{"[μg]"}</th>
@@ -500,7 +504,7 @@ export const MTable = () => {
             <div className="dropdown">
                 <button className="btn btn-dark dropdown-toggle"
                     type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    {_nutrition["name"]}
+                    {_nutrition["name"].slice(0, 20)}
                 </button>
                 <ul className="dropdown-menu">
                     {_tmpItems}
@@ -655,17 +659,17 @@ export const MTable = () => {
                 </tr>)
             continue
         }
-        const _amount = parseFloat("0" + _ccontents[contents[i]["id"]])
-        const _unit = _amount / parseFloat("0" + contents[i]["unit"])
+        const _amount = _ccontents[contents[i]["id"]]
+        const _unit = parseFloat("0" + _amount) / parseFloat("0" + contents[i]["unit"])
         _tmpRecord.push(
             <tr>
                 <td>{_button}</td>
-                <td>{contents[i]["name"]}</td>
-                <td><input type="text" size={4} value={_amount}
+                <td>{contents[i]["name"].slice(0, 20)}</td>
+                <td><input type="text" size={4} value={String(_amount).replace(/[^0-9|.]/g, '')}
                     onChange={(evt: any) => {
                         setTmpCombinationContents(evt.target.name, evt.target.value)
                     }}
-                    id={"MTamount_" + i} name={String(contents[i]["id"])} />
+                    name={String(contents[i]["id"])} />
                 </td>
                 <td>{toSignificantDigits(contents[i]["cost"] * _unit)}</td>
                 <td>{toSignificantDigits(contents[i]["kcal"] * _unit)}</td>

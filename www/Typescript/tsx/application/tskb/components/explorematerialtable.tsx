@@ -13,11 +13,14 @@ export const EMTable = () => {
     const [tmpAttachment, setTmpAttachment] = useState(null)
     const [tmpSearchRadio, setTmpSearchRadio] = useState("name")
     const [tmpListTags, setTmpListTags] = useState([])
+    const [tmpName, setTmpName] = useState("")
+    const [tmpTag, setTmpTag] = useState("")
+    const [tmpDescription, setTmpDescription] = useState("")
+    const [tmpPrivateFlag, setTmpPrivateFlag] = useState(false)
 
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
     const token = useAppSelector((state) => state.account.token)
-    const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
     const combination = useAppSelector((state) => state.tskb.combination)
     const reloadFlag = useAppSelector((state) => state.tskb.reloadFlag)
@@ -31,17 +34,23 @@ export const EMTable = () => {
         if (tableStatus == "MTable") setTimeout(() => listTag(), xhrDelay)
         if (tableStatus == "CMTable") setTimeout(() => listTag(), xhrDelay)
         setTmpAttachment(null)
+        initCreateForm()
     }, [reloadFlag])
-
     useEffect(() => {
         setTmpKeyword("")
         setTmpOffset(0)
         setTmpSearchRadio("name")
     }, [userId])
+    const initCreateForm = () => {
+        setTmpName("")
+        setTmpTag("")
+        setTmpDescription("")
+        setTmpPrivateFlag(false)
+    }
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
-            { "token": token, "user": user, roomKey: roomKey, }, _additionalDict)
+            { "token": token, "user": user, }, _additionalDict)
         return (JSON.stringify(_sendDict))
     }
     // fetchAPI
@@ -146,6 +155,40 @@ export const EMTable = () => {
                 console.error(error.message)
             });
     }
+    const registerMaterial = () => {
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("register", JSON.stringify(Object.assign({
+            "name": tmpName, "tag": tmpTag, "description": tmpDescription,
+            "privateFlag": tmpPrivateFlag,
+        }),
+
+        ))
+        const request = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed":
+                        HIModal("登録完了")
+                        AppDispatch(startTable({ tableStatus: "CMTable", material: resJ["material"] }));
+                        break;
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]); break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
     const updataMaterial = () => {
         if (tmpAttachment == null) return
         if (fileSizeMax <= tmpAttachment.size) {
@@ -222,6 +265,68 @@ export const EMTable = () => {
             </div>
         )
     }
+    const EMTMaterialRegisterModal = () => {
+        return (
+            <div>
+                <div className="modal fade" id="EMTMaterialRegisterModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h4 className="modal-title">
+                                    <i className="fa-solid fa-hammer mx-1" />素材作成
+                                </h4>
+                            </div>
+                            <div className="modal-body d-flex flex-column justify-content-center">
+                                <div className="input-group m-1">
+                                    <span className="input-group-text">素材名</span>
+                                    <input type="text" className="form-control" placeholder="素材名" aria-label="user"
+                                        value={tmpName.slice(0, 50)}
+                                        onChange={(evt) => { setTmpName(evt.target.value) }} />
+                                </div>
+                                <div className="input-group m-1">
+                                    <span className="input-group-text"><i className="fa-solid fa-tag mx-1" /></span>
+                                    <input className="form-control" type="text" placeholder="タグ名"
+                                        value={tmpTag.slice(0, 20)}
+                                        onChange={(evt: any) => setTmpTag(evt.target.value)} />
+                                </div>
+                                <h5>概説</h5>
+                                <textarea className="form-control m-1" rows={4}
+                                    value={tmpDescription.slice(0, 200)}
+                                    onChange={(evt) => { setTmpDescription(evt.target.value) }} />
+                                {tmpPrivateFlag == false ?
+                                    <button className="btn btn-outline-warning btn-lg" type="button"
+                                        onClick={() => { setTmpPrivateFlag(true) }}>
+                                        <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
+                                        公開&nbsp;&nbsp;
+                                    </button> :
+                                    <button className="btn btn-warning btn-lg" type="button"
+                                        onClick={() => { setTmpPrivateFlag(false) }}>
+                                        <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
+                                        非公開
+                                    </button>
+                                }
+                            </div>
+                            <div className="modal-footer d-flex">
+                                <button type="button" className="btn btn-secondary me-auto" data-bs-dismiss="modal">
+                                    Close
+                                </button>
+                                {tmpName != "" && token != "" ? <div>
+                                    <button type="button" className="btn btn-outline-primary " data-bs-dismiss="modal"
+                                        onClick={() => registerMaterial()}>
+                                        <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
+                                    </button>
+                                </div> :
+                                    <button type="button" className="btn btn-outline-primary" disabled>
+                                        <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
     // app
     const topForm = () => {
         const _searchNameForm = (
@@ -285,7 +390,7 @@ export const EMTable = () => {
                                 exploreMaterial("", "private")
                             }} />
                         <label className="form-check-label">
-                            非公開素材表示
+                            マイ素材表示
                         </label>
                     </div> :
                     <div />
@@ -336,7 +441,10 @@ export const EMTable = () => {
                     {token == "" ?
                         <div /> :
                         <button className="btn btn-outline-primary btn-lg" type="button"
-                            onClick={() => AppDispatch(startTable({ material: null, tableStatus: "CMTable" }))} >
+                            onClick={() => {
+                                initCreateForm()
+                                $("#EMTMaterialRegisterModal").modal("show")
+                            }} >
                             <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
                             新規作成
                         </button>}
@@ -353,6 +461,8 @@ export const EMTable = () => {
     for (var i = 0; i < contents.length; i++) {
         const _tmpData = [];
         var _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(60,60,60,0.2))" }
+        if (contents[i]["userid"] == userId)
+            _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(100,200,150,0.3))" }
         if (contents[i]["passhash"] != "")
             _style = { background: "linear-gradient(rgba(60,60,60,0), rgba(150,150,60,0.3))" }
         _tmpData.push(
@@ -361,7 +471,7 @@ export const EMTable = () => {
                     <i className="fa-solid fa-lemon mx-1"></i>{contents[i]["name"]}
                 </h5>
                 {contents[i]["userid"] == userId ?
-                    <button className="btn btn-outline-success rounded-pill"
+                    <button className="btn btn-outline-primary rounded-pill"
                         onClick={(evt: any) => {
                             AppDispatch(startTable({
                                 tableStatus: "CMTable",
@@ -419,6 +529,7 @@ export const EMTable = () => {
             background: "linear-gradient(45deg,rgba(240,150,110,0.2), rgba(60,60,60,0.0))"
         }}>
             {EMTUpdataModal()}
+            {EMTMaterialRegisterModal()}
             {topForm()}
             <div className="row m-1">
                 {_tmpRecord}

@@ -33,7 +33,6 @@ export const CMTable = () => {
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
     const token = useAppSelector((state) => state.account.token)
-    const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
     const material = useAppSelector((state) => state.tskb.material)
     const reloadFlag = useAppSelector((state) => state.tskb.reloadFlag)
@@ -52,7 +51,7 @@ export const CMTable = () => {
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
-                "token": token, "user": user, roomKey: roomKey,
+                "token": token, "user": user,
             }, _additionalDict)
         return (JSON.stringify(_sendDict))
     }
@@ -94,12 +93,12 @@ export const CMTable = () => {
                 console.error(error.message)
             });
     }
-    const registerMaterial = (_tmpTargetId: Number = tmpTargetId) => {
+    const designMaterial = (_tmpTargetId: Number = tmpTargetId) => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("register", JSON.stringify(Object.assign({
-            "roomKey": roomKey, "material": tmpMaterial
+        formData.append("design", JSON.stringify(Object.assign({
+            "material": tmpMaterial
         }),
 
         ))
@@ -215,41 +214,37 @@ export const CMTable = () => {
                             onClick={() => { setTmpMaterial(material) }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button>
-                        <span className="input-group-text form-control-lg">
-                            <i className="fa-solid fa-lemon mx-1" />
-                        </span>
                         {tmpMaterial["userid"] == userId || tmpMaterial["userid"] == -1 ?
                             <input className="flex-fill form-control form-control-lg" type="text"
                                 value={tmpMaterial["name"].slice(0, 50)}
                                 placeholder='素材名を入力してください'
                                 onChange={(evt: any) => { setTmpMaterialDict("name", evt.target.value) }}>
                             </input > :
-                            <input className="flex-fill form-control form-control-lg" type="text"
-                                value={tmpMaterial["name"].slice(0, 50)}
-                                disabled >
-                            </input >
+                            <span className="input-group-text flex-fill">
+                                <h4>{tmpMaterial["name"].slice(0, 50)}</h4>
+                            </span>
                         }
                     </div>
                 </div>
                 <div className="col-12 col-md-4 my-1">
                 </div>
                 <div className="col-12 col-md-4 my-1">
-                    <div className="input-group">
+                    <div className="input-group my-1">
                         <span className="input-group-text"><i className="fa-solid fa-tag mx-1" /></span>
                         <input className="form-control" type="text" placeholder="タグ名"
                             value={tmpMaterial.tag.slice(0, 50)}
                             onChange={(evt: any) => setTmpMaterialDict("tag", evt.target.value)} />
                     </div>
-                    <div className="border border-2 bg-light p-2">
+                    <div className="border border-2 bg-light p-2 my-1">
                         <p><i className="far fa-user mx-1"></i>作成者{": " + material["user"]}</p>
                         <p>作成時間:<br />{Unixtime2String(Number(material.timestamp))}</p>
                     </div>
                 </div>
                 <div className="col-12 col-md-4 my-1">
-                    <div className="d-flex justify-content-center align-items-center">
-                        <h4 className="mx-3">概説</h4>
+                    <div className="d-flex flex-column">
+                        <h5 className="mx-3">概説</h5>
                     </div>
-                    <textarea className="form-control col-12 w-80" rows={4} value={tmpMaterial["description"].slice(0, 200)}
+                    <textarea className="form-control" rows={4} value={tmpMaterial["description"].slice(0, 200)}
                         onChange={(evt: any) => { setTmpMaterialDict("description", evt.target.value) }}
                         style={{ resize: "none" }} />
                 </div>
@@ -278,24 +273,14 @@ export const CMTable = () => {
                                 素材名を入力してください
                             </button> :
                             <div>
-                                {material["id"] == -1 ?
-                                    <button className="btn btn-outline-primary btn-lg" type="button"
-                                        onClick={() => {
-                                            registerMaterial();
-                                            window.scrollTo({ top: 0, behavior: "smooth", });
-                                        }}>
-                                        <i className="fa-solid fa-lemon mx-1" style={{ pointerEvents: "none" }} />
-                                        登録
-                                    </button> :
-                                    <button className="btn btn-outline-success btn-lg" type="button"
-                                        onClick={() => {
-                                            registerMaterial();
-                                            window.scrollTo({ top: 0, behavior: "smooth", });
-                                        }}>
-                                        <i className="fa-solid fa-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
-                                        更新
-                                    </button>
-                                }
+                                <button className="btn btn-outline-success btn-lg" type="button"
+                                    onClick={() => {
+                                        designMaterial();
+                                        window.scrollTo({ top: 0, behavior: "smooth", });
+                                    }}>
+                                    <i className="fa-solid fa-up-right-from-square mx-1" style={{ pointerEvents: "none" }} />
+                                    更新
+                                </button>
                             </div>
                         }
                         <div>
