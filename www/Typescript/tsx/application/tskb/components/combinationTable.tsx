@@ -13,7 +13,8 @@ export const CTable = () => {
     const [tmpListTags, setTmpListTags] = useState([])
     const [tmpSearchRadio, setTmpSearchRadio] = useState("name")
     const [tmpName, setTmpName] = useState("")
-    const [tmpDescription, setTpDescription] = useState("")
+    const [tmpTag, setTmpTag] = useState("")
+    const [tmpDescription, setTmpDescription] = useState("")
     const [tmpPrivateFlag, setTmpPrivateFlag] = useState(false)
 
     const user = useAppSelector((state) => state.account.user)
@@ -32,16 +33,17 @@ export const CTable = () => {
         setTmpListTags([])
         initCreateForm()
     }, [reloadFlag])
-    const initCreateForm = () => {
-        setTmpName("")
-        setTpDescription("")
-        setTmpPrivateFlag(false)
-    }
     useEffect(() => {
         setTmpKeyword("")
         setTmpOffset(0)
         setTmpSearchRadio("name")
     }, [userId])
+    const initCreateForm = () => {
+        setTmpName("")
+        setTmpTag("")
+        setTmpDescription("")
+        setTmpPrivateFlag(false)
+    }
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
@@ -125,7 +127,7 @@ export const CTable = () => {
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("create", JSON.stringify({
-            "name": tmpName, "description": tmpDescription,
+            "name": tmpName, "tag": tmpTag, "description": tmpDescription,
             "privateFlag": tmpPrivateFlag,
         }))
         const request = new Request("/tskb/main.py", {
@@ -159,10 +161,10 @@ export const CTable = () => {
             });
     }
     // modal
-    const combinationCreateModal = () => {
+    const CTCombinationCreateModal = () => {
         return (
             <div>
-                <div className="modal fade" id="combinationCreateModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal fade" id="CTCombinationCreateModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
@@ -170,31 +172,37 @@ export const CTable = () => {
                                     <i className="fa-solid fa-hammer mx-1" />レシピ作成
                                 </h3>
                             </div>
-                            <div className="modal-body d-flex justify-content-center row">
-                                <div className="input-group col-12 m-1">
+                            <div className="modal-body d-flex flex-column justify-content-center">
+                                <div className="input-group m-1">
                                     <span className="input-group-text">レシピ名</span>
                                     <input type="text" className="form-control" placeholder="レシピ名" aria-label="user"
                                         value={tmpName.slice(0, 50)}
                                         onChange={(evt) => { setTmpName(evt.target.value) }} />
                                 </div>
+                                <div className="input-group m-1">
+                                    <span className="input-group-text"><i className="fa-solid fa-tag mx-1" /></span>
+                                    <input className="form-control" type="text" placeholder="タグ名"
+                                        value={tmpTag.slice(0, 20)}
+                                        onChange={(evt: any) => setTmpTag(evt.target.value)} />
+                                </div>
+                                <h4 className="mx-3">概説</h4>
+                                <textarea className="form-control m-1" rows={4}
+                                    value={tmpDescription.slice(0, 200)}
+                                    onChange={(evt) => { setTmpDescription(evt.target.value) }} />
                                 {tmpPrivateFlag == false ?
-                                    <button className="btn btn-outline-warning btn-lg col-12" type="button"
+                                    <button className="btn btn-outline-warning btn-lg" type="button"
                                         onClick={() => { setTmpPrivateFlag(true) }}>
                                         <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
                                         公開&nbsp;&nbsp;
                                     </button> :
-                                    <button className="btn btn-warning btn-lg col-12" type="button"
+                                    <button className="btn btn-warning btn-lg" type="button"
                                         onClick={() => { setTmpPrivateFlag(false) }}>
                                         <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
                                         非公開
                                     </button>
                                 }
-                                <h4 className="mx-3 col-12">概説</h4>
-                                <textarea className="form-control w-80 col-12" rows={4}
-                                    value={tmpDescription.slice(0, 200)}
-                                    onChange={(evt) => { setTpDescription(evt.target.value) }} />
                             </div>
-                            <div className="modal-footer d-flex col-12">
+                            <div className="modal-footer d-flex">
                                 <button type="button" className="btn btn-secondary me-auto" data-bs-dismiss="modal">
                                     Close
                                 </button>
@@ -320,7 +328,7 @@ export const CTable = () => {
                         <button className="btn btn-outline-primary btn-lg" type="button"
                             onClick={() => {
                                 initCreateForm();
-                                $('#combinationCreateModal').modal('show');
+                                $('#CTCombinationCreateModal').modal('show');
                             }} >
                             <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
                             レシピ作成
@@ -388,7 +396,7 @@ export const CTable = () => {
         <div className="p-1" style={{
             background: "linear-gradient(45deg,rgba(250,200,200,0.2), rgba(60,60,60,0.0))"
         }}>
-            {combinationCreateModal()}
+            {CTCombinationCreateModal()}
             {topForm()}
             <div className="row m-1 slidein-1-reverse">
                 {_tmpRecord}

@@ -839,10 +839,11 @@ def show(request):
                     )
                 cur.execute(
                     "INSERT INTO tskb_combination "
-                    "(name,description,userid,user,passhash,timestamp,contents) "
-                    "values(?,?,?,?,?,?,?)",
+                    "(name,tag,description,userid,user,passhash,timestamp,contents) "
+                    "values(?,?,?,?,?,?,?,?)",
                     [
                         safe_string(_dataDict["name"]),
+                        safe_string(_dataDict["tag"]),
                         safe_string(_dataDict["description"]),
                         token["id"],
                         _dataDict["user"],

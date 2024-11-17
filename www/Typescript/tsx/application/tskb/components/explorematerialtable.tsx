@@ -34,13 +34,19 @@ export const EMTable = () => {
         if (tableStatus == "MTable") setTimeout(() => listTag(), xhrDelay)
         if (tableStatus == "CMTable") setTimeout(() => listTag(), xhrDelay)
         setTmpAttachment(null)
+        initCreateForm()
     }, [reloadFlag])
-
     useEffect(() => {
         setTmpKeyword("")
         setTmpOffset(0)
         setTmpSearchRadio("name")
     }, [userId])
+    const initCreateForm = () => {
+        setTmpName("")
+        setTmpTag("")
+        setTmpDescription("")
+        setTmpPrivateFlag(false)
+    }
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
@@ -435,7 +441,10 @@ export const EMTable = () => {
                     {token == "" ?
                         <div /> :
                         <button className="btn btn-outline-primary btn-lg" type="button"
-                            onClick={() => $("#EMTMaterialRegisterModal").modal("show")} >
+                            onClick={() => {
+                                initCreateForm()
+                                $("#EMTMaterialRegisterModal").modal("show")
+                            }} >
                             <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
                             新規作成
                         </button>}
