@@ -33,7 +33,6 @@ export const CMTable = () => {
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
     const token = useAppSelector((state) => state.account.token)
-    const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
     const material = useAppSelector((state) => state.tskb.material)
     const reloadFlag = useAppSelector((state) => state.tskb.reloadFlag)
@@ -52,7 +51,7 @@ export const CMTable = () => {
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
-                "token": token, "user": user, roomKey: roomKey,
+                "token": token, "user": user,
             }, _additionalDict)
         return (JSON.stringify(_sendDict))
     }
@@ -99,7 +98,7 @@ export const CMTable = () => {
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("register", JSON.stringify(Object.assign({
-            "roomKey": roomKey, "material": tmpMaterial
+            "material": tmpMaterial
         }),
 
         ))
@@ -215,19 +214,15 @@ export const CMTable = () => {
                             onClick={() => { setTmpMaterial(material) }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button>
-                        <span className="input-group-text form-control-lg">
-                            <i className="fa-solid fa-lemon mx-1" />
-                        </span>
                         {tmpMaterial["userid"] == userId || tmpMaterial["userid"] == -1 ?
                             <input className="flex-fill form-control form-control-lg" type="text"
                                 value={tmpMaterial["name"].slice(0, 50)}
                                 placeholder='素材名を入力してください'
                                 onChange={(evt: any) => { setTmpMaterialDict("name", evt.target.value) }}>
                             </input > :
-                            <input className="flex-fill form-control form-control-lg" type="text"
-                                value={tmpMaterial["name"].slice(0, 50)}
-                                disabled >
-                            </input >
+                            <span className="input-group-text flex-fill">
+                                <h4>{tmpMaterial["name"].slice(0, 50)}</h4>
+                            </span>
                         }
                     </div>
                 </div>

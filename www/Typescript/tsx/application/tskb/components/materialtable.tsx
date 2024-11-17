@@ -31,7 +31,6 @@ export const MTable = () => {
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
     const token = useAppSelector((state) => state.account.token)
-    const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
     const combination = useAppSelector((state) => state.tskb.combination)
     const reloadFlag = useAppSelector((state) => state.tskb.reloadFlag)
@@ -51,7 +50,7 @@ export const MTable = () => {
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
-                "token": token, "user": user, roomKey: roomKey,
+                "token": token, "user": user,
             }, _additionalDict)
         return (JSON.stringify(_sendDict))
     }
@@ -68,7 +67,7 @@ export const MTable = () => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("fetch", JSON.stringify({ "combinationid": combination["id"], "roomKey": roomKey }))
+        formData.append("fetch", JSON.stringify({ "combinationid": combination["id"]}))
         const request = new Request("/tskb/main.py", {
             method: 'POST',
             headers: headers,
@@ -311,18 +310,14 @@ export const MTable = () => {
                             onClick={() => { fetchMaterial() }}>
                             <i className="fa-solid fa-rotate-right mx-1" style={{ pointerEvents: "none" }} />
                         </button>
-                        <span className="input-group-text form-control-lg">
-                            <i className="fa-solid fa-stroopwafel mx-1" />
-                        </span>
                         {combination["userid"] == userId ?
                             <input className="flex-fill form-control form-control-lg" type="text"
                                 value={tmpCombination["name"].slice(0, 50)}
                                 onChange={(evt: any) => { setTmpCombinationDict("name", evt.target.value) }}>
                             </input > :
-                            <input className="flex-fill form-control form-control-lg" type="text"
-                                value={tmpCombination["name"].slice(0, 50)}
-                                disabled>
-                            </input >
+                            <span className="input-group-text flex-fill">
+                                <h4>{tmpCombination["name"].slice(0, 50)}</h4>
+                            </span>
                         }
                     </div>
                 </div>

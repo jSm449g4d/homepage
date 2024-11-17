@@ -17,7 +17,6 @@ export const EMTable = () => {
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
     const token = useAppSelector((state) => state.account.token)
-    const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
     const combination = useAppSelector((state) => state.tskb.combination)
     const reloadFlag = useAppSelector((state) => state.tskb.reloadFlag)
@@ -41,7 +40,7 @@ export const EMTable = () => {
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
-            { "token": token, "user": user, roomKey: roomKey, }, _additionalDict)
+            { "token": token, "user": user,  }, _additionalDict)
         return (JSON.stringify(_sendDict))
     }
     // fetchAPI

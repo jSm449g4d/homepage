@@ -372,9 +372,9 @@ export const AppWidgetHead = () => {
                     <div className="d-flex">
                         <div className="me-auto"></div>
                         <div className="d-flex justify-content-center align-items-center">
-                            {roomKey == "" ?
-                                <div></div> :
+                            {roomKey != "" ?
                                 <i className="fa-solid fa-key text-warning mx-1" style={{ pointerEvents: "none" }}></i>
+                                : <div />
                             }
                         </div>
                         <div className="row">
@@ -391,7 +391,7 @@ export const AppWidgetHead = () => {
                                     onChange={(evt) => { setTmpPass(evt.target.value) }} />
                             </div>
                         </div>
-                        {tmpUser == "" && tmpPass == "" ?
+                        {tmpUser == "" || tmpPass == "" ?
                             <button className="btn btn-outline-primary" type="button" aria-expanded="false"
                                 onClick={() => { _formInit(); $('#accountSignupModal').modal('show'); }}>
                                 <i className="fa-solid fa-pen mx-1"></i>signUp

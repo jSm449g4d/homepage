@@ -52,24 +52,28 @@ if os.path.exists(key_dir + "keys.json"):
 
 with closing(sqlite3.connect(db_dir)) as conn:
     cur = conn.cursor()
-    "(id,name,tag,description,userid,user,passhash,timestamp,contents)"
+    "(id,name,tag,description,userid,user,passhash,timestamp,img,contents)"
     # contents={material_id:amount}
     # passhash="": public ,"0": private
+    # img: reserved for the future
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_combination(id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "name TEXT UNIQUE NOT NULL,tag TEXT DEFAULT '',description TEXT DEFAULT '',"
         "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
+        "img TEXT DEFAULT '',"
         "contents TEXT NOT NULL)"
     )
     # passhash="": public ,"0": private
     # tag="Requirements": special
-    "(id,name,tag,description,userid,user,passhash,timestamp,"
+    # img: reserved for the future
+    "(id,name,tag,description,userid,user,passhash,timestamp,img,"
     "unit,cost,carbo,fiber,protein,fat,saturated_fat,n3,DHA_EPA,n6,"
     "ca,cl,cr,cu,i,fe,mg,mn,mo,p,k,se,na,zn,va,vb1,vb2,vb3,vb5,vb6,vb7,vb9,vb12,vc,vd,ve,vk,colin,kcal)"
     cur.execute(
         "CREATE TABLE IF NOT EXISTS tskb_material(id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "name TEXT UNIQUE NOT NULL,tag TEXT DEFAULT '',description TEXT DEFAULT '',"
         "userid INTEGER NOT NULL,user TEXT NOT NULL,passhash TEXT DEFAULT '',timestamp INTEGER NOT NULL,"
+        "img TEXT DEFAULT '',"
         "unit REAL DEFAULT 100,cost REAL DEFAULT 0,"
         "carbo REAL DEFAULT 0,fiber REAL DEFAULT 0,"
         "protein REAL DEFAULT 0,fat REAL DEFAULT 0,saturated_fat REAL DEFAULT 0,"

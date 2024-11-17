@@ -19,7 +19,6 @@ export const CTable = () => {
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
     const token = useAppSelector((state) => state.account.token)
-    const roomKey = useAppSelector((state) => state.account.roomKey)
     const tableStatus = useAppSelector((state) => state.tskb.tableStatus)
     const reloadFlag = useAppSelector((state) => state.tskb.reloadFlag)
     const AppDispatch = useAppDispatch()
@@ -46,7 +45,7 @@ export const CTable = () => {
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
-                "token": token, "user": user, roomKey: roomKey,
+                "token": token, "user": user,
             }, _additionalDict)
         return (JSON.stringify(_sendDict))
     }
