@@ -784,7 +784,7 @@ export const MTable = () => {
             {combinationDestroyModal1()}
             {topForm()}
             <div className="slidein-1 tskb-material-table">
-                <table className="table table-dark table-striped-columns table-bordered "
+                <table className="table table-dark table-striped-columns table-bordered"
                     style={{ whiteSpace: "nowrap" }}>
                     <thead>{_tmpElementColumn}</thead>
                     <tbody>{_tmpRecord}</tbody>
