@@ -14,7 +14,16 @@ export const MTable = () => {
     const [tmpAttachment, setTmpAttachment] = useState(null)
     const [tmpCombination, setTmpCombination] = useState({
         "id": -1, "name": "", "tag": "", "description": "", "userid": -1, "user": "",
-        "passhash": "", "timestamp": 0, "contents": "{}"
+        "passhash": "", "timestamp": 0, "contents": "{}", "img": ""
+    })
+    const [tmpTotalNutorition, setTmpTotalNutorition] = useState({
+        "id": -1, "name": "", "tag": "", "description": "", "userid": -1, "user": "",
+        "passhash": "", "timestamp": 0, "img": "", "unit": "g", "cost": "", "carbo": "", "fiber": "",
+        "protein": "", "fat": "", "saturated_fat": "", "n3": "", "DHA_EPA": "", "n6": "",
+        "ca": "", "cl": "", "cr": "", "cu": "", "i": "", "fe": "", "mg": "", "mn": "",
+        "mo": "", "p": "", "k": "", "se": "", "na": "", "zn": "", "va": "",
+        "vb1": "", "vb2": "", "vb3": "", "vb5": "", "vb6": "", "vb7": "", "vb9": "",
+        "vb12": "", "vc": "", "vd": "", "ve": "", "vk": "", "colin": "", "kcal": "",
     })
 
     const setTmpCombinationDict = (_key: string, _value: any) => {
@@ -47,6 +56,23 @@ export const MTable = () => {
     useEffect(() => {
         setTmpCombination(combination)
     }, [combination])
+    useEffect(() => {
+        var _nutrition = JSON.parse(JSON.stringify(tmpTotalNutorition))
+        const _tCContents = JSON.parse(tmpCombination.contents)
+        //setTmpTotalNutorition
+        for (let _key in _nutrition) { _nutrition[_key] = 0 }
+        for (let _i = 0; _i < contents.length; _i++) {
+            if (contents[_i]["id"] in _tCContents == false) continue
+            for (let _key in _nutrition) {
+                _nutrition[_key] +=
+                    parseFloat("0" + (contents[_i][_key]) *
+                        parseFloat("0" + _tCContents[contents[_i]["id"]])) /
+                    parseFloat("0" + contents[_i]["unit"])
+            }
+        }
+        for (let _key in _nutrition) { _nutrition[_key] = toSignificantDigits(_nutrition[_key]) }
+        setTmpTotalNutorition(_nutrition)
+    }, [contents])
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
@@ -544,7 +570,6 @@ export const MTable = () => {
     )
     const _tmpRecord = [];
     const _ccontents = JSON.parse(tmpCombination.contents)
-
     if (0 == requirements.length) {
         return (
             <div style={{ overflow: "auto" }}>
@@ -632,7 +657,9 @@ export const MTable = () => {
             <td>{toSignificantDigits(_nutrition["vk"])}</td>
         </tr>
     )
-    const _totalNutritionRender = (_val_: number, _stand_: number, _reverse = false) => {
+    const _totalNutritionRender = (_key: string, _reverse = false) => {
+        const _val_ = JSON.parse(JSON.stringify(tmpTotalNutorition))[_key]
+        const _stand_ = requirements[requirementNumber][_key]
         var _val = _val_, _stand = _stand_
         if (_reverse == true) { _val = _stand_, _stand = _val_ }
         if (_val < _stand * 0.8) { return (<b style={{ "color": "deeppink" }}>{_val_}</b>) }
@@ -641,62 +668,49 @@ export const MTable = () => {
         if (_val < _stand * 2) { return (<b style={{ "color": "lightskyblue" }}>{_val_}</b>) }
         else { return (<b style={{ "color": "deepskyblue" }}>{_val_}</b>) }
     }
-    var _nutrition = JSON.parse(JSON.stringify(requirements[0]))
-    for (let _key in _nutrition) { _nutrition[_key] = 0 }
-    for (let _i = 0; _i < contents.length; _i++) {
-        if (contents[_i]["id"] in _ccontents == false) continue
-        for (let _key in _nutrition) {
-            _nutrition[_key] +=
-                parseFloat("0" + (contents[_i][_key]) *
-                    parseFloat("0" + _ccontents[contents[_i]["id"]])) /
-                parseFloat("0" + contents[_i]["unit"])
-        }
-    }
-    for (let _key in _nutrition) { _nutrition[_key] = toSignificantDigits(_nutrition[_key]) }
     _tmpRecord.push(
         <tr className="tskb-material-table-tr2">
             <td></td>
             <td>総計</td>
             <td></td>
             <td>{_nutrition["cost"]}</td>
-            <td>{_totalNutritionRender(_nutrition["kcal"], requirements[requirementNumber]["kcal"])}</td>
-            <td>{_totalNutritionRender(_nutrition["carbo"], requirements[requirementNumber]["carbo"])}</td>
-            <td>{_totalNutritionRender(_nutrition["protein"], requirements[requirementNumber]["protein"])}</td>
-            <td>{_totalNutritionRender(_nutrition["fat"], requirements[requirementNumber]["fat"])}</td>
-            <td>{_totalNutritionRender(_nutrition["saturated_fat"],
-                requirements[requirementNumber]["saturated_fat"], true)}</td>
-            <td>{_totalNutritionRender(_nutrition["n3"], requirements[requirementNumber]["n3"])}</td>
-            <td>{_totalNutritionRender(_nutrition["DHA_EPA"], requirements[requirementNumber]["DHA_EPA"])}</td>
-            <td>{_totalNutritionRender(_nutrition["n6"], requirements[requirementNumber]["n6"])}</td>
-            <td>{_totalNutritionRender(_nutrition["fiber"], requirements[requirementNumber]["fiber"])}</td>
-            <td>{_totalNutritionRender(_nutrition["colin"], requirements[requirementNumber]["colin"])}</td>
-            <td>{_totalNutritionRender(_nutrition["ca"], requirements[requirementNumber]["ca"])}</td>
-            <td>{_totalNutritionRender(_nutrition["cl"], requirements[requirementNumber]["cl"])}</td>
-            <td>{_totalNutritionRender(_nutrition["cr"], requirements[requirementNumber]["cr"])}</td>
-            <td>{_totalNutritionRender(_nutrition["cu"], requirements[requirementNumber]["cu"])}</td>
-            <td>{_totalNutritionRender(_nutrition["i"], requirements[requirementNumber]["i"])}</td>
-            <td>{_totalNutritionRender(_nutrition["fe"], requirements[requirementNumber]["fe"])}</td>
-            <td>{_totalNutritionRender(_nutrition["mg"], requirements[requirementNumber]["mg"])}</td>
-            <td>{_totalNutritionRender(_nutrition["mn"], requirements[requirementNumber]["mn"])}</td>
-            <td>{_totalNutritionRender(_nutrition["mo"], requirements[requirementNumber]["mo"])}</td>
-            <td>{_totalNutritionRender(_nutrition["p"], requirements[requirementNumber]["p"])}</td>
-            <td>{_totalNutritionRender(_nutrition["k"], requirements[requirementNumber]["k"])}</td>
-            <td>{_totalNutritionRender(_nutrition["se"], requirements[requirementNumber]["se"])}</td>
-            <td>{_totalNutritionRender(_nutrition["na"], requirements[requirementNumber]["na"])}</td>
-            <td>{_totalNutritionRender(_nutrition["zn"], requirements[requirementNumber]["zn"])}</td>
-            <td>{_totalNutritionRender(_nutrition["va"], requirements[requirementNumber]["va"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vb1"], requirements[requirementNumber]["vb1"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vb2"], requirements[requirementNumber]["vb2"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vb3"], requirements[requirementNumber]["vb3"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vb5"], requirements[requirementNumber]["vb5"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vb6"], requirements[requirementNumber]["vb6"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vb7"], requirements[requirementNumber]["vb7"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vb9"], requirements[requirementNumber]["vb9"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vb12"], requirements[requirementNumber]["vb12"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vc"], requirements[requirementNumber]["vc"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vd"], requirements[requirementNumber]["vd"])}</td>
-            <td>{_totalNutritionRender(_nutrition["ve"], requirements[requirementNumber]["ve"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vk"], requirements[requirementNumber]["vk"])}</td>
+            <td>{_totalNutritionRender("kcal")}</td>
+            <td>{_totalNutritionRender("carbo")}</td>
+            <td>{_totalNutritionRender("protein")}</td>
+            <td>{_totalNutritionRender("fat")}</td>
+            <td>{_totalNutritionRender("saturated_fat", true)}</td>
+            <td>{_totalNutritionRender("n3")}</td>
+            <td>{_totalNutritionRender("DHA_EPA")}</td>
+            <td>{_totalNutritionRender("n6")}</td>
+            <td>{_totalNutritionRender("fiber")}</td>
+            <td>{_totalNutritionRender("colin")}</td>
+            <td>{_totalNutritionRender("ca")}</td>
+            <td>{_totalNutritionRender("cl")}</td>
+            <td>{_totalNutritionRender("cr")}</td>
+            <td>{_totalNutritionRender("cu")}</td>
+            <td>{_totalNutritionRender("i")}</td>
+            <td>{_totalNutritionRender("fe")}</td>
+            <td>{_totalNutritionRender("mg")}</td>
+            <td>{_totalNutritionRender("mn")}</td>
+            <td>{_totalNutritionRender("mo")}</td>
+            <td>{_totalNutritionRender("p")}</td>
+            <td>{_totalNutritionRender("k")}</td>
+            <td>{_totalNutritionRender("se")}</td>
+            <td>{_totalNutritionRender("na")}</td>
+            <td>{_totalNutritionRender("zn")}</td>
+            <td>{_totalNutritionRender("va")}</td>
+            <td>{_totalNutritionRender("vb1")}</td>
+            <td>{_totalNutritionRender("vb2")}</td>
+            <td>{_totalNutritionRender("vb3")}</td>
+            <td>{_totalNutritionRender("vb5")}</td>
+            <td>{_totalNutritionRender("vb6")}</td>
+            <td>{_totalNutritionRender("vb7")}</td>
+            <td>{_totalNutritionRender("vb9")}</td>
+            <td>{_totalNutritionRender("vb12")}</td>
+            <td>{_totalNutritionRender("vc")}</td>
+            <td>{_totalNutritionRender("vd")}</td>
+            <td>{_totalNutritionRender("ve")}</td>
+            <td>{_totalNutritionRender("vk")}</td>
         </tr>
     )
     for (let i = 0; i < contents.length; i++) {

@@ -10,7 +10,7 @@ export const CMTable = () => {
     const [tmpTargetId, setTmpTargetId] = useState(-1)
     const [tmpMaterial, setTmpMaterial] = useState({
         "id": -1, "name": "", "tag": "", "description": "", "userid": -1, "user": "",
-        "passhash": "", "timestamp": 0, "unit": "g", "cost": "", "carbo": "", "fiber": "",
+        "passhash": "", "timestamp": 0, "img": "", "unit": "g", "cost": "", "carbo": "", "fiber": "",
         "protein": "", "fat": "", "saturated_fat": "", "n3": "", "DHA_EPA": "", "n6": "",
         "ca": "", "cl": "", "cr": "", "cu": "", "i": "", "fe": "", "mg": "", "mn": "",
         "mo": "", "p": "", "k": "", "se": "", "na": "", "zn": "", "va": "",
