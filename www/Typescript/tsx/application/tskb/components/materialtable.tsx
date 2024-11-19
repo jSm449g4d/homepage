@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, PureComponent } from 'react';
 
 import { HIModal, CIModal } from "../../../components/imodals";
 import { satisfyDictKeys, Unixtime2String, toSignificantDigits } from "../../../components/util";
 import { accountSetState, tskbSetState, startTable } from '../../../components/slice'
 import { useAppSelector, useAppDispatch } from '../../../components/store'
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
+import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+    ResponsiveContainer, LineChart, Line,ComposedChart,
+} from 'recharts';
+
 
 export const MTable = () => {
     const [contents, setContents] = useState([])
@@ -72,7 +76,7 @@ export const MTable = () => {
         }
         for (let _key in _nutrition) { _nutrition[_key] = toSignificantDigits(_nutrition[_key]) }
         setTmpTotalNutorition(_nutrition)
-    }, [contents])
+    }, [tmpCombination, tmpTotalNutorition])
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
@@ -326,64 +330,86 @@ export const MTable = () => {
                     style={{ height: 300, objectFit: "contain", visibility: "hidden" }} />
             </div>
         )
-        const _raderCombination = () => {
+        const _barCombination = () => {
+            const _nTTNutrition = JSON.parse(JSON.stringify(tmpTotalNutorition))
+            const _rNutrition = JSON.parse(JSON.stringify(requirements[requirementNumber]))
+            const _zeroMax = (_val: number, _max: number = 1) => {
+                if (_val < 0) return 0
+                if (_max < _val) return _max
+                return _val
+            }
+            const _mae = (_keys: any) => {
+                const _aDElement = (_key: any) => {
+                    let _val = parseFloat("0" + _nTTNutrition[_key]) /
+                        (0.001 + parseFloat("0" + _rNutrition[_key]))
+                    return _zeroMax(_val, 3)
+                }
+                var _mae = 0, _sum = 0
+                for (let i = 0; i < _keys.length; i++) {
+                    _mae += _aDElement(_keys[i])
+                    _sum += 1
+                }
+                _mae = _sum == 0 ? 0 : _mae / _sum
+                return _mae
+            }
             const _data = [
                 {
-                    subject: "熱量",
-                    A: 100,
-                    fullMark: 100
+                    name: "熱量",
+                    栄養価: _zeroMax(_nTTNutrition["kcal"] / _rNutrition["kcal"], 3),
+                    基準量: 1,
                 },
                 {
-                    subject: "炭水化物",
-                    A: 120,
-                    B: 110,
-                    fullMark: 150
+                    name: "炭水化物",
+                    栄養価: _zeroMax(_nTTNutrition["carbo"] / _rNutrition["carbo"], 3),
+                    基準量: 1,
                 },
                 {
-                    subject: "タンパク質",
-                    A: 120,
-                    B: 110,
-                    fullMark: 150
+                    name: "タンパク質",
+                    栄養価: _zeroMax(_nTTNutrition["protein"] / _rNutrition["protein"], 3),
+                    基準量: 1,
                 },
                 {
-                    subject: "脂質",
-                    A: 120,
-                    B: 110,
-                    fullMark: 150
+                    name: "脂質",
+                    栄養価: _zeroMax(_nTTNutrition["fat"] / _rNutrition["fat"], 3),
+                    基準量: 1,
                 },
                 {
-                    subject: "ビタミン",
-                    A: 120,
-                    B: 110,
-                    fullMark: 150
+                    name: "ビタミン",
+                    栄養価: _mae(["va", "vb1", "vb2", "vb3", "vb5", "vb6", "vb7",
+                        "vb9", "vb12", "vc", "vd", "ve", "vk",]),
+                    基準量: 1,
                 },
                 {
-                    subject: "ミネラル",
-                    A: 120,
-                    B: 110,
-                    fullMark: 150
+                    name: "ミネラル",
+                    栄養価: _mae(["ca", "v", "cr", "cu", "i", "fe", "mg", "mn",
+                        "mo", "p", "k", "se", "na", "zn",]),
+                    基準量: 1,
                 },
             ]
             return (
-
-                <RadarChart
-                    cx="50%"
-                    cy="50%"
-                    height={300}
-                    width={300}
-                    data={_data}
-                >
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="subject" />
-                    <PolarRadiusAxis />
-                    <Radar
-                        name="Mike"
-                        dataKey="A"
-                        stroke="#8884d8"
-                        fill="#8884d8"
-                        fillOpacity={0.6}
-                    />
-                </RadarChart>)
+                //problem ResponsiveContainer dont work on d-flex
+                //https://github.com/recharts/recharts/issues/172
+                <div style={{ height: '300px', width: '600px' }} >
+                    <div style={{ height: '100%', width: '100%' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart
+                                width={600}
+                                height={300}
+                                data={_data}
+                                margin={{ top: 20, right: 30, left: 20, bottom: 5, }}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="name" />
+                                <YAxis />
+                                <Tooltip />
+                                <Legend />
+                                <Bar dataKey="栄養価" fill="#8884d8" />
+                                 <Line type="monotone" dataKey="基準量" stroke="#ff7300" />
+                            </ComposedChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            )
 
         }
         return (
@@ -433,7 +459,7 @@ export const MTable = () => {
                 </div>
                 <div className="col-12 col-md-4 my-1">
                     <div className="d-flex justify-content-center align-items-center">
-                        {/*工事中_raderCombination()*/}
+                        {_barCombination()}
                     </div>
                     <div />
                 </div>
