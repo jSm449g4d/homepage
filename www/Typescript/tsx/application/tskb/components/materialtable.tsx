@@ -149,6 +149,7 @@ export const MTable = () => {
         _material["user"] = _createdMaterial["user"]
         _material["passhash"] = _createdMaterial["passhash"]
         _material["timestamp"] = _createdMaterial["timestamp"]
+        _material["unit"] = "1"
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
