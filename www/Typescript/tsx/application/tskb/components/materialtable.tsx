@@ -6,7 +6,7 @@ import { accountSetState, tskbSetState, startTable } from '../../../components/s
 import { useAppSelector, useAppDispatch } from '../../../components/store'
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-    ResponsiveContainer, LineChart, Line,ComposedChart,
+    ResponsiveContainer, LineChart, Line, ComposedChart,
 } from 'recharts';
 
 
@@ -354,38 +354,74 @@ export const MTable = () => {
             }
             const _data = [
                 {
-                    name: "熱量",
+                    name: "cal",
                     栄養価: _zeroMax(_nTTNutrition["kcal"] / _rNutrition["kcal"], 3),
-                    基準量: 1,
+                    摂取基準: 1,
                 },
                 {
-                    name: "炭水化物",
+                    name: "C",
                     栄養価: _zeroMax(_nTTNutrition["carbo"] / _rNutrition["carbo"], 3),
-                    基準量: 1,
+                    摂取基準: 1,
                 },
                 {
-                    name: "タンパク質",
+                    name: "P",
                     栄養価: _zeroMax(_nTTNutrition["protein"] / _rNutrition["protein"], 3),
-                    基準量: 1,
+                    摂取基準: 1,
                 },
                 {
-                    name: "脂質",
+                    name: "F",
                     栄養価: _zeroMax(_nTTNutrition["fat"] / _rNutrition["fat"], 3),
-                    基準量: 1,
+                    摂取基準: 1,
                 },
                 {
-                    name: "ビタミン",
+                    name: "V",
                     栄養価: _mae(["va", "vb1", "vb2", "vb3", "vb5", "vb6", "vb7",
                         "vb9", "vb12", "vc", "vd", "ve", "vk",]),
-                    基準量: 1,
+                    摂取基準: 1,
                 },
                 {
-                    name: "ミネラル",
+                    name: "M",
                     栄養価: _mae(["ca", "v", "cr", "cu", "i", "fe", "mg", "mn",
                         "mo", "p", "k", "se", "na", "zn",]),
-                    基準量: 1,
+                    摂取基準: 1,
                 },
             ]
+            const CustomTooltip = ({ active, payload, label }: any) => {
+                const getIntroOfPage = (label: any) => {
+                    if (label === 'cal') {
+                        return "熱量";
+                    }
+                    if (label === 'C') {
+                        return "炭水化物";
+                    }
+                    if (label === 'P') {
+                        return "タンパク質";
+                    }
+                    if (label === 'F') {
+                        return '脂質';
+                    }
+                    if (label === 'V') {
+                        return 'ビタミン';
+                    }
+                    if (label === 'M') {
+                        return 'ミネラル';
+                    }
+                    return '';
+                };
+                if (active && payload && payload.length) {
+                    return (
+                        <div className="custom-tooltip" style={{
+                            backgroundColor: "white", opacity: "0.8",
+                            borderStyle: "ridge", paddingLeft: "10px", paddingRight: "10px"
+                        }}>
+                            <h5 className="intro">{getIntroOfPage(label)}</h5>
+                            <p className="desc">一日摂取基準</p>
+                            {/** <p>{"Σ(栄養価/基準値)/n where 栄養価/基準値 max 3 min 0"}</p>*/}
+                            <p className="label">{`${label} : ${payload[0].value}`}</p>
+                        </div>
+                    );
+                }
+            }
             return (
                 //problem ResponsiveContainer dont work on d-flex
                 //https://github.com/recharts/recharts/issues/172
@@ -396,21 +432,20 @@ export const MTable = () => {
                                 width={600}
                                 height={300}
                                 data={_data}
-                                margin={{ top: 20, right: 30, left: 20, bottom: 5, }}
+                                margin={{ top: 20, right: 20, left: 20, bottom: 5, }}
                             >
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="name" />
                                 <YAxis />
-                                <Tooltip />
+                                <Tooltip content={<CustomTooltip />} />
                                 <Legend />
                                 <Bar dataKey="栄養価" fill="#8884d8" />
-                                 <Line type="monotone" dataKey="基準量" stroke="#ff7300" />
+                                <Line type="monotone" dataKey="摂取基準" stroke="#ff7300" />
                             </ComposedChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
             )
-
         }
         return (
             <div className="row m-1">
