@@ -506,34 +506,34 @@ export const MTable = () => {
                 {
                     name: "cal",
                     栄養価: _zeroMax(_nTTNutrition["kcal"] / _rNutrition["kcal"], 3),
-                    摂取基準: 1,
+                    一日摂取基準: 1,
                 },
                 {
                     name: "C",
                     栄養価: _zeroMax(_nTTNutrition["carbo"] / _rNutrition["carbo"], 3),
-                    摂取基準: 1,
+                    一日摂取基準: 1,
                 },
                 {
                     name: "P",
                     栄養価: _zeroMax(_nTTNutrition["protein"] / _rNutrition["protein"], 3),
-                    摂取基準: 1,
+                    一日摂取基準: 1,
                 },
                 {
                     name: "F",
                     栄養価: _zeroMax(_nTTNutrition["fat"] / _rNutrition["fat"], 3),
-                    摂取基準: 1,
+                    一日摂取基準: 1,
                 },
                 {
                     name: "V",
                     栄養価: _mae(["va", "vb1", "vb2", "vb3", "vb5", "vb6", "vb7",
                         "vb9", "vb12", "vc", "vd", "ve", "vk",]),
-                    摂取基準: 1,
+                    一日摂取基準: 1,
                 },
                 {
                     name: "M",
                     栄養価: _mae(["ca", "v", "cr", "cu", "i", "fe", "mg", "mn",
                         "mo", "p", "k", "se", "na", "zn",]),
-                    摂取基準: 1,
+                    一日摂取基準: 1,
                 },
             ]
             const CustomTooltip = ({ active, payload, label }: any) => {
