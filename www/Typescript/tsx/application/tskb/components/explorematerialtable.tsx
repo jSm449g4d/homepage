@@ -34,7 +34,6 @@ export const EMTable = () => {
         if (tableStatus == "MTable") setTimeout(() => listTag(), xhrDelay)
         if (tableStatus == "CMTable") setTimeout(() => listTag(), xhrDelay)
         setTmpAttachment(null)
-        initCreateForm()
     }, [reloadFlag])
     useEffect(() => {
         setTmpKeyword("")

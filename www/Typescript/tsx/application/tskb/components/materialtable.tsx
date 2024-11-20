@@ -29,6 +29,10 @@ export const MTable = () => {
         "vb1": "", "vb2": "", "vb3": "", "vb5": "", "vb6": "", "vb7": "", "vb9": "",
         "vb12": "", "vc": "", "vd": "", "ve": "", "vk": "", "colin": "", "kcal": "",
     })
+    const [tmpName, setTmpName] = useState("")
+    const [tmpTag, setTmpTag] = useState("")
+    const [tmpDescription, setTmpDescription] = useState("")
+    const [tmpPrivateFlag, setTmpPrivateFlag] = useState(false)
 
     const setTmpCombinationDict = (_key: string, _value: any) => {
         let _copy = JSON.parse(JSON.stringify(tmpCombination))
@@ -77,6 +81,12 @@ export const MTable = () => {
         for (let _key in _nutrition) { _nutrition[_key] = toSignificantDigits(_nutrition[_key]) }
         setTmpTotalNutorition(_nutrition)
     }, [tmpCombination, tmpTotalNutorition])
+    const initCreateForm = () => {
+        setTmpName(combination["name"])
+        setTmpTag("Combination")
+        setTmpDescription("レシピ名: " + combination["name"])
+        setTmpPrivateFlag(false)
+    }
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
@@ -121,6 +131,82 @@ export const MTable = () => {
                         if ("text" in resJ) CIModal(resJ["text"]);
                         AppDispatch(startTable({ tableStatus: "CTable", combitation: null }));
                         break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
+    const designMaterial = (_createdMaterial: any) => {
+        let _material = tmpTotalNutorition
+        _material["id"] = _createdMaterial["id"]
+        _material["name"] = _createdMaterial["name"]
+        _material["tag"] = _createdMaterial["tag"]
+        _material["description"] = _createdMaterial["description"]
+        _material["userid"] = _createdMaterial["userid"]
+        _material["user"] = _createdMaterial["user"]
+        _material["passhash"] = _createdMaterial["passhash"]
+        _material["timestamp"] = _createdMaterial["timestamp"]
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("design", JSON.stringify(Object.assign({
+            "material": _material
+        }),
+        ))
+        const request = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed":
+                        AppDispatch(startTable({ tableStatus: "CMTable", material: resJ["material"] }));
+                        HIModal("登録完了")
+                        break;
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]);
+                        break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
+    const registerMaterial = () => {
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("register", JSON.stringify(Object.assign({
+            "name": tmpName, "tag": tmpTag, "description": tmpDescription,
+            "privateFlag": tmpPrivateFlag,
+        }),
+
+        ))
+        const request = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed":
+                        setTimeout(() => designMaterial(resJ["material"]), xhrDelay)
+                        AppDispatch(startTable({ tableStatus: "CMTable", material: resJ["material"] }));
+                        break;
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]); break;
                     }
                 }
             })
@@ -264,7 +350,7 @@ export const MTable = () => {
             });
     }
     // modal
-    const combinationDestroyModal1 = () => {
+    const combinationDestroyModal = () => {
         return (
             <div className="modal fade" id="combinationDestroyModal1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div className="modal-dialog">
@@ -280,6 +366,70 @@ export const MTable = () => {
                                 onClick={() => { destroyCombination() }}>
                                 <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />破棄
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+    const MTMaterialRegisterModal = () => {
+        return (
+            <div>
+                <div className="modal fade" id="MTMaterialRegisterModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h4 className="modal-title">
+                                    <i className="fa-solid fa-hammer mx-1" />レシピを素材として登録
+                                </h4>
+                            </div>
+                            <div className="modal-body d-flex flex-column justify-content-center">
+                                <div className="input-group m-1">
+                                    <span className="input-group-text">素材名</span>
+                                    <input type="text" className="form-control" placeholder="素材名" aria-label="user"
+                                        value={tmpName.slice(0, 50)}
+                                        onChange={(evt) => { setTmpName(evt.target.value) }} />
+                                </div>
+                                <div className="input-group m-1">
+                                    <span className="input-group-text"><i className="fa-solid fa-tag mx-1" /></span>
+                                    <input className="form-control" type="text" placeholder="タグ名"
+                                        value={tmpTag.slice(0, 20)}
+                                        onChange={(evt: any) => setTmpTag(evt.target.value)} />
+                                </div>
+                                <h5>概説</h5>
+                                <textarea className="form-control m-1" rows={4}
+                                    value={tmpDescription.slice(0, 200)}
+                                    onChange={(evt) => { setTmpDescription(evt.target.value) }} />
+                                {tmpPrivateFlag == false ?
+                                    <button className="btn btn-outline-warning btn-lg" type="button"
+                                        onClick={() => { setTmpPrivateFlag(true) }}>
+                                        <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
+                                        公開&nbsp;&nbsp;
+                                    </button> :
+                                    <button className="btn btn-warning btn-lg" type="button"
+                                        onClick={() => { setTmpPrivateFlag(false) }}>
+                                        <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
+                                        非公開
+                                    </button>
+                                }
+                            </div>
+                            <div className="modal-footer d-flex">
+                                <button type="button" className="btn btn-secondary me-auto" data-bs-dismiss="modal">
+                                    Close
+                                </button>
+                                {tmpName != "" && token != "" ? <div>
+                                    <button type="button" className="btn btn-outline-primary " data-bs-dismiss="modal"
+                                        onClick={() => registerMaterial()}>
+                                        <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
+                                        登録
+                                    </button>
+                                </div> :
+                                    <button type="button" className="btn btn-outline-primary" disabled>
+                                        <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
+                                        登録
+                                    </button>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -440,7 +590,7 @@ export const MTable = () => {
                                 <Tooltip content={<CustomTooltip />} />
                                 <Legend />
                                 <Bar dataKey="栄養価" fill="#8884d8" />
-                                <Line type="monotone" dataKey="摂取基準" stroke="#ff7300" />
+                                <Line type="monotone" dataKey="一日摂取基準" stroke="#ff7300" />
                             </ComposedChart>
                         </ResponsiveContainer>
                     </div>
@@ -453,7 +603,7 @@ export const MTable = () => {
                     <div className="input-group d-flex justify-content-center align-items-center">
                         <button className="btn btn-outline-dark btn-lg" type="button"
                             onClick={() => { AppDispatch(startTable({ tableStatus: "CTable", combitation: null })) }}>
-                            <i className="fa-solid fa-right-from-bracket mx-1"></i>レシピ一覧に戻る
+                            <i className="fa-solid fa-right-from-bracket mx-1"></i>レシピ検索
                         </button>
                         <button className="btn btn-outline-success btn-lg" type="button"
                             onClick={() => { fetchMaterial() }}>
@@ -467,6 +617,12 @@ export const MTable = () => {
                             <span className="input-group-text flex-fill">
                                 <h4>{tmpCombination["name"].slice(0, 50)}</h4>
                             </span>
+                        }
+                        {combination["userid"] == userId ?
+                            <button className="btn btn-outline-danger btn-lg" type="button"
+                                onClick={() => { $("#combinationDestroyModal1").modal('show') }}>
+                                <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>破棄
+                            </button> : <div />
                         }
                     </div>
                 </div>
@@ -533,9 +689,13 @@ export const MTable = () => {
                                 </button>
                             </div>
                         }
-                        <button className="btn btn-outline-danger btn-lg" type="button"
-                            onClick={() => { $("#combinationDestroyModal1").modal('show') }}>
-                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>レシピ破棄
+                        <button className="btn btn-outline-primary btn-lg" type="button"
+                            onClick={() => {
+                                initCreateForm()
+                                $("#MTMaterialRegisterModal").modal("show")
+                            }} >
+                            <i className="fa-solid fa-arrows-spin mx-1" style={{ pointerEvents: "none" }} />
+                            素材登録
                         </button>
                     </div> :
                     <div className="d-flex justify-content-between align-items-center my-1">
@@ -856,7 +1016,8 @@ export const MTable = () => {
         <div className="p-1" style={{
             background: "linear-gradient(45deg,rgba(60,160,250,0.2), rgba(60,60,60,0.0))"
         }}>
-            {combinationDestroyModal1()}
+            {combinationDestroyModal()}
+            {MTMaterialRegisterModal()}
             {topForm()}
             <div className="slidein-1 tskb-material-table">
                 <table className="table table-dark table-striped-columns table-bordered"

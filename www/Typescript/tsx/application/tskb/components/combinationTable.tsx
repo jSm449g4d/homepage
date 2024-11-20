@@ -31,7 +31,6 @@ export const CTable = () => {
         if (tableStatus == "CTable") setTimeout(() => gatherTag(), xhrDelay)
         setTmpKeyword("")
         setTmpListTags([])
-        initCreateForm()
     }, [reloadFlag])
     useEffect(() => {
         setTmpKeyword("")
