@@ -10,7 +10,7 @@ export const CMTable = () => {
     const [tmpTargetId, setTmpTargetId] = useState(-1)
     const [tmpMaterial, setTmpMaterial] = useState({
         "id": -1, "name": "", "tag": "", "description": "", "userid": -1, "user": "",
-        "passhash": "", "timestamp": 0, "unit": "g", "cost": "", "carbo": "", "fiber": "",
+        "passhash": "", "timestamp": 0, "img": "", "unit": "g", "cost": "", "carbo": "", "fiber": "",
         "protein": "", "fat": "", "saturated_fat": "", "n3": "", "DHA_EPA": "", "n6": "",
         "ca": "", "cl": "", "cr": "", "cu": "", "i": "", "fe": "", "mg": "", "mn": "",
         "mo": "", "p": "", "k": "", "se": "", "na": "", "zn": "", "va": "",
@@ -93,7 +93,7 @@ export const CMTable = () => {
                 console.error(error.message)
             });
     }
-    const designMaterial = (_tmpTargetId: Number = tmpTargetId) => {
+    const designMaterial = () => {
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
@@ -208,7 +208,7 @@ export const CMTable = () => {
                     <div className="input-group d-flex justify-content-center align-items-center my-1">
                         <button className="btn btn-outline-dark btn-lg" type="button"
                             onClick={() => { AppDispatch(startTable({ tableStatus: "MTable" })) }}>
-                            <i className="fa-solid fa-right-from-bracket mx-1"></i>レシピ閲覧に戻る
+                            <i className="fa-solid fa-right-from-bracket mx-1"></i>レシピ閲覧
                         </button>
                         <button className="btn btn-outline-success btn-lg" type="button"
                             onClick={() => { setTmpMaterial(material) }}>

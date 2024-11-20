@@ -40,9 +40,7 @@ export const AppMain = () => {
                 <EMTable /> :
                 <div></div>
             }
-
         </div>
-
     )
 };
 

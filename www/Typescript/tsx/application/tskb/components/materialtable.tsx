@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, PureComponent } from 'react';
 
 import { HIModal, CIModal } from "../../../components/imodals";
 import { satisfyDictKeys, Unixtime2String, toSignificantDigits } from "../../../components/util";
 import { accountSetState, tskbSetState, startTable } from '../../../components/slice'
 import { useAppSelector, useAppDispatch } from '../../../components/store'
+import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+    ResponsiveContainer, LineChart, Line, ComposedChart,
+} from 'recharts';
 
 
 export const MTable = () => {
@@ -14,8 +18,21 @@ export const MTable = () => {
     const [tmpAttachment, setTmpAttachment] = useState(null)
     const [tmpCombination, setTmpCombination] = useState({
         "id": -1, "name": "", "tag": "", "description": "", "userid": -1, "user": "",
-        "passhash": "", "timestamp": 0, "contents": "{}"
+        "passhash": "", "timestamp": 0, "contents": "{}", "img": ""
     })
+    const [tmpTotalNutorition, setTmpTotalNutorition] = useState({
+        "id": -1, "name": "", "tag": "", "description": "", "userid": -1, "user": "",
+        "passhash": "", "timestamp": 0, "img": "", "unit": "g", "cost": "", "carbo": "", "fiber": "",
+        "protein": "", "fat": "", "saturated_fat": "", "n3": "", "DHA_EPA": "", "n6": "",
+        "ca": "", "cl": "", "cr": "", "cu": "", "i": "", "fe": "", "mg": "", "mn": "",
+        "mo": "", "p": "", "k": "", "se": "", "na": "", "zn": "", "va": "",
+        "vb1": "", "vb2": "", "vb3": "", "vb5": "", "vb6": "", "vb7": "", "vb9": "",
+        "vb12": "", "vc": "", "vd": "", "ve": "", "vk": "", "colin": "", "kcal": "",
+    })
+    const [tmpName, setTmpName] = useState("")
+    const [tmpTag, setTmpTag] = useState("")
+    const [tmpDescription, setTmpDescription] = useState("")
+    const [tmpPrivateFlag, setTmpPrivateFlag] = useState(false)
 
     const setTmpCombinationDict = (_key: string, _value: any) => {
         let _copy = JSON.parse(JSON.stringify(tmpCombination))
@@ -47,6 +64,29 @@ export const MTable = () => {
     useEffect(() => {
         setTmpCombination(combination)
     }, [combination])
+    useEffect(() => {
+        var _nutrition = JSON.parse(JSON.stringify(tmpTotalNutorition))
+        const _tCContents = JSON.parse(tmpCombination.contents)
+        //setTmpTotalNutorition
+        for (let _key in _nutrition) { _nutrition[_key] = 0 }
+        for (let _i = 0; _i < contents.length; _i++) {
+            if (contents[_i]["id"] in _tCContents == false) continue
+            for (let _key in _nutrition) {
+                _nutrition[_key] +=
+                    parseFloat("0" + (contents[_i][_key]) *
+                        parseFloat("0" + _tCContents[contents[_i]["id"]])) /
+                    parseFloat("0" + contents[_i]["unit"])
+            }
+        }
+        for (let _key in _nutrition) { _nutrition[_key] = toSignificantDigits(_nutrition[_key]) }
+        setTmpTotalNutorition(_nutrition)
+    }, [tmpCombination, tmpTotalNutorition])
+    const initCreateForm = () => {
+        setTmpName(combination["name"])
+        setTmpTag("Combination")
+        setTmpDescription("レシピ名: " + combination["name"])
+        setTmpPrivateFlag(false)
+    }
 
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
@@ -91,6 +131,83 @@ export const MTable = () => {
                         if ("text" in resJ) CIModal(resJ["text"]);
                         AppDispatch(startTable({ tableStatus: "CTable", combitation: null }));
                         break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
+    const designMaterial = (_createdMaterial: any) => {
+        let _material = tmpTotalNutorition
+        _material["id"] = _createdMaterial["id"]
+        _material["name"] = _createdMaterial["name"]
+        _material["tag"] = _createdMaterial["tag"]
+        _material["description"] = _createdMaterial["description"]
+        _material["userid"] = _createdMaterial["userid"]
+        _material["user"] = _createdMaterial["user"]
+        _material["passhash"] = _createdMaterial["passhash"]
+        _material["timestamp"] = _createdMaterial["timestamp"]
+        _material["unit"] = "1"
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("design", JSON.stringify(Object.assign({
+            "material": _material
+        }),
+        ))
+        const request = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed":
+                        AppDispatch(startTable({ tableStatus: "CMTable", material: resJ["material"] }));
+                        HIModal("登録完了")
+                        break;
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]);
+                        break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
+    const registerMaterial = () => {
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("register", JSON.stringify(Object.assign({
+            "name": tmpName, "tag": tmpTag, "description": tmpDescription,
+            "privateFlag": tmpPrivateFlag,
+        }),
+
+        ))
+        const request = new Request("/tskb/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed":
+                        setTimeout(() => designMaterial(resJ["material"]), xhrDelay)
+                        AppDispatch(startTable({ tableStatus: "CMTable", material: resJ["material"] }));
+                        break;
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]); break;
                     }
                 }
             })
@@ -234,7 +351,7 @@ export const MTable = () => {
             });
     }
     // modal
-    const combinationDestroyModal1 = () => {
+    const combinationDestroyModal = () => {
         return (
             <div className="modal fade" id="combinationDestroyModal1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div className="modal-dialog">
@@ -250,6 +367,70 @@ export const MTable = () => {
                                 onClick={() => { destroyCombination() }}>
                                 <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }} />破棄
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+    const MTMaterialRegisterModal = () => {
+        return (
+            <div>
+                <div className="modal fade" id="MTMaterialRegisterModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h4 className="modal-title">
+                                    <i className="fa-solid fa-hammer mx-1" />レシピを素材として登録
+                                </h4>
+                            </div>
+                            <div className="modal-body d-flex flex-column justify-content-center">
+                                <div className="input-group m-1">
+                                    <span className="input-group-text">素材名</span>
+                                    <input type="text" className="form-control" placeholder="素材名" aria-label="user"
+                                        value={tmpName.slice(0, 50)}
+                                        onChange={(evt) => { setTmpName(evt.target.value) }} />
+                                </div>
+                                <div className="input-group m-1">
+                                    <span className="input-group-text"><i className="fa-solid fa-tag mx-1" /></span>
+                                    <input className="form-control" type="text" placeholder="タグ名"
+                                        value={tmpTag.slice(0, 20)}
+                                        onChange={(evt: any) => setTmpTag(evt.target.value)} />
+                                </div>
+                                <h5>概説</h5>
+                                <textarea className="form-control m-1" rows={4}
+                                    value={tmpDescription.slice(0, 200)}
+                                    onChange={(evt) => { setTmpDescription(evt.target.value) }} />
+                                {tmpPrivateFlag == false ?
+                                    <button className="btn btn-outline-warning btn-lg" type="button"
+                                        onClick={() => { setTmpPrivateFlag(true) }}>
+                                        <i className="fa-solid fa-lock-open mx-1" style={{ pointerEvents: "none" }} />
+                                        公開&nbsp;&nbsp;
+                                    </button> :
+                                    <button className="btn btn-warning btn-lg" type="button"
+                                        onClick={() => { setTmpPrivateFlag(false) }}>
+                                        <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }} />
+                                        非公開
+                                    </button>
+                                }
+                            </div>
+                            <div className="modal-footer d-flex">
+                                <button type="button" className="btn btn-secondary me-auto" data-bs-dismiss="modal">
+                                    Close
+                                </button>
+                                {tmpName != "" && token != "" ? <div>
+                                    <button type="button" className="btn btn-outline-primary " data-bs-dismiss="modal"
+                                        onClick={() => registerMaterial()}>
+                                        <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
+                                        登録
+                                    </button>
+                                </div> :
+                                    <button type="button" className="btn btn-outline-primary" disabled>
+                                        <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
+                                        登録
+                                    </button>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -300,13 +481,130 @@ export const MTable = () => {
                     style={{ height: 300, objectFit: "contain", visibility: "hidden" }} />
             </div>
         )
+        const _barCombination = () => {
+            const _nTTNutrition = JSON.parse(JSON.stringify(tmpTotalNutorition))
+            const _rNutrition = JSON.parse(JSON.stringify(requirements[requirementNumber]))
+            const _zeroMax = (_val: number, _max: number = 1) => {
+                if (_val < 0) return 0
+                if (_max < _val) return _max
+                return _val
+            }
+            const _mae = (_keys: any) => {
+                const _aDElement = (_key: any) => {
+                    let _val = parseFloat("0" + _nTTNutrition[_key]) /
+                        (0.001 + parseFloat("0" + _rNutrition[_key]))
+                    return _zeroMax(_val, 3)
+                }
+                var _mae = 0, _sum = 0
+                for (let i = 0; i < _keys.length; i++) {
+                    _mae += _aDElement(_keys[i])
+                    _sum += 1
+                }
+                _mae = _sum == 0 ? 0 : _mae / _sum
+                return _mae
+            }
+            const _data = [
+                {
+                    name: "cal",
+                    栄養価: _zeroMax(_nTTNutrition["kcal"] / _rNutrition["kcal"], 3),
+                    一日摂取基準: 1,
+                },
+                {
+                    name: "C",
+                    栄養価: _zeroMax(_nTTNutrition["carbo"] / _rNutrition["carbo"], 3),
+                    一日摂取基準: 1,
+                },
+                {
+                    name: "P",
+                    栄養価: _zeroMax(_nTTNutrition["protein"] / _rNutrition["protein"], 3),
+                    一日摂取基準: 1,
+                },
+                {
+                    name: "F",
+                    栄養価: _zeroMax(_nTTNutrition["fat"] / _rNutrition["fat"], 3),
+                    一日摂取基準: 1,
+                },
+                {
+                    name: "V",
+                    栄養価: _mae(["va", "vb1", "vb2", "vb3", "vb5", "vb6", "vb7",
+                        "vb9", "vb12", "vc", "vd", "ve", "vk",]),
+                    一日摂取基準: 1,
+                },
+                {
+                    name: "M",
+                    栄養価: _mae(["ca", "v", "cr", "cu", "i", "fe", "mg", "mn",
+                        "mo", "p", "k", "se", "na", "zn",]),
+                    一日摂取基準: 1,
+                },
+            ]
+            const CustomTooltip = ({ active, payload, label }: any) => {
+                const getIntroOfPage = (label: any) => {
+                    if (label === 'cal') {
+                        return "熱量";
+                    }
+                    if (label === 'C') {
+                        return "炭水化物";
+                    }
+                    if (label === 'P') {
+                        return "タンパク質";
+                    }
+                    if (label === 'F') {
+                        return '脂質';
+                    }
+                    if (label === 'V') {
+                        return 'ビタミン';
+                    }
+                    if (label === 'M') {
+                        return 'ミネラル';
+                    }
+                    return '';
+                };
+                if (active && payload && payload.length) {
+                    return (
+                        <div className="custom-tooltip" style={{
+                            backgroundColor: "white", opacity: "0.8",
+                            borderStyle: "ridge", paddingLeft: "10px", paddingRight: "10px"
+                        }}>
+                            <h5 className="intro">{getIntroOfPage(label)}</h5>
+                            <p className="desc">一日摂取基準</p>
+                            {/** <p>{"Σ(栄養価/基準値)/n where 栄養価/基準値 max 3 min 0"}</p>*/}
+                            <p className="label">{`${label} : ${payload[0].value}`}</p>
+                        </div>
+                    );
+                }
+            }
+            return (
+                //problem ResponsiveContainer dont work on d-flex
+                //https://github.com/recharts/recharts/issues/172
+                <div style={{ height: '300px', width: '600px' }} >
+                    <div style={{ height: '100%', width: '100%' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart
+                                width={600}
+                                height={300}
+                                data={_data}
+                                margin={{ top: 20, right: 20, left: 20, bottom: 5, }}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="name" />
+                                <YAxis />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Legend />
+                                <Bar dataKey="栄養価" fill="#8884d8" />
+                                <Line type="monotone" dataKey="一日摂取基準" stroke="#ff7300" />
+                            </ComposedChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            )
+        }
         return (
             <div className="row m-1">
                 <div className="col-12 my-1">
                     <div className="input-group d-flex justify-content-center align-items-center">
                         <button className="btn btn-outline-dark btn-lg" type="button"
                             onClick={() => { AppDispatch(startTable({ tableStatus: "CTable", combitation: null })) }}>
-                            <i className="fa-solid fa-right-from-bracket mx-1"></i>レシピ一覧に戻る
+                            <i className="fa-solid fa-right-from-bracket mx-1"></i>レシピ検索
                         </button>
                         <button className="btn btn-outline-success btn-lg" type="button"
                             onClick={() => { fetchMaterial() }}>
@@ -320,6 +618,12 @@ export const MTable = () => {
                             <span className="input-group-text flex-fill">
                                 <h4>{tmpCombination["name"].slice(0, 50)}</h4>
                             </span>
+                        }
+                        {combination["userid"] == userId ?
+                            <button className="btn btn-outline-danger btn-lg" type="button"
+                                onClick={() => { $("#combinationDestroyModal1").modal('show') }}>
+                                <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>破棄
+                            </button> : <div />
                         }
                     </div>
                 </div>
@@ -346,6 +650,9 @@ export const MTable = () => {
                     </div>
                 </div>
                 <div className="col-12 col-md-4 my-1">
+                    <div className="d-flex justify-content-center align-items-center">
+                        {_barCombination()}
+                    </div>
                     <div />
                 </div>
             </div>)
@@ -383,9 +690,13 @@ export const MTable = () => {
                                 </button>
                             </div>
                         }
-                        <button className="btn btn-outline-danger btn-lg" type="button"
-                            onClick={() => { $("#combinationDestroyModal1").modal('show') }}>
-                            <i className="far fa-trash-alt mx-1" style={{ pointerEvents: "none" }}></i>レシピ破棄
+                        <button className="btn btn-outline-primary btn-lg" type="button"
+                            onClick={() => {
+                                initCreateForm()
+                                $("#MTMaterialRegisterModal").modal("show")
+                            }} >
+                            <i className="fa-solid fa-arrows-spin mx-1" style={{ pointerEvents: "none" }} />
+                            素材登録
                         </button>
                     </div> :
                     <div className="d-flex justify-content-between align-items-center my-1">
@@ -481,7 +792,6 @@ export const MTable = () => {
     )
     const _tmpRecord = [];
     const _ccontents = JSON.parse(tmpCombination.contents)
-
     if (0 == requirements.length) {
         return (
             <div style={{ overflow: "auto" }}>
@@ -569,7 +879,9 @@ export const MTable = () => {
             <td>{toSignificantDigits(_nutrition["vk"])}</td>
         </tr>
     )
-    const _totalNutritionRender = (_val_: number, _stand_: number, _reverse = false) => {
+    const _totalNutritionRender = (_key: string, _reverse = false) => {
+        const _val_ = JSON.parse(JSON.stringify(tmpTotalNutorition))[_key]
+        const _stand_ = requirements[requirementNumber][_key]
         var _val = _val_, _stand = _stand_
         if (_reverse == true) { _val = _stand_, _stand = _val_ }
         if (_val < _stand * 0.8) { return (<b style={{ "color": "deeppink" }}>{_val_}</b>) }
@@ -578,74 +890,61 @@ export const MTable = () => {
         if (_val < _stand * 2) { return (<b style={{ "color": "lightskyblue" }}>{_val_}</b>) }
         else { return (<b style={{ "color": "deepskyblue" }}>{_val_}</b>) }
     }
-    var _nutrition = JSON.parse(JSON.stringify(requirements[0]))
-    for (let _key in _nutrition) { _nutrition[_key] = 0 }
-    for (let _i = 0; _i < contents.length; _i++) {
-        if (contents[_i]["id"] in _ccontents == false) continue
-        for (let _key in _nutrition) {
-            _nutrition[_key] +=
-                parseFloat("0" + (contents[_i][_key]) *
-                    parseFloat("0" + _ccontents[contents[_i]["id"]])) /
-                parseFloat("0" + contents[_i]["unit"])
-        }
-    }
-    for (let _key in _nutrition) { _nutrition[_key] = toSignificantDigits(_nutrition[_key]) }
     _tmpRecord.push(
-        <tr>
+        <tr className="tskb-material-table-tr2">
             <td></td>
             <td>総計</td>
             <td></td>
             <td>{_nutrition["cost"]}</td>
-            <td>{_totalNutritionRender(_nutrition["kcal"], requirements[requirementNumber]["kcal"])}</td>
-            <td>{_totalNutritionRender(_nutrition["carbo"], requirements[requirementNumber]["carbo"])}</td>
-            <td>{_totalNutritionRender(_nutrition["protein"], requirements[requirementNumber]["protein"])}</td>
-            <td>{_totalNutritionRender(_nutrition["fat"], requirements[requirementNumber]["fat"])}</td>
-            <td>{_totalNutritionRender(_nutrition["saturated_fat"],
-                requirements[requirementNumber]["saturated_fat"], true)}</td>
-            <td>{_totalNutritionRender(_nutrition["n3"], requirements[requirementNumber]["n3"])}</td>
-            <td>{_totalNutritionRender(_nutrition["DHA_EPA"], requirements[requirementNumber]["DHA_EPA"])}</td>
-            <td>{_totalNutritionRender(_nutrition["n6"], requirements[requirementNumber]["n6"])}</td>
-            <td>{_totalNutritionRender(_nutrition["fiber"], requirements[requirementNumber]["fiber"])}</td>
-            <td>{_totalNutritionRender(_nutrition["colin"], requirements[requirementNumber]["colin"])}</td>
-            <td>{_totalNutritionRender(_nutrition["ca"], requirements[requirementNumber]["ca"])}</td>
-            <td>{_totalNutritionRender(_nutrition["cl"], requirements[requirementNumber]["cl"])}</td>
-            <td>{_totalNutritionRender(_nutrition["cr"], requirements[requirementNumber]["cr"])}</td>
-            <td>{_totalNutritionRender(_nutrition["cu"], requirements[requirementNumber]["cu"])}</td>
-            <td>{_totalNutritionRender(_nutrition["i"], requirements[requirementNumber]["i"])}</td>
-            <td>{_totalNutritionRender(_nutrition["fe"], requirements[requirementNumber]["fe"])}</td>
-            <td>{_totalNutritionRender(_nutrition["mg"], requirements[requirementNumber]["mg"])}</td>
-            <td>{_totalNutritionRender(_nutrition["mn"], requirements[requirementNumber]["mn"])}</td>
-            <td>{_totalNutritionRender(_nutrition["mo"], requirements[requirementNumber]["mo"])}</td>
-            <td>{_totalNutritionRender(_nutrition["p"], requirements[requirementNumber]["p"])}</td>
-            <td>{_totalNutritionRender(_nutrition["k"], requirements[requirementNumber]["k"])}</td>
-            <td>{_totalNutritionRender(_nutrition["se"], requirements[requirementNumber]["se"])}</td>
-            <td>{_totalNutritionRender(_nutrition["na"], requirements[requirementNumber]["na"])}</td>
-            <td>{_totalNutritionRender(_nutrition["zn"], requirements[requirementNumber]["zn"])}</td>
-            <td>{_totalNutritionRender(_nutrition["va"], requirements[requirementNumber]["va"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vb1"], requirements[requirementNumber]["vb1"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vb2"], requirements[requirementNumber]["vb2"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vb3"], requirements[requirementNumber]["vb3"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vb5"], requirements[requirementNumber]["vb5"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vb6"], requirements[requirementNumber]["vb6"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vb7"], requirements[requirementNumber]["vb7"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vb9"], requirements[requirementNumber]["vb9"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vb12"], requirements[requirementNumber]["vb12"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vc"], requirements[requirementNumber]["vc"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vd"], requirements[requirementNumber]["vd"])}</td>
-            <td>{_totalNutritionRender(_nutrition["ve"], requirements[requirementNumber]["ve"])}</td>
-            <td>{_totalNutritionRender(_nutrition["vk"], requirements[requirementNumber]["vk"])}</td>
+            <td>{_totalNutritionRender("kcal")}</td>
+            <td>{_totalNutritionRender("carbo")}</td>
+            <td>{_totalNutritionRender("protein")}</td>
+            <td>{_totalNutritionRender("fat")}</td>
+            <td>{_totalNutritionRender("saturated_fat", true)}</td>
+            <td>{_totalNutritionRender("n3")}</td>
+            <td>{_totalNutritionRender("DHA_EPA")}</td>
+            <td>{_totalNutritionRender("n6")}</td>
+            <td>{_totalNutritionRender("fiber")}</td>
+            <td>{_totalNutritionRender("colin")}</td>
+            <td>{_totalNutritionRender("ca")}</td>
+            <td>{_totalNutritionRender("cl")}</td>
+            <td>{_totalNutritionRender("cr")}</td>
+            <td>{_totalNutritionRender("cu")}</td>
+            <td>{_totalNutritionRender("i")}</td>
+            <td>{_totalNutritionRender("fe")}</td>
+            <td>{_totalNutritionRender("mg")}</td>
+            <td>{_totalNutritionRender("mn")}</td>
+            <td>{_totalNutritionRender("mo")}</td>
+            <td>{_totalNutritionRender("p")}</td>
+            <td>{_totalNutritionRender("k")}</td>
+            <td>{_totalNutritionRender("se")}</td>
+            <td>{_totalNutritionRender("na")}</td>
+            <td>{_totalNutritionRender("zn")}</td>
+            <td>{_totalNutritionRender("va")}</td>
+            <td>{_totalNutritionRender("vb1")}</td>
+            <td>{_totalNutritionRender("vb2")}</td>
+            <td>{_totalNutritionRender("vb3")}</td>
+            <td>{_totalNutritionRender("vb5")}</td>
+            <td>{_totalNutritionRender("vb6")}</td>
+            <td>{_totalNutritionRender("vb7")}</td>
+            <td>{_totalNutritionRender("vb9")}</td>
+            <td>{_totalNutritionRender("vb12")}</td>
+            <td>{_totalNutritionRender("vc")}</td>
+            <td>{_totalNutritionRender("vd")}</td>
+            <td>{_totalNutritionRender("ve")}</td>
+            <td>{_totalNutritionRender("vk")}</td>
         </tr>
     )
     for (let i = 0; i < contents.length; i++) {
         const _button = (
             <td>
                 {combination["userid"] == userId ?
-                    <button type="button" className="btn btn-outline-danger rounded-pill"
+                    <button type="button" className="btn btn-outline-danger"
                         onClick={(evt: any) => { combineCombination(evt.target.value) }}
                         value={contents[i]["id"]}>
                         <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
                     </button> :
-                    <button type="button" className="btn btn-outline-danger rounded-pill"
+                    <button type="button" className="btn btn-outline-dark"
                         disabled>
                         <i className="fa-solid fa-minus" style={{ pointerEvents: "none" }} />
                     </button>
@@ -665,11 +964,12 @@ export const MTable = () => {
             <tr>
                 <td>{_button}</td>
                 <td>{contents[i]["name"].slice(0, 20)}</td>
-                <td><input type="text" size={4} value={String(_amount).replace(/[^0-9|.]/g, '')}
-                    onChange={(evt: any) => {
-                        setTmpCombinationContents(evt.target.name, evt.target.value)
-                    }}
-                    name={String(contents[i]["id"])} />
+                <td className="tskb-material-table-tl">
+                    <input type="text" size={4} value={String(_amount).replace(/[^0-9|.]/g, '')}
+                        onChange={(evt: any) => {
+                            setTmpCombinationContents(evt.target.name, evt.target.value)
+                        }}
+                        name={String(contents[i]["id"])} />
                 </td>
                 <td>{toSignificantDigits(contents[i]["cost"] * _unit)}</td>
                 <td>{toSignificantDigits(contents[i]["kcal"] * _unit)}</td>
@@ -717,9 +1017,10 @@ export const MTable = () => {
         <div className="p-1" style={{
             background: "linear-gradient(45deg,rgba(60,160,250,0.2), rgba(60,60,60,0.0))"
         }}>
-            {combinationDestroyModal1()}
+            {combinationDestroyModal()}
+            {MTMaterialRegisterModal()}
             {topForm()}
-            <div className="slidein-1" style={{ overflow: "auto" }}>
+            <div className="slidein-1 tskb-material-table">
                 <table className="table table-dark table-striped-columns table-bordered"
                     style={{ whiteSpace: "nowrap" }}>
                     <thead>{_tmpElementColumn}</thead>

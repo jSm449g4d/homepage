@@ -17,7 +17,8 @@ export const AppMain = () => {
                 <h1 className="d-none d-md-block col-lg-8 titlelogo" >
                     VPSdeWP の ホームページ
                 </h1>
-                <h1 className="d-block d-md-none col-12 text-center titlelogo "><div>VPSdeWP</div><div>の</div><div>ホームページ</div>
+                <h1 className="d-block d-md-none col-12 text-center titlelogo ">
+                    <div>VPSdeWP</div><div>の</div><div>ホームページ</div>
                 </h1>
                 <div className="col-lg-2" >
                 </div>
