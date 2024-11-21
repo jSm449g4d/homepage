@@ -22,7 +22,7 @@ export const AppMain = () => {
     }, [])
     //<CTable/> 
     return (
-        <div className="m-1">
+        <div style={{ overflow: "hidden" }}>
             {tableStatus == "CTable" ?
                 <CTable /> :
                 <div></div>
