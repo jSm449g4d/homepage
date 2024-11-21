@@ -12,16 +12,13 @@ export const AppMain = () => {
     // renders
     const titleLogo = () => {
         return (
-            <div className="row text-center mt-2">
-                <div className="col-lg-2" />
-                <h1 className="d-none d-md-block col-lg-8 titlelogo" >
+            <div className="titlelogo m-2 row">
+                <h1 className="col-12 d-block d-lg-none ">
+                    <div>VPSdeWP</div><div>ホームページ</div>
+                </h1>
+                <h1 className="col-lg-12 d-none d-lg-block " >
                     VPSdeWP の ホームページ
                 </h1>
-                <h1 className="d-block d-md-none col-12 text-center titlelogo ">
-                    <div>VPSdeWP</div><div>の</div><div>ホームページ</div>
-                </h1>
-                <div className="col-lg-2" >
-                </div>
             </div>
         )
     }
@@ -29,9 +26,9 @@ export const AppMain = () => {
         return (
             <div className="p-3">
                 <div className="row text-center">
-                    <div className="col-12 slidein-1">
-                        <h4 style={{ backgroundColor: "rgba(225,160,225,0.8)", }}>コンテンツ一覧</h4>
-                    </div>
+                    <h4 className="slidein-1"
+                        style={{ backgroundColor: "rgba(225,160,225,0.8)", }}
+                    >コンテンツ一覧</h4>
                     <div className="col-sm-6 col-md-4 p-1 fadein-3">
                         <div className="btn-col" style={{ background: "rgba(255,255,255,0.6)" }}>
                             <a className="a-nolink" href='https://github.com/jSm449g4d/summerhackathon_vol2' >
@@ -96,10 +93,12 @@ export const AppMain = () => {
 
     return (
         <div>
-            <div style={bgImage}><div style={{ background: "rgba(255,255,255,0.5)", }}>
-                <div>{titleLogo()}</div>
-                <div id="homepage_githubColumns">{indexColumns()}</div>
-            </div></div></div>
+            <div style={{ overflow: "hidden" }}>
+                <div style={bgImage}>
+                    <div style={{ background: "rgba(255,255,255,0.5)" }}>
+                        <div>{titleLogo()}</div>
+                        <div id="homepage_githubColumns">{indexColumns()}</div>
+                    </div></div></div></div>
     );
 };
 
