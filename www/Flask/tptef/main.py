@@ -62,10 +62,12 @@ with closing(sqlite3.connect(db_dir)) as conn:
     conn.commit()
 
 
-def safe_string(_s, _max=500):
-    _s = str(_s)
-    _s = re.sub("[\[(.*)\]|<(.*)>|\\|/]", "", unicodedata.normalize("NFKC", _s))
-    _s = re.sub("\s+", " ", _s).strip()
+def safe_string(_s, _max=500, _anti_directory_traversal=True):
+    _s = unicodedata.normalize("NFKC", str(_s))
+    if _anti_directory_traversal:
+        _s = re.sub(r"\[.*\]|<.*>|/", "", _s)
+    _s = re.sub(r"\\|;|\'|\"", "", _s)
+    _s = re.sub(r"\s+", " ", _s).strip()
     return _s[:_max]
 
 
