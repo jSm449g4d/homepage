@@ -37,7 +37,7 @@ export const AppMain = () => {
                                     <div className="d-flex flex-column flex-grow-1">
                                         <img className="img-fluid" src="/static/img/hakka.png" style={{ height: 150, objectFit: "contain" }} />
                                         2020/09/09~16に開催されたハッカソンの作品
-                                        <ul>
+                                        <ul style={{ listStyle: "none" }}>
                                             <li>チーム開発</li>
                                             <li>情報可視化で世の中を便利に!</li>
                                             <li>何時どれだけ、どんな記事?</li>
@@ -56,7 +56,7 @@ export const AppMain = () => {
                                     <div className="d-flex flex-column flex-grow-1">
                                         <img className="img-fluid" src="/static/img/hleb.jpg" style={{ height: 150, objectFit: "contain" }} />
                                         汎用食
-                                        <ul>
+                                        <ul style={{ listStyle: "none" }}>
                                             <li>低カロリー(900[kcal]前後)</li>
                                             <li>低コスト(500[円]以下)</li>
                                             <li>高たんぱく(100[g]以上)</li>
@@ -75,7 +75,7 @@ export const AppMain = () => {
                                     <h5>栄養計算アプリ(β版)</h5>
                                     <div className="d-flex flex-column flex-grow-1">
                                         <img className="img-fluid" src="/static/img/tskbtitle.png" style={{ height: 150, objectFit: "contain" }} />
-                                        <ul>
+                                        <ul style={{ listStyle: "none" }}>
                                             <li>現在開発中</li>
                                             <li>素材/食材を登録</li>
                                             <li>レシピを登録</li>
