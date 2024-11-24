@@ -107,9 +107,15 @@ def show(request):
                 )
                 _room = cur.fetchone()
                 if _room == None:
-                    return json.dumps({"message": "notExist"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "notExist", "text": "部屋が不明"},
+                        ensure_ascii=False,
+                    )
                 if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
-                    return json.dumps({"message": "wrongPass"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "wrongPass", "text": "アクセス拒否"},
+                        ensure_ascii=False,
+                    )
                 # process start
                 _userid = _room["userid"]
                 _roomid = _room["id"]
@@ -128,7 +134,9 @@ def show(request):
                     },
                     ensure_ascii=False,
                 )
-            return json.dumps({"message": "rejected"}, ensure_ascii=False)
+            return json.dumps(
+                {"message": "rejected", "text": "不明なエラー"}, ensure_ascii=False
+            )
 
         if "remark" in request.form:
             _dataDict.update(json.loads(request.form["remark"]))
@@ -270,9 +278,15 @@ def show(request):
                 )
                 _room = cur.fetchone()
                 if _room == None:
-                    return json.dumps({"message": "notExist"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "notExist", "text": "発言が不明"},
+                        ensure_ascii=False,
+                    )
                 if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
-                    return json.dumps({"message": "wrongPass"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "wrongPass", "text": "アクセス拒否"},
+                        ensure_ascii=False,
+                    )
                 # process start
                 cur.execute(
                     "DELETE FROM tptef_chat WHERE id = ? AND userId = ? ;",
@@ -288,7 +302,9 @@ def show(request):
                     {"message": "processed"},
                     ensure_ascii=False,
                 )
-            return json.dumps({"message": "rejected"}, ensure_ascii=False)
+            return json.dumps(
+                {"message": "rejected", "text": "不明なエラー"}, ensure_ascii=False
+            )
 
         if "search" in request.form:
             _dataDict.update(json.loads(request.form["search"]))
@@ -317,6 +333,7 @@ def show(request):
 
         if "create" in request.form:
             _dataDict.update(json.loads(request.form["create"]))
+            _room_name = safe_string(_dataDict["room"], _anti_directory_traversal=False)
             _roompasshash = _dataDict["roomKey"]
             if _dataDict["roomKey"] not in ["", "0"]:
                 _roompasshash = hashlib.sha256(
@@ -328,36 +345,38 @@ def show(request):
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # check duplication
-                cur.execute(
-                    "SELECT * FROM tptef_room WHERE room = ?;", [_dataDict["room"]]
-                )
+                cur.execute("SELECT * FROM tptef_room WHERE room = ?;", [_room_name])
                 _room = cur.fetchone()
                 if _room != None:
-                    return json.dumps({"message": "alreadyExisted"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "alreadyExisted", "text": "既存の部屋名"},
+                        ensure_ascii=False,
+                    )
                 cur.execute(
                     "INSERT INTO tptef_room(user,userid,room,passhash,timestamp) values(?,?,?,?,?)",
                     [
                         _dataDict["user"],
                         token["id"],
-                        _dataDict["room"],
+                        _room_name,
                         _roompasshash,
                         int(time.time()),
                     ],
                 )
                 conn.commit()
                 cur.execute(
-                    "SELECT * FROM tptef_room WHERE room = ?;", [_dataDict["room"]]
+                    "SELECT * FROM tptef_room WHERE ROWID = last_insert_rowid();", []
                 )
                 _room = cur.fetchone()
-                if _room != None:
-                    return json.dumps(
-                        {
-                            "message": "processed",
-                            "room": dict(_room),
-                        },
-                        ensure_ascii=False,
-                    )
-            return json.dumps({"message": "rejected"}, ensure_ascii=False)
+                return json.dumps(
+                    {
+                        "message": "processed",
+                        "room": dict(_room),
+                    },
+                    ensure_ascii=False,
+                )
+            return json.dumps(
+                {"message": "rejected", "text": "不明なエラー"}, ensure_ascii=False
+            )
 
         if "destroy" in request.form:
             _dataDict.update(json.loads(request.form["destroy"]))

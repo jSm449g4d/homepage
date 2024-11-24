@@ -22,6 +22,28 @@ export const accountSlice = createSlice({
 export const { accountInit, accountSetState } = accountSlice.actions
 
 
+export const tptefSlice = createSlice({
+  name: 'tptef',
+  initialState: {
+    tableStatus: "",
+    reloadFlag: 0,
+    room: { "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" },
+  },
+  reducers: {
+    tptefSetState: (state, action: { payload: any }) => {
+      if ("tableStatus" in action.payload) state.tableStatus = action.payload.tableStatus
+      if ("room" in action.payload) state.room = action.payload.room 
+    },
+    tptefStartTable: (state, action: { payload: any }) => {
+      if ("combination" in action.payload)
+        state.room = action.payload.room
+      if ("tableStatus" in action.payload) state.tableStatus = action.payload.tableStatus
+      state.reloadFlag++
+    },
+  },
+})
+export const { tptefSetState, tptefStartTable } = tptefSlice.actions
+
 export const tskbSlice = createSlice({
   name: 'tskb',
   initialState: {
