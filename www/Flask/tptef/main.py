@@ -244,9 +244,15 @@ def show(request):
                 )
                 _room = cur.fetchone()
                 if _room == None:
-                    return json.dumps({"message": "notExist"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "notExist", "text": "ファイルが不明"},
+                        ensure_ascii=False,
+                    )
                 if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
-                    return json.dumps({"message": "wrongPass"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "wrongPass", "text": "アクセス拒否"},
+                        ensure_ascii=False,
+                    )
                 # process start
                 _target_file = os.path.normpath(
                     os.path.join(tmp_dir, safe_string(_dataDict["chatid"]))
@@ -257,8 +263,13 @@ def show(request):
                         as_attachment=_dataDict["as_attachment"],
                         download_name=_dataDict["filename"],
                     )
-                return json.dumps({"message": "notExist"}, ensure_ascii=False)
-            return json.dumps({"message": "rejected"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "notExist", "text": "ファイルが不明"},
+                    ensure_ascii=False,
+                )
+            return json.dumps(
+                {"message": "rejected", "text": "不明なエラー"}, ensure_ascii=False
+            )
 
         if "delete" in request.form:
             _dataDict.update(json.loads(request.form["delete"]))
@@ -329,7 +340,9 @@ def show(request):
                     },
                     ensure_ascii=False,
                 )
-            return json.dumps({"message": "rejected"}, ensure_ascii=False)
+            return json.dumps(
+                {"message": "rejected", "text": "不明なエラー"}, ensure_ascii=False
+            )
 
         if "create" in request.form:
             _dataDict.update(json.loads(request.form["create"]))
