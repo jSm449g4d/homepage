@@ -195,9 +195,14 @@ def show(request):
                 )
                 _room = cur.fetchone()
                 if _room == None:
-                    return json.dumps({"message": "notExist"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "notExist", "text": "存在不明"}, ensure_ascii=False
+                    )
                 if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
-                    return json.dumps({"message": "wrongPass"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "wrongPass", "text": "アクセス拒否"},
+                        ensure_ascii=False,
+                    )
                 # process start
                 _timestamp = int(time.time())
                 cur.execute(
@@ -213,12 +218,10 @@ def show(request):
                 )
                 conn.commit()
                 cur.execute(
-                    "SELECT * FROM tptef_chat WHERE userid = ? AND timestamp = ? AND mode = ?;",
-                    [token["id"], _timestamp, "attachment"],
+                    "SELECT * FROM tptef_chat WHERE ROWID = last_insert_rowid();",
+                    [],
                 )
                 _chat = cur.fetchone()
-                if _chat == None:
-                    return json.dumps({"message": "unknownError"}, ensure_ascii=False)
                 request.files["upload"].save(
                     os.path.normpath(os.path.join(tmp_dir, safe_string(_chat["id"])))
                 )
@@ -226,7 +229,9 @@ def show(request):
                     {"message": "processed"},
                     ensure_ascii=False,
                 )
-            return json.dumps({"message": "rejected"}, ensure_ascii=False)
+            return json.dumps(
+                {"message": "rejected", "text": "不明なエラー"}, ensure_ascii=False
+            )
 
         if "download" in request.form:
             _dataDict.update(json.loads(request.form["download"]))
