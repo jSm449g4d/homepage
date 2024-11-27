@@ -143,7 +143,10 @@ def load_reference_file():
                         [
                             safe_string(_material["name"]),
                             safe_string(_material["tag"]),
-                            safe_string(_material["description"]),
+                            safe_string(
+                                _material["description"],
+                                _anti_directory_traversal=False,
+                            ),
                             0,
                             "admin",
                             _material["passhash"],
@@ -202,10 +205,12 @@ def isfloat(_s):
         return _f
 
 
-def safe_string(_s, _max=500):
-    _s = str(_s)
-    _s = re.sub("[\[(.*)\]|<(.*)>|\\|/]", "", unicodedata.normalize("NFKC", _s))
-    _s = re.sub("\s+", " ", _s).strip()
+def safe_string(_s, _max=500, _anti_directory_traversal=True):
+    _s = unicodedata.normalize("NFKC", str(_s))
+    if _anti_directory_traversal:
+        _s = re.sub(r"\[.*\]|<.*>|/", "", _s)
+    _s = re.sub(r"\\|;|\'|\"", "", _s)
+    _s = re.sub(r"\s+", " ", _s).strip()
     return _s[:_max]
 
 
@@ -455,7 +460,9 @@ def show(request):
                     [
                         safe_string(_dataDict["name"]),
                         safe_string(_dataDict["tag"]),
-                        safe_string(_dataDict["description"]),
+                        safe_string(
+                            _dataDict["description"], _anti_directory_traversal=False
+                        ),
                         token["id"],
                         _dataDict["user"],
                         _passhash,
@@ -516,7 +523,9 @@ def show(request):
                     [
                         safe_string(_material["name"]),
                         safe_string(_material["tag"]),
-                        safe_string(_material["description"]),
+                        safe_string(
+                            _material["description"], _anti_directory_traversal=False
+                        ),
                         token["id"],
                         _dataDict["user"],
                         _material["passhash"],
@@ -630,7 +639,10 @@ def show(request):
                         [
                             safe_string(_material["name"]),
                             safe_string(_material["tag"]),
-                            safe_string(_material["description"]),
+                            safe_string(
+                                _material["description"],
+                                _anti_directory_traversal=False,
+                            ),
                             token["id"],
                             _dataDict["user"],
                             _material["passhash"],
@@ -844,7 +856,9 @@ def show(request):
                     [
                         safe_string(_dataDict["name"]),
                         safe_string(_dataDict["tag"]),
-                        safe_string(_dataDict["description"]),
+                        safe_string(
+                            _dataDict["description"], _anti_directory_traversal=False
+                        ),
                         token["id"],
                         _dataDict["user"],
                         _passhash,
@@ -968,7 +982,9 @@ def show(request):
                     [
                         safe_string(_combination["name"]),
                         safe_string(_combination["tag"]),
-                        safe_string(_combination["description"]),
+                        safe_string(
+                            _combination["description"], _anti_directory_traversal=False
+                        ),
                         token["id"],
                         _dataDict["user"],
                         _combination["passhash"],
