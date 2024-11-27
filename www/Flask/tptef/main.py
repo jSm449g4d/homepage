@@ -146,7 +146,10 @@ def show(request):
                     _dataDict["roomKey"].encode()
                 ).hexdigest()
             if token == "":
-                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "tokenNothing", "text": "トークン未提出"},
+                    ensure_ascii=False,
+                )
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -156,9 +159,14 @@ def show(request):
                 )
                 _room = cur.fetchone()
                 if _room == None:
-                    return json.dumps({"message": "notExist"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "notExist", "text": "存在不明"}, ensure_ascii=False
+                    )
                 if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
-                    return json.dumps({"message": "wrongPass"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "wrongPass", "text": "アクセス拒否"},
+                        ensure_ascii=False,
+                    )
                 # process start
                 cur.execute(
                     "INSERT INTO tptef_chat(user,userid,roomid,text,mode,timestamp) values(?,?,?,?,?,?)",
@@ -176,7 +184,9 @@ def show(request):
                     {"message": "processed"},
                     ensure_ascii=False,
                 )
-            return json.dumps({"message": "rejected"}, ensure_ascii=False)
+            return json.dumps(
+                {"message": "rejected", "text": "不明なエラー"}, ensure_ascii=False
+            )
 
         if "upload" in request.files:
             _roompasshash = _dataDict["roomKey"]
