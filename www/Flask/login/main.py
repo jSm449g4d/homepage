@@ -6,6 +6,8 @@ from contextlib import closing
 import time
 import sys
 import os
+import re
+import unicodedata
 import flask
 import smtplib
 from email.mime.text import MIMEText
@@ -56,6 +58,15 @@ with closing(sqlite3.connect(db_dir)) as conn:
         "mail TEXT DEFAULT '',timestamp INTEGER NOT NULL)"
     )
     conn.commit()
+
+
+def safe_string(_s, _max=500, _anti_directory_traversal=True):
+    _s = unicodedata.normalize("NFKC", str(_s))
+    if _anti_directory_traversal:
+        _s = re.sub(r"\[.*\]|<.*>|/", "", _s)
+    _s = re.sub(r"\\|;|\'|\"", "", _s)
+    _s = re.sub(r"\s+", " ", _s).strip()
+    return _s[:_max]
 
 
 def show(request):
@@ -118,13 +129,12 @@ def show(request):
         if "signup" in request.form:
             _dataDict.update(json.loads(request.form["signup"]))
             passhash = hashlib.sha256(_dataDict["pass"].encode()).hexdigest()
+            _username = safe_string(_dataDict["user"])
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # check duplication
-                cur.execute(
-                    "SELECT * FROM account WHERE user = ?;", [_dataDict["user"]]
-                )
+                cur.execute("SELECT * FROM account WHERE user = ?;", [_username])
                 if cur.fetchone() != None:
                     return json.dumps(
                         {"message": "alreadyExist", "text": "既存の名前"},
@@ -133,12 +143,12 @@ def show(request):
                 # process
                 cur.execute(
                     "INSERT INTO account(user,passhash,timestamp,mail) values(?,?,?,?)",
-                    [_dataDict["user"], passhash, int(time.time()), ""],
+                    [_username, passhash, int(time.time()), ""],
                 )
                 conn.commit()
                 # create token
                 cur.execute(
-                    "SELECT * FROM account WHERE user = ?;", [_dataDict["user"]]
+                    "SELECT * FROM account WHERE ROWID = last_insert_rowid();", []
                 )
                 _data = cur.fetchone()
                 token = jwt.encode(
@@ -149,7 +159,7 @@ def show(request):
             return json.dumps(
                 {
                     "message": "processed",
-                    "user": _data["user"],
+                    "user": _username,
                     "token": token,
                     "id": _data["id"],
                     "mail": _data["mail"],
@@ -208,7 +218,10 @@ def show(request):
         if "account_delete" in request.form:
             _dataDict.update(json.loads(request.form["account_delete"]))
             if token == "":
-                return json.dumps({"message": "tokenNothing", "text": "トークン無し"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "tokenNothing", "text": "トークン無し"},
+                    ensure_ascii=False,
+                )
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
