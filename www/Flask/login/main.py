@@ -174,7 +174,7 @@ def show(request):
             _dataDict.update(json.loads(request.form["account_change"]))
             if token == "":
                 return json.dumps(
-                    {"message": "tokenNothing", "text": "トークン無し"},
+                    {"message": "tokenNothing", "text": "トークン未提出"},
                     ensure_ascii=False,
                 )
             _passhash = hashlib.sha256(_dataDict["pass"].encode()).hexdigest()
