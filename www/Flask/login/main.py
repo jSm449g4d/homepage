@@ -6,6 +6,8 @@ from contextlib import closing
 import time
 import sys
 import os
+import re
+import unicodedata
 import flask
 import smtplib
 from email.mime.text import MIMEText
@@ -31,7 +33,7 @@ def get_response(_statusDict={"STATUS": "VALUE"}):
 
 
 # load setting
-tmp_dir = "./tmp/" + FUNC_NAME+"/"
+tmp_dir = "./tmp/" + FUNC_NAME + "/"
 os.makedirs(tmp_dir, exist_ok=True)
 key_dir = "./keys/keys.json"
 db_dir = "./tmp/sqlite.db"
@@ -58,19 +60,34 @@ with closing(sqlite3.connect(db_dir)) as conn:
     conn.commit()
 
 
+def safe_string(_s, _max=500, _anti_directory_traversal=True):
+    _s = unicodedata.normalize("NFKC", str(_s))
+    if _anti_directory_traversal:
+        _s = re.sub(r"\[.*\]|<.*>|/", "", _s)
+    _s = re.sub(r"\\|;|\'|\"", "", _s)
+    _s = re.sub(r"\s+", " ", _s).strip()
+    return _s[:_max]
+
+
 def show(request):
     if request.method == "GET":
         return get_response()
     if request.method == "POST":
         if "info" not in request.form:
-            return json.dumps({"message": "notEnoughForm(info)"}, ensure_ascii=False)
+            return json.dumps(
+                {"message": "notEnoughForm(info)", "text": "infoフォーム無"},
+                ensure_ascii=False,
+            )
         _dataDict = json.loads(request.form["info"])
         token = ""
         encoded_new_token = token
         if _dataDict["token"] != "":
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             if token["timestamp"] + pyJWT_timeout < int(time.time()):
-                return json.dumps({"message": "tokenTimeout"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "tokenTimeout", "text": "トークン期限切れ"},
+                    ensure_ascii=False,
+                )
             encoded_new_token = jwt.encode(
                 {"id": token["id"], "timestamp": int(time.time())},
                 pyJWT_pass,
@@ -79,17 +96,19 @@ def show(request):
 
         if "login" in request.form:
             _dataDict.update(json.loads(request.form["login"]))
-            user = _dataDict["user"]
+            _username = safe_string(_dataDict["user"])
             passhash = hashlib.sha256(_dataDict["pass"].encode()).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
-                cur.execute("SELECT * FROM account WHERE user = ?;", [user])
+                cur.execute("SELECT * FROM account WHERE user = ?;", [_username])
                 _data = cur.fetchone()
                 if _data == None:
-                    return json.dumps({"message": "notExist"})
+                    return json.dumps(
+                        {"message": "notExist", "text": "アカウントが存在しない"}
+                    )
                 if _data["passhash"] != passhash:
-                    return json.dumps({"message": "wrongPass"})
+                    return json.dumps({"message": "wrongPass", "text": "アクセス拒否"})
                 token = jwt.encode(
                     {"id": _data["id"], "timestamp": int(time.time())},
                     pyJWT_pass,
@@ -105,29 +124,31 @@ def show(request):
                     },
                     ensure_ascii=False,
                 )
-            return json.dumps({"message": "rejected"})
+            return json.dumps({"message": "rejected", "text": "不明なエラー"})
 
         if "signup" in request.form:
             _dataDict.update(json.loads(request.form["signup"]))
             passhash = hashlib.sha256(_dataDict["pass"].encode()).hexdigest()
+            _username = safe_string(_dataDict["user"])
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
                 # check duplication
-                cur.execute(
-                    "SELECT * FROM account WHERE user = ?;", [_dataDict["user"]]
-                )
+                cur.execute("SELECT * FROM account WHERE user = ?;", [_username])
                 if cur.fetchone() != None:
-                    return json.dumps({"message": "alreadyExist"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "alreadyExist", "text": "既存の名前"},
+                        ensure_ascii=False,
+                    )
                 # process
                 cur.execute(
                     "INSERT INTO account(user,passhash,timestamp,mail) values(?,?,?,?)",
-                    [_dataDict["user"], passhash, int(time.time()), ""],
+                    [_username, passhash, int(time.time()), ""],
                 )
                 conn.commit()
                 # create token
                 cur.execute(
-                    "SELECT * FROM account WHERE user = ?;", [_dataDict["user"]]
+                    "SELECT * FROM account WHERE ROWID = last_insert_rowid();", []
                 )
                 _data = cur.fetchone()
                 token = jwt.encode(
@@ -138,7 +159,7 @@ def show(request):
             return json.dumps(
                 {
                     "message": "processed",
-                    "user": _data["user"],
+                    "user": _username,
                     "token": token,
                     "id": _data["id"],
                     "mail": _data["mail"],
@@ -152,7 +173,10 @@ def show(request):
         if "account_change" in request.form:
             _dataDict.update(json.loads(request.form["account_change"]))
             if token == "":
-                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "tokenNothing", "text": "トークン未提出"},
+                    ensure_ascii=False,
+                )
             _passhash = hashlib.sha256(_dataDict["pass"].encode()).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
@@ -162,11 +186,14 @@ def show(request):
                     "SELECT * FROM account WHERE user = ?;", [_dataDict["user"]]
                 )
                 if cur.fetchone() != None:
-                    return json.dumps({"message": "alreadyExist"}, ensure_ascii=False)
-                cur.execute("SELECT * FROM account WHERE id = ?;", [token["id"]])
+                    return json.dumps(
+                        {"message": "alreadyExist", "text": "既存の名前"},
+                        ensure_ascii=False,
+                    )
+                cur.execute(
+                    "SELECT * FROM account WHERE ROWID = last_insert_rowid();", []
+                )
                 _data = cur.fetchone()
-                if _data == None:
-                    return json.dumps({"message": "notExist"})
                 # process
                 _user = _data["user"] if _dataDict["user"] == "" else _dataDict["user"]
                 _passhash = _data["passhash"] if _dataDict["pass"] == "" else _passhash
@@ -186,12 +213,15 @@ def show(request):
                     },
                     ensure_ascii=False,
                 )
-            return json.dumps({"message": "rejected"})
+            return json.dumps({"message": "rejected", "text": "不明なエラー"})
 
         if "account_delete" in request.form:
             _dataDict.update(json.loads(request.form["account_delete"]))
             if token == "":
-                return json.dumps({"message": "tokenNothing"}, ensure_ascii=False)
+                return json.dumps(
+                    {"message": "tokenNothing", "text": "トークン無し"},
+                    ensure_ascii=False,
+                )
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
@@ -205,7 +235,7 @@ def show(request):
                     {"message": "processed"},
                     ensure_ascii=False,
                 )
-            return json.dumps({"message": "rejected"})
+            return json.dumps({"message": "rejected", "text": "不明なエラー"})
 
         # under construction
         if "mailcertification" in request.form:
@@ -218,20 +248,20 @@ def show(request):
                 cur.execute("SELECT * FROM account WHERE user = ?;", [user])
                 _data = cur.fetchone()
                 if _data == None:
-                    return json.dumps({"message": "notExist"})
+                    return json.dumps({"message": "notExist", "text": "存在なし"})
                 token = jwt.encode(
                     {"id": _data["id"], "timestamp": int(time.time())},
                     pyJWT_pass,
                     algorithm="HS256",
                 )
-                _BODY="1. copy this JTWtoken ["+token+"]\n"
+                _BODY = "1. copy this JTWtoken [" + token + "]\n"
                 +"2. plz paste the JWTtoken certification modal"
                 mail = MIMEText(_BODY)
-                mail['To'] = _data["mail"]
-                mail['Date'] = formatdate()
-                smtpobj = smtplib.SMTP('smtp.gmail.com', 587)
+                mail["To"] = _data["mail"]
+                mail["Date"] = formatdate()
+                smtpobj = smtplib.SMTP("smtp.gmail.com", 587)
                 smtpobj.ehlo()
-                smtpobj.starttls() 
+                smtpobj.starttls()
                 smtpobj.ehlo()
                 return json.dumps(
                     {

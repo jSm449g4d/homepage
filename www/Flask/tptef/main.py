@@ -279,7 +279,7 @@ def show(request):
                         download_name=_dataDict["filename"],
                     )
                 return json.dumps(
-                    {"message": "notExist", "text": "ファイルが不明"},
+                    {"message": "notExist", "text": "ファイル不明"},
                     ensure_ascii=False,
                 )
             return json.dumps(
@@ -424,9 +424,14 @@ def show(request):
                 )
                 _room = cur.fetchone()
                 if _room == None:
-                    return json.dumps({"message": "notExist"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "notExist", "text": "存在無し"}, ensure_ascii=False
+                    )
                 if _room["userid"] != token["id"]:
-                    return json.dumps({"message": "youerntOwner"}, ensure_ascii=False)
+                    return json.dumps(
+                        {"message": "youerntOwner", "text": "アクセス拒否"},
+                        ensure_ascii=False,
+                    )
                 cur.execute(
                     "DELETE FROM tptef_room WHERE userid = ? AND id = ? ;",
                     [token["id"], _dataDict["roomid"]],
@@ -451,7 +456,9 @@ def show(request):
                     {"message": "processed"},
                     ensure_ascii=False,
                 )
-            return json.dumps({"message": "rejected"}, ensure_ascii=False)
+            return json.dumps(
+                {"message": "rejected", "text": "不明なエラー"}, ensure_ascii=False
+            )
 
     return "404: nof found → main.html", 404
 
