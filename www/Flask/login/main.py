@@ -96,12 +96,12 @@ def show(request):
 
         if "login" in request.form:
             _dataDict.update(json.loads(request.form["login"]))
-            user = _dataDict["user"]
+            _username = safe_string(_dataDict["user"])
             passhash = hashlib.sha256(_dataDict["pass"].encode()).hexdigest()
             with closing(sqlite3.connect(db_dir)) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
-                cur.execute("SELECT * FROM account WHERE user = ?;", [user])
+                cur.execute("SELECT * FROM account WHERE user = ?;", [_username])
                 _data = cur.fetchone()
                 if _data == None:
                     return json.dumps(
