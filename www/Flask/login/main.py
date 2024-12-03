@@ -172,6 +172,7 @@ def show(request):
 
         if "account_change" in request.form:
             _dataDict.update(json.loads(request.form["account_change"]))
+            _username = safe_string(_dataDict["user"])
             if token == "":
                 return json.dumps(
                     {"message": "tokenNothing", "text": "トークン未提出"},
@@ -183,7 +184,7 @@ def show(request):
                 cur = conn.cursor()
                 # check duplication
                 cur.execute(
-                    "SELECT * FROM account WHERE user = ?;", [_dataDict["user"]]
+                    "SELECT * FROM account WHERE user = ?;", [_username]
                 )
                 if cur.fetchone() != None:
                     return json.dumps(
@@ -195,7 +196,7 @@ def show(request):
                 )
                 _data = cur.fetchone()
                 # process
-                _user = _data["user"] if _dataDict["user"] == "" else _dataDict["user"]
+                _user = _data["user"] if _username == "" else _username
                 _passhash = _data["passhash"] if _dataDict["pass"] == "" else _passhash
                 _mail = _data["mail"] if _dataDict["mail"] == "" else _dataDict["mail"]
                 print(_user)
