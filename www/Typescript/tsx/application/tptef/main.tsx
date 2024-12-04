@@ -81,10 +81,6 @@ export const AppMain = () => {
                         sortSetContentsRev(resJ["rooms"]);
                         dispatch(accountSetState({ token: resJ["token"] })); break;
                     }
-                    case "tokenTimeout": {
-                        CIModal("JWTトークンタイムアウト");
-                        break;
-                    }
                     default: {
                         CIModal("その他のエラー")
                         break;
@@ -117,17 +113,9 @@ export const AppMain = () => {
                             dispatch(tptefStartTable({ tableStatus: "CTable", room: resJ["room"] }))
                             break;
                         }
-                    case "alreadyExisted": {
-                        CIModal("既にその名前の部屋が存在します")
-                        searchRoom(); break;
-                    }
-                    case "tokenNothing": {
-                        CIModal("JWTトークン未提出")
-                        searchRoom(); break;
-                    }
                     default: {
-                        CIModal("その他のエラー")
-                        searchRoom(); break;
+                        if ("text" in resJ) CIModal(resJ["text"]);
+                        break;
                     }
                 }
             })
