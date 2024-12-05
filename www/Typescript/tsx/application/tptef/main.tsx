@@ -35,7 +35,7 @@ export const AppMain = () => {
         searchRoom()
     }, [])
 
-    // related to fetchAPI
+   
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
@@ -52,11 +52,8 @@ export const AppMain = () => {
         setRoom({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" });
         setTmpRoomKey(""); setTmpRoom(""); setTmpText(""); setTmpAttachment(null); setTmpTargetId(-1);
         if (_setContentsInitialze) setContents([])
-    }
-    const satisfyDictKeys = (_targetDict: {}, _keys: any[]) => {
-        for (let _i = 0; _i < _keys.length; _i++) if (_keys[_i] in _targetDict == false) return false
-        return true
-    }
+    } 
+    // related to fetchAPI
     const searchRoom = () => {
         const sortSetContentsRev = (_contents: any = []) => {
             const _sortContentsRev = (a: any, b: any) => { return b["timestamp"] - a["timestamp"] }
@@ -82,7 +79,7 @@ export const AppMain = () => {
                         dispatch(accountSetState({ token: resJ["token"] })); break;
                     }
                     default: {
-                        CIModal("その他のエラー")
+                        if ("text" in resJ) CIModal(resJ["text"]);
                         break;
                     }
                 }
@@ -249,9 +246,6 @@ export const AppMain = () => {
             )
         }
         const _tmpRecord = [];
-        if (0 < contents.length)
-            if (!satisfyDictKeys(contents[0], ["id", "user", "userid", "room", "timestamp", "passhash"]))
-                return (<div className="row m-1">loading</div>)
         for (var i = 0; i < contents.length; i++) {
             if (contents[i]["room"].indexOf(tmpRoom) == -1) continue
             const _tmpData = [];
