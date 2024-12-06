@@ -32,11 +32,10 @@ export const tptefSlice = createSlice({
   reducers: {
     tptefSetState: (state, action: { payload: any }) => {
       if ("tableStatus" in action.payload) state.tableStatus = action.payload.tableStatus
-      if ("room" in action.payload) state.room = action.payload.room 
+      if ("room" in action.payload) state.room = action.payload.room
     },
     tptefStartTable: (state, action: { payload: any }) => {
-      if ("combination" in action.payload)
-        state.room = action.payload.room
+      if ("room" in action.payload) state.room = action.payload.room
       if ("tableStatus" in action.payload) state.tableStatus = action.payload.tableStatus
       state.reloadFlag++
     },

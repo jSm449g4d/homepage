@@ -35,7 +35,7 @@ export const AppMain = () => {
         searchRoom()
     }, [])
 
-   
+
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
@@ -52,7 +52,7 @@ export const AppMain = () => {
         setRoom({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" });
         setTmpRoomKey(""); setTmpRoom(""); setTmpText(""); setTmpAttachment(null); setTmpTargetId(-1);
         if (_setContentsInitialze) setContents([])
-    } 
+    }
     // related to fetchAPI
     const searchRoom = () => {
         const sortSetContentsRev = (_contents: any = []) => {
@@ -260,16 +260,17 @@ export const AppMain = () => {
                     {contents[i]["passhash"] == "" ?
                         <button className="btn btn-outline-primary rounded-pill"
                             onClick={(evt: any) => {
+                                alert(evt.target.value)
                                 dispatch(tptefStartTable({
                                     tableStatus: "CTable",
-                                    room: JSON.parse(evt.tarege.value)
+                                    room: JSON.parse(evt.target.value)
                                 }))
                             }} value={JSON.stringify(contents[i])}>
                             <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>入室
                         </button> :
                         <button className="btn btn-outline-dark rounded-pill"
                             onClick={(evt: any) => {
-                                setTmpTargetRoom(JSON.parse(evt.tarege.value))
+                                setTmpTargetRoom(JSON.parse(evt.target.value))
                                 $('#roomInterModal').modal('show')
                             }} value={JSON.stringify(contents[i])}>
                             <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>入室
@@ -312,8 +313,7 @@ export const AppMain = () => {
             {tableStatus == "CTable" ?
                 <div className="m-1">
                     {CTable()}
-                </div> : <div />
-            }
+                </div> : <div />}
         </div>
     )
 };
