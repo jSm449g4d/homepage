@@ -227,7 +227,6 @@ export const AppMain = () => {
                                         onClick={
                                             () => {
                                                 // roomKey cannot be updated in time
-                                                dispatch(accountSetState({ roomKey: tmpRoomKey }))
                                                 dispatch(tptefStartTable({
                                                     tableStatus: "CTable",
                                                     room: tmpTargetRoom

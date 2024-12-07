@@ -416,8 +416,8 @@ export const CTable = () => {
     return (
         <div>
             {destroyRoomModal()}
-            {chatTopForm()}
-            {chatTable()}
+            {/*chatTopForm()*/}
+            {/*chatTable()*/}
             {inputConsole()}
         </div>
     )
