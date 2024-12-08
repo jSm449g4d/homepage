@@ -259,7 +259,6 @@ export const AppMain = () => {
                     {contents[i]["passhash"] == "" ?
                         <button className="btn btn-outline-primary rounded-pill"
                             onClick={(evt: any) => {
-                                alert(evt.target.value)
                                 dispatch(tptefStartTable({
                                     tableStatus: "CTable",
                                     room: JSON.parse(evt.target.value)
@@ -311,7 +310,7 @@ export const AppMain = () => {
                 </div> : <div />}
             {tableStatus == "CTable" ?
                 <div className="m-1">
-                    {CTable()}
+                    <CTable />
                 </div> : <div />}
         </div>
     )

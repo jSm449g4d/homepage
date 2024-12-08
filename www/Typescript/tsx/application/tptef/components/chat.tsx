@@ -14,7 +14,6 @@ export const CTable = () => {
     const [tmpAttachment, setTmpAttachment] = useState(null)
     const [tmpTargetId, setTmpTargetId] = useState(-1)
     const [contents, setContents] = useState([])
-
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
     const token = useAppSelector((state) => state.account.token)
@@ -26,6 +25,7 @@ export const CTable = () => {
     const xhrTimeout = 3000
     const fileSizeMax = 1024 * 1024 * 2
     const xhrDelay = 100
+/*
 
     // jpclock (decoration)
     const [jpclockNow, setJpclockNow] = useState("")
@@ -412,13 +412,14 @@ export const CTable = () => {
             </div>
         )
     }
-
+    */
     return (
         <div>
-            {destroyRoomModal()}
+            construction
+            {/*destroyRoomModal()*/}
             {/*chatTopForm()*/}
             {/*chatTable()*/}
-            {inputConsole()}
+            {/*inputConsole()*/}
         </div>
     )
 }
