@@ -244,6 +244,39 @@ export const AppMain = () => {
                 </div>
             )
         }
+        const enterButton = (_i: number) => {
+            if (contents[_i]["passhash"] == "")
+                return (
+                    <button className="btn btn-outline-primary rounded-pill"
+                        onClick={(evt: any) => {
+                            dispatch(tptefStartTable({
+                                tableStatus: "CTable",
+                                room: JSON.parse(evt.target.value)
+                            }))
+                        }} value={JSON.stringify(contents[i])}>
+                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>入室
+                    </button>
+                )
+            if (contents[_i]["userid"] == userId)
+                return (
+                    <button className="btn btn-outline-dark rounded-pill"
+                        onClick={(evt: any) => {
+                            dispatch(tptefStartTable({
+                                tableStatus: "CTable",
+                                room: JSON.parse(evt.target.value)
+                            }))
+                        }} value={JSON.stringify(contents[i])}>
+                        <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>入室
+                    </button>)
+            return (
+                <button className="btn btn-outline-dark rounded-pill"
+                    onClick={(evt: any) => {
+                        setTmpTargetRoom(JSON.parse(evt.target.value))
+                        $('#roomInterModal').modal('show')
+                    }} value={JSON.stringify(contents[i])}>
+                    <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>入室
+                </button>)
+        }
         const _tmpRecord = [];
         for (var i = 0; i < contents.length; i++) {
             if (contents[i]["room"].indexOf(tmpRoom) == -1) continue
@@ -256,24 +289,7 @@ export const AppMain = () => {
                     <h5 className="me-auto">
                         <i className="far fa-user mx-1"></i>{contents[i]["user"]}
                     </h5>
-                    {contents[i]["passhash"] == "" ?
-                        <button className="btn btn-outline-primary rounded-pill"
-                            onClick={(evt: any) => {
-                                dispatch(tptefStartTable({
-                                    tableStatus: "CTable",
-                                    room: JSON.parse(evt.target.value)
-                                }))
-                            }} value={JSON.stringify(contents[i])}>
-                            <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>入室
-                        </button> :
-                        <button className="btn btn-outline-dark rounded-pill"
-                            onClick={(evt: any) => {
-                                setTmpTargetRoom(JSON.parse(evt.target.value))
-                                $('#roomInterModal').modal('show')
-                            }} value={JSON.stringify(contents[i])}>
-                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>入室
-                        </button>
-                    }
+                    {enterButton(i)}
                 </div >)
             _tmpData.push(
                 <div className="col-12 col-md-10 p-1 d-flex justify-content-center align-items-center border">

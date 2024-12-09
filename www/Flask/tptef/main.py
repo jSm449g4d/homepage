@@ -80,13 +80,15 @@ def show(request):
             return json.dumps({"message": "notEnoughForm(info)"}, ensure_ascii=False)
         _dataDict = json.loads(request.form["info"])
         token = ""
+        user_id = ""
         encoded_new_token = token
         if _dataDict["token"] != "":
             token = jwt.decode(_dataDict["token"], pyJWT_pass, algorithms=["HS256"])
             if token["timestamp"] + pyJWT_timeout < int(time.time()):
                 return json.dumps({"message": "tokenTimeout"}, ensure_ascii=False)
+            user_id = token["id"]
             encoded_new_token = jwt.encode(
-                {"id": token["id"], "timestamp": int(time.time())},
+                {"id": user_id, "timestamp": int(time.time())},
                 pyJWT_pass,
                 algorithm="HS256",
             )
@@ -111,11 +113,12 @@ def show(request):
                         {"message": "notExist", "text": "部屋が不明"},
                         ensure_ascii=False,
                     )
-                if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
-                    return json.dumps(
-                        {"message": "wrongPass", "text": "アクセス拒否"},
-                        ensure_ascii=False,
-                    )
+                if _room["userid"] != user_id:
+                    if _room["passhash"] != "" and _room["passhash"] != _roompasshash:
+                        return json.dumps(
+                            {"message": "wrongPass", "text": "アクセス拒否"},
+                            ensure_ascii=False,
+                        )
                 # process start
                 _userid = _room["userid"]
                 _roomid = _room["id"]
@@ -172,7 +175,7 @@ def show(request):
                     "INSERT INTO tptef_chat(user,userid,roomid,text,mode,timestamp) values(?,?,?,?,?,?)",
                     [
                         _dataDict["user"],
-                        token["id"],
+                        user_id,
                         _room["id"],
                         _dataDict["text"],
                         "text",
@@ -219,7 +222,7 @@ def show(request):
                     "INSERT INTO tptef_chat(user,userid,roomid,text,mode,timestamp) values(?,?,?,?,?,?)",
                     [
                         _dataDict["user"],
-                        token["id"],
+                        user_id,
                         _room["id"],
                         request.files["upload"].filename,
                         "attachment",
@@ -316,7 +319,7 @@ def show(request):
                 # process start
                 cur.execute(
                     "DELETE FROM tptef_chat WHERE id = ? AND userId = ? ;",
-                    [_dataDict["chatid"], token["id"]],
+                    [_dataDict["chatid"], user_id],
                 )
                 conn.commit()
                 _remove_file = os.path.normpath(
@@ -384,7 +387,7 @@ def show(request):
                     "INSERT INTO tptef_room(user,userid,room,passhash,timestamp) values(?,?,?,?,?)",
                     [
                         _dataDict["user"],
-                        token["id"],
+                        user_id,
                         _room_name,
                         _roompasshash,
                         int(time.time()),
@@ -427,14 +430,14 @@ def show(request):
                     return json.dumps(
                         {"message": "notExist", "text": "存在無し"}, ensure_ascii=False
                     )
-                if _room["userid"] != token["id"]:
+                if _room["userid"] != user_id:
                     return json.dumps(
                         {"message": "youerntOwner", "text": "アクセス拒否"},
                         ensure_ascii=False,
                     )
                 cur.execute(
                     "DELETE FROM tptef_room WHERE userid = ? AND id = ? ;",
-                    [token["id"], _dataDict["roomid"]],
+                    [user_id, _dataDict["roomid"]],
                 )
                 cur.execute(
                     "SELECT * FROM tptef_chat WHERE roomid = ? AND mode=? ;",

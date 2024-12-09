@@ -25,7 +25,6 @@ export const CTable = () => {
     const xhrTimeout = 3000
     const fileSizeMax = 1024 * 1024 * 2
     const xhrDelay = 100
-/*
 
     // jpclock (decoration)
     const [jpclockNow, setJpclockNow] = useState("")
@@ -412,14 +411,12 @@ export const CTable = () => {
             </div>
         )
     }
-    */
     return (
         <div>
-            construction
-            {/*destroyRoomModal()*/}
-            {/*chatTopForm()*/}
-            {/*chatTable()*/}
-            {/*inputConsole()*/}
+            {destroyRoomModal()}
+            {chatTopForm()}
+            {chatTable()}
+            {inputConsole()}
         </div>
     )
 }
