@@ -35,7 +35,7 @@ export const AppMain = () => {
         searchRoom()
     }, [])
 
-    // related to fetchAPI
+
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
@@ -53,10 +53,7 @@ export const AppMain = () => {
         setTmpRoomKey(""); setTmpRoom(""); setTmpText(""); setTmpAttachment(null); setTmpTargetId(-1);
         if (_setContentsInitialze) setContents([])
     }
-    const satisfyDictKeys = (_targetDict: {}, _keys: any[]) => {
-        for (let _i = 0; _i < _keys.length; _i++) if (_keys[_i] in _targetDict == false) return false
-        return true
-    }
+    // related to fetchAPI
     const searchRoom = () => {
         const sortSetContentsRev = (_contents: any = []) => {
             const _sortContentsRev = (a: any, b: any) => { return b["timestamp"] - a["timestamp"] }
@@ -81,12 +78,8 @@ export const AppMain = () => {
                         sortSetContentsRev(resJ["rooms"]);
                         dispatch(accountSetState({ token: resJ["token"] })); break;
                     }
-                    case "tokenTimeout": {
-                        CIModal("JWTトークンタイムアウト");
-                        break;
-                    }
                     default: {
-                        CIModal("その他のエラー")
+                        if ("text" in resJ) CIModal(resJ["text"]);
                         break;
                     }
                 }
@@ -117,17 +110,9 @@ export const AppMain = () => {
                             dispatch(tptefStartTable({ tableStatus: "CTable", room: resJ["room"] }))
                             break;
                         }
-                    case "alreadyExisted": {
-                        CIModal("既にその名前の部屋が存在します")
-                        searchRoom(); break;
-                    }
-                    case "tokenNothing": {
-                        CIModal("JWTトークン未提出")
-                        searchRoom(); break;
-                    }
                     default: {
-                        CIModal("その他のエラー")
-                        searchRoom(); break;
+                        if ("text" in resJ) CIModal(resJ["text"]);
+                        break;
                     }
                 }
             })
@@ -242,7 +227,6 @@ export const AppMain = () => {
                                         onClick={
                                             () => {
                                                 // roomKey cannot be updated in time
-                                                dispatch(accountSetState({ roomKey: tmpRoomKey }))
                                                 dispatch(tptefStartTable({
                                                     tableStatus: "CTable",
                                                     room: tmpTargetRoom
@@ -260,10 +244,40 @@ export const AppMain = () => {
                 </div>
             )
         }
+        const enterButton = (_i: number) => {
+            if (contents[_i]["passhash"] == "")
+                return (
+                    <button className="btn btn-outline-primary rounded-pill"
+                        onClick={(evt: any) => {
+                            dispatch(tptefStartTable({
+                                tableStatus: "CTable",
+                                room: JSON.parse(evt.target.value)
+                            }))
+                        }} value={JSON.stringify(contents[i])}>
+                        <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>入室
+                    </button>
+                )
+            if (contents[_i]["userid"] == userId)
+                return (
+                    <button className="btn btn-outline-dark rounded-pill"
+                        onClick={(evt: any) => {
+                            dispatch(tptefStartTable({
+                                tableStatus: "CTable",
+                                room: JSON.parse(evt.target.value)
+                            }))
+                        }} value={JSON.stringify(contents[i])}>
+                        <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>入室
+                    </button>)
+            return (
+                <button className="btn btn-outline-dark rounded-pill"
+                    onClick={(evt: any) => {
+                        setTmpTargetRoom(JSON.parse(evt.target.value))
+                        $('#roomInterModal').modal('show')
+                    }} value={JSON.stringify(contents[i])}>
+                    <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>入室
+                </button>)
+        }
         const _tmpRecord = [];
-        if (0 < contents.length)
-            if (!satisfyDictKeys(contents[0], ["id", "user", "userid", "room", "timestamp", "passhash"]))
-                return (<div className="row m-1">loading</div>)
         for (var i = 0; i < contents.length; i++) {
             if (contents[i]["room"].indexOf(tmpRoom) == -1) continue
             const _tmpData = [];
@@ -275,24 +289,7 @@ export const AppMain = () => {
                     <h5 className="me-auto">
                         <i className="far fa-user mx-1"></i>{contents[i]["user"]}
                     </h5>
-                    {contents[i]["passhash"] == "" ?
-                        <button className="btn btn-outline-primary rounded-pill"
-                            onClick={(evt: any) => {
-                                dispatch(tptefStartTable({
-                                    tableStatus: "CTable",
-                                    room: JSON.parse(evt.tarege.value)
-                                }))
-                            }} value={JSON.stringify(contents[i])}>
-                            <i className="fa-solid fa-right-to-bracket mx-1" style={{ pointerEvents: "none" }}></i>入室
-                        </button> :
-                        <button className="btn btn-outline-dark rounded-pill"
-                            onClick={(evt: any) => {
-                                setTmpTargetRoom(JSON.parse(evt.tarege.value))
-                                $('#roomInterModal').modal('show')
-                            }} value={JSON.stringify(contents[i])}>
-                            <i className="fa-solid fa-lock mx-1" style={{ pointerEvents: "none" }}></i>入室
-                        </button>
-                    }
+                    {enterButton(i)}
                 </div >)
             _tmpData.push(
                 <div className="col-12 col-md-10 p-1 d-flex justify-content-center align-items-center border">
@@ -329,9 +326,8 @@ export const AppMain = () => {
                 </div> : <div />}
             {tableStatus == "CTable" ?
                 <div className="m-1">
-                    {CTable()}
-                </div> : <div />
-            }
+                    <CTable />
+                </div> : <div />}
         </div>
     )
 };

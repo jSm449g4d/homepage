@@ -58,13 +58,10 @@ export const AppWidgetHead = () => {
                             id: resJ["id"], mail: resJ["mail"]
                         })); break;
                     }
-                    case "notExist": {
-                        CIModal("アカウントが存在しません"); break;
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]);
+                        break;
                     }
-                    case "wrongPass": {
-                        CIModal("パスワードが間違ってます"); break;
-                    }
-                    default: { CIModal("不明なエラーです"); break; }
                 }
             })
             .catch(error => {
@@ -129,21 +126,10 @@ export const AppWidgetHead = () => {
                     case "processed": {
                         dispatch(accountSetState({ user: resJ["user"], mail: resJ["mail"], token: resJ["token"] })); break;
                     }
-                    case "tokenNothing": {
-                        CIModal("JWTトークン未提出"); break;
-                    }
-                    case "tokenTimeout": {
-                        CIModal("JWTトークンタイムアウト");
-                        _logoutInit();
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]);
                         break;
                     }
-                    case "notExist": {
-                        CIModal("アカウントが存在しません"); break;
-                    }
-                    case "alreadyExist": {
-                        CIModal("アカウント名が使われてます"); break;
-                    }
-                    default: { CIModal("不明なエラーです"); break; }
                 }
             })
             .catch(error => {
@@ -167,16 +153,11 @@ export const AppWidgetHead = () => {
             .then(response => response.json())
             .then(resJ => {
                 switch (resJ["message"]) {
-                    case "tokenNothing": {
-                        CIModal("JWTトークン未提出"); break;
-                    }
-                    case "tokenTimeout": {
-                        CIModal("JWTトークンタイムアウト");
-                        _logoutInit();
+                    case "processed": { _logoutInit(); break; }
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]);
                         break;
                     }
-                    case "processed": { _logoutInit(); break; }
-                    default: { CIModal("不明なエラーです"); break; }
                 }
             })
             .catch(error => {
@@ -445,7 +426,7 @@ export const AppWidgetHead = () => {
                             </a></li>
                             <li><a className="dropdown-item btn-col" style={{ fontSize: "1.5em" }}
                                 onClick={() => { _switchApp("tptef") }}>
-                                <i className="far fa-comments mx-1" style={{ pointerEvents: "none" }}></i>チャット α版
+                                <i className="far fa-comments mx-1" style={{ pointerEvents: "none" }}></i>チャット α版{"(工事中)"}
                             </a></li>
                             <li><a className="dropdown-item btn-col" style={{ fontSize: "1.5em" }}
                                 onClick={() => { _switchApp("tskb/main") }}>
