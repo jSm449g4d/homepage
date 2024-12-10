@@ -92,13 +92,10 @@ export const AppWidgetHead = () => {
                         HIModal("アカウント作成に成功しました")
                         break;
                     }
-                    case "alreadyExist": {
-                        CIModal("既にアカウントが存在します"); break;
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]);
+                        break;
                     }
-                    case "wrongPass": {
-                        CIModal("パスワードが間違ってます"); break;
-                    }
-                    default: { CIModal("不明なエラーです"); break; }
                 }
             })
             .catch(error => {
