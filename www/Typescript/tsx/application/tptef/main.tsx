@@ -150,7 +150,7 @@ export const AppMain = () => {
                                     <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                     {tmpRoom == "" || token == "" ?
                                         <button type="button" className="btn btn-outline-info"
-                                            onClick={() => { HIModal("部屋名が入力されてません") }}>
+                                            onClick={() => { HIModal("部屋名が未入力") }}>
                                             <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
                                         </button> :
                                         <div>
@@ -187,7 +187,7 @@ export const AppMain = () => {
                         onChange={(evt: any) => { setTmpRoom(evt.target.value) }} />
                     {token == "" ?
                         <button className="btn btn-outline-info btn-lg" type="button"
-                            onClick={() => { HIModal("部屋作成にはログインが必要です") }}>
+                            onClick={() => { HIModal("ログインが必要") }}>
                             <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
                             部屋作成
                         </button> :
