@@ -27,6 +27,7 @@ export const AppMain = () => {
     }, [userId])
     useEffect(() => {
         AppDispatch(tptefStartTable({ "tableStatus": "RTable" }))
+        setTmpRoomKey(""); setTmpRoom("")
         searchRoom()
     }, [])
 
@@ -38,22 +39,12 @@ export const AppMain = () => {
             }, _additionalDict)
         return (JSON.stringify(_sendDict))
     }
-    const enterRoom = (_setContentsInitialze = true) => {
-        setTmpRoomKey(""); setTmpRoom(""); 
-        if (_setContentsInitialze) setContents([])
-        $('#inputConsoleAttachment').val(null)
-    }
-    const exitRoom = (_setContentsInitialze = true) => {
-        setTmpRoomKey(""); setTmpRoom(""); 
-        if (_setContentsInitialze) setContents([])
-    }
     // related to fetchAPI
     const searchRoom = () => {
         const sortSetContentsRev = (_contents: any = []) => {
             const _sortContentsRev = (a: any, b: any) => { return b["timestamp"] - a["timestamp"] }
             setContents(_contents.sort(_sortContentsRev))
         }
-        exitRoom(false)
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
@@ -84,7 +75,6 @@ export const AppMain = () => {
             });
     }
     const createRoom = () => {
-        exitRoom()
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
