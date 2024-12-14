@@ -9,10 +9,8 @@ import "../../../stylecheets/style.sass";
 
 
 export const CTable = () => {
-    const [tmpRoom, setTmpRoom] = useState("")
     const [tmpText, setTmpText] = useState("")
     const [tmpAttachment, setTmpAttachment] = useState(null)
-    const [tmpTargetId, setTmpTargetId] = useState(-1)
     const [contents, setContents] = useState([])
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
@@ -35,9 +33,8 @@ export const CTable = () => {
 
     useEffect(() => {
         if (tableStatus == "CTable") setTimeout(() => fetchChat(), xhrDelay)
-    }, [reloadFlag])
-    useEffect(() => {
-    }, [userId])
+        initSubmitForm()
+    }, [reloadFlag, userId])
     const initSubmitForm = () => {
         setTmpText("")
         setTmpAttachment(null)
@@ -150,6 +147,7 @@ export const CTable = () => {
                 CIModal("通信エラー")
                 console.error(error.message)
             });
+        initSubmitForm()
     }
     const deleteChat = (_id: number) => {
         const headers = new Headers();
@@ -210,11 +208,10 @@ export const CTable = () => {
             });
     }
     const destroyRoom = () => {
-        const _roomid = room["room"] == "" ? tmpTargetId : room["id"]
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("destroy", JSON.stringify({ "roomid": _roomid }))
+        formData.append("destroy", JSON.stringify({ "roomid": room["id"] }))
         const request = new Request("/tptef/main.py", {
             method: 'POST',
             headers: headers,
