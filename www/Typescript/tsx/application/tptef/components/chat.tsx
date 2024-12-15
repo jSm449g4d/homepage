@@ -82,6 +82,39 @@ export const CTable = () => {
                 console.error(error.message)
             });
     }
+    const uploadChat = () => {
+        if (fileSizeMax <= tmpAttachment.size) {
+            CIModal("ファイルサイズが大きすぎます(" + String(fileSizeMax) + " byte)未満")
+            return
+        }
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("upload", tmpAttachment, tmpAttachment.name)
+        const request = new Request("/tptef/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed":
+                        setTimeout(() => fetchChat(), xhrDelay)
+                        break;
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]);
+                        break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
     const remarkChat = () => {
         if (tmpText != "") {
             const headers = new Headers();
@@ -113,40 +146,7 @@ export const CTable = () => {
                 });
         }
         // upload file
-        if (tmpAttachment == null) return
-        if (fileSizeMax <= tmpAttachment.size) {
-            $('#cautionInfoModal').modal('show');
-            $('#cautionInfoModalTitle').text(
-                "ファイルサイズが大きすぎます(" + String(fileSizeMax) + " byte)未満")
-            return
-        }
-        const headers = new Headers();
-        const formData = new FormData();
-        formData.append("info", stringForSend())
-        formData.append("upload", tmpAttachment, tmpAttachment.name)
-        const request = new Request("/tptef/main.py", {
-            method: 'POST',
-            headers: headers,
-            body: formData,
-            signal: AbortSignal.timeout(xhrTimeout)
-        });
-        fetch(request)
-            .then(response => response.json())
-            .then(resJ => {
-                switch (resJ["message"]) {
-                    case "processed":
-                        setTimeout(() => fetchChat(), xhrDelay)
-                        break;
-                    default: {
-                        if ("text" in resJ) CIModal(resJ["text"]);
-                        break;
-                    }
-                }
-            })
-            .catch(error => {
-                CIModal("通信エラー")
-                console.error(error.message)
-            });
+        if (tmpAttachment != null) uploadChat()
         initSubmitForm()
     }
     const deleteChat = (_id: number) => {
