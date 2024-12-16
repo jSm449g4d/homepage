@@ -280,16 +280,12 @@ export const CTable = () => {
                         <button className="btn btn-outline-danger btn-lg" type="button"
                             onClick={() => { $("#destroyRoomModal").modal('show') }}>
                             <i className="far fa-trash-alt mx-1 " style={{ pointerEvents: "none" }}></i>部屋削除
-                        </button> :
-                        <button className="btn btn-outline-info btn-lg" type="button"
-                            onClick={() => { HIModal("部屋削除は部屋作成者にしかできません") }}>
-                            <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />部屋削除
-                        </button>
+                        </button> :<div/>
                     }
                     <button className="btn btn-outline-dark btn-lg" type="button"
                         onClick={() => { dispatch(tptefStartTable({ tableStatus: "RTable" })) }}>
                         <i className="fa-solid fa-right-from-bracket mx-1"></i>
-                        部屋を出る
+                        退出
                     </button>
                 </div></div>)
     }
