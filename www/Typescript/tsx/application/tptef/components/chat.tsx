@@ -116,38 +116,33 @@ export const CTable = () => {
             });
     }
     const remarkChat = () => {
-        if (tmpText != "") {
-            const headers = new Headers();
-            const formData = new FormData();
-            formData.append("info", stringForSend())
-            formData.append("remark", JSON.stringify({}))
-            const request = new Request("/tptef/main.py", {
-                method: 'POST',
-                headers: headers,
-                body: formData,
-                signal: AbortSignal.timeout(xhrTimeout)
-            });
-            fetch(request)
-                .then(response => response.json())
-                .then(resJ => {
-                    switch (resJ["message"]) {
-                        case "processed":
-                            setTimeout(() => fetchChat(), xhrDelay)
-                            break;
-                        default: {
-                            if ("text" in resJ) CIModal(resJ["text"]);
-                            break;
-                        }
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("remark", JSON.stringify({}))
+        const request = new Request("/tptef/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed":
+                        setTimeout(() => fetchChat(), xhrDelay)
+                        break;
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]);
+                        break;
                     }
-                })
-                .catch(error => {
-                    CIModal("通信エラー")
-                    console.error(error.message)
-                });
-        }
-        // upload file
-        if (tmpAttachment != null) uploadChat()
-        initSubmitForm()
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
     }
     const deleteChat = (_id: number) => {
         const headers = new Headers();
@@ -280,7 +275,7 @@ export const CTable = () => {
                         <button className="btn btn-outline-danger btn-lg" type="button"
                             onClick={() => { $("#destroyRoomModal").modal('show') }}>
                             <i className="far fa-trash-alt mx-1 " style={{ pointerEvents: "none" }}></i>部屋削除
-                        </button> :<div/>
+                        </button> : <div />
                     }
                     <button className="btn btn-outline-dark btn-lg" type="button"
                         onClick={() => { dispatch(tptefStartTable({ tableStatus: "RTable" })) }}>
@@ -363,7 +358,11 @@ export const CTable = () => {
                 )
             return (
                 <button className="btn btn-success"
-                    onClick={() => { remarkChat(); }}>
+                    onClick={() => {
+                        if (tmpText != "") remarkChat()
+                        if (tmpAttachment != null) uploadChat()
+                        initSubmitForm()
+                    }}>
                     <i className="far fa-comment-dots mx-1" style={{ pointerEvents: "none" }}></i>送信
                 </button>
             )
