@@ -176,7 +176,7 @@ export const AppMain = () => {
                             部屋作成
                         </button> :
                         <button className="btn btn-outline-primary btn-lg" type="button"
-                            onClick={() => { setTmpRoom(""); $('#roomCreateModal').modal('show'); }}>
+                            onClick={() => {  $('#roomCreateModal').modal('show'); }}>
                             <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
                             部屋作成
                         </button>}
