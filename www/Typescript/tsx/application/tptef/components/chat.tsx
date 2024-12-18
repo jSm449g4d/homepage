@@ -9,10 +9,8 @@ import "../../../stylecheets/style.sass";
 
 
 export const CTable = () => {
-    const [tmpRoom, setTmpRoom] = useState("")
     const [tmpText, setTmpText] = useState("")
     const [tmpAttachment, setTmpAttachment] = useState(null)
-    const [tmpTargetId, setTmpTargetId] = useState(-1)
     const [contents, setContents] = useState([])
     const user = useAppSelector((state) => state.account.user)
     const userId = useAppSelector((state) => state.account.id)
@@ -35,9 +33,8 @@ export const CTable = () => {
 
     useEffect(() => {
         if (tableStatus == "CTable") setTimeout(() => fetchChat(), xhrDelay)
-    }, [reloadFlag])
-    useEffect(() => {
-    }, [userId])
+        initSubmitForm()
+    }, [reloadFlag, userId])
     const initSubmitForm = () => {
         setTmpText("")
         setTmpAttachment(null)
@@ -85,48 +82,44 @@ export const CTable = () => {
                 console.error(error.message)
             });
     }
-    const remarkChat = () => {
-        if (tmpText != "") {
-            const headers = new Headers();
-            const formData = new FormData();
-            formData.append("info", stringForSend())
-            formData.append("remark", JSON.stringify({}))
-            const request = new Request("/tptef/main.py", {
-                method: 'POST',
-                headers: headers,
-                body: formData,
-                signal: AbortSignal.timeout(xhrTimeout)
-            });
-            fetch(request)
-                .then(response => response.json())
-                .then(resJ => {
-                    switch (resJ["message"]) {
-                        case "processed":
-                            setTimeout(() => fetchChat(), xhrDelay)
-                            break;
-                        default: {
-                            if ("text" in resJ) CIModal(resJ["text"]);
-                            break;
-                        }
-                    }
-                })
-                .catch(error => {
-                    CIModal("通信エラー")
-                    console.error(error.message)
-                });
-        }
-        // upload file
-        if (tmpAttachment == null) return
+    const uploadChat = () => {
         if (fileSizeMax <= tmpAttachment.size) {
-            $('#cautionInfoModal').modal('show');
-            $('#cautionInfoModalTitle').text(
-                "ファイルサイズが大きすぎます(" + String(fileSizeMax) + " byte)未満")
+            CIModal("ファイルサイズが大きすぎます(" + String(fileSizeMax) + " byte)未満")
             return
         }
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
         formData.append("upload", tmpAttachment, tmpAttachment.name)
+        const request = new Request("/tptef/main.py", {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+            signal: AbortSignal.timeout(xhrTimeout)
+        });
+        fetch(request)
+            .then(response => response.json())
+            .then(resJ => {
+                switch (resJ["message"]) {
+                    case "processed":
+                        setTimeout(() => fetchChat(), xhrDelay)
+                        break;
+                    default: {
+                        if ("text" in resJ) CIModal(resJ["text"]);
+                        break;
+                    }
+                }
+            })
+            .catch(error => {
+                CIModal("通信エラー")
+                console.error(error.message)
+            });
+    }
+    const remarkChat = () => {
+        const headers = new Headers();
+        const formData = new FormData();
+        formData.append("info", stringForSend())
+        formData.append("remark", JSON.stringify({}))
         const request = new Request("/tptef/main.py", {
             method: 'POST',
             headers: headers,
@@ -210,11 +203,10 @@ export const CTable = () => {
             });
     }
     const destroyRoom = () => {
-        const _roomid = room["room"] == "" ? tmpTargetId : room["id"]
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
-        formData.append("destroy", JSON.stringify({ "roomid": _roomid }))
+        formData.append("destroy", JSON.stringify({ "roomid": room["id"] }))
         const request = new Request("/tptef/main.py", {
             method: 'POST',
             headers: headers,
@@ -283,16 +275,12 @@ export const CTable = () => {
                         <button className="btn btn-outline-danger btn-lg" type="button"
                             onClick={() => { $("#destroyRoomModal").modal('show') }}>
                             <i className="far fa-trash-alt mx-1 " style={{ pointerEvents: "none" }}></i>部屋削除
-                        </button> :
-                        <button className="btn btn-outline-info btn-lg" type="button"
-                            onClick={() => { HIModal("部屋削除は部屋作成者にしかできません") }}>
-                            <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />部屋削除
-                        </button>
+                        </button> : <div />
                     }
                     <button className="btn btn-outline-dark btn-lg" type="button"
                         onClick={() => { dispatch(tptefStartTable({ tableStatus: "RTable" })) }}>
                         <i className="fa-solid fa-right-from-bracket mx-1"></i>
-                        部屋を出る
+                        退出
                     </button>
                 </div></div>)
     }
@@ -370,7 +358,11 @@ export const CTable = () => {
                 )
             return (
                 <button className="btn btn-success"
-                    onClick={() => { remarkChat(); }}>
+                    onClick={() => {
+                        if (tmpText != "") remarkChat()
+                        if (tmpAttachment != null) uploadChat()
+                        initSubmitForm()
+                    }}>
                     <i className="far fa-comment-dots mx-1" style={{ pointerEvents: "none" }}></i>送信
                 </button>
             )

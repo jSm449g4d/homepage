@@ -15,14 +15,9 @@ export const AppMain = () => {
     const tableStatus = useAppSelector((state) => state.tptef.tableStatus)
     const dispatch = useAppDispatch()
     const xhrTimeout = 3000
-    const fileSizeMax = 1024 * 1024 * 2
 
-    const [room, setRoom] = useState({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" })
     const [tmpRoomKey, setTmpRoomKey] = useState("")
     const [tmpRoom, setTmpRoom] = useState("")
-    const [tmpText, setTmpText] = useState("")
-    const [tmpAttachment, setTmpAttachment] = useState(null)
-    const [tmpTargetId, setTmpTargetId] = useState(-1)
     const [tmpTargetRoom, setTmpTargetRoom] = useState({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" })
     const [contents, setContents] = useState([])
     const AppDispatch = useAppDispatch()
@@ -32,6 +27,7 @@ export const AppMain = () => {
     }, [userId])
     useEffect(() => {
         AppDispatch(tptefStartTable({ "tableStatus": "RTable" }))
+        setTmpRoomKey(""); setTmpRoom("")
         searchRoom()
     }, [])
 
@@ -39,19 +35,9 @@ export const AppMain = () => {
     const stringForSend = (_additionalDict: {} = {}) => {
         const _sendDict = Object.assign(
             {
-                "token": token, "text": tmpText, "user": user, roomid: room["id"], roomKey: roomKey
+                "token": token, "user": user, roomKey: roomKey
             }, _additionalDict)
         return (JSON.stringify(_sendDict))
-    }
-    const enterRoom = (_setContentsInitialze = true) => {
-        setTmpRoomKey(""); setTmpRoom(""); setTmpText(""); setTmpAttachment(null); setTmpTargetId(-1);
-        if (_setContentsInitialze) setContents([])
-        $('#inputConsoleAttachment').val(null)
-    }
-    const exitRoom = (_setContentsInitialze = true) => {
-        setRoom({ "id": -1, "user": "", "userid": -1, "room": "", "timestamp": 0, "passhash": "" });
-        setTmpRoomKey(""); setTmpRoom(""); setTmpText(""); setTmpAttachment(null); setTmpTargetId(-1);
-        if (_setContentsInitialze) setContents([])
     }
     // related to fetchAPI
     const searchRoom = () => {
@@ -59,7 +45,6 @@ export const AppMain = () => {
             const _sortContentsRev = (a: any, b: any) => { return b["timestamp"] - a["timestamp"] }
             setContents(_contents.sort(_sortContentsRev))
         }
-        exitRoom(false)
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
@@ -90,7 +75,6 @@ export const AppMain = () => {
             });
     }
     const createRoom = () => {
-        exitRoom()
         const headers = new Headers();
         const formData = new FormData();
         formData.append("info", stringForSend())
@@ -150,7 +134,7 @@ export const AppMain = () => {
                                     <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                     {tmpRoom == "" || token == "" ?
                                         <button type="button" className="btn btn-outline-info"
-                                            onClick={() => { HIModal("部屋名が入力されてません") }}>
+                                            onClick={() => { HIModal("部屋名が未入力") }}>
                                             <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />作成
                                         </button> :
                                         <div>
@@ -187,12 +171,12 @@ export const AppMain = () => {
                         onChange={(evt: any) => { setTmpRoom(evt.target.value) }} />
                     {token == "" ?
                         <button className="btn btn-outline-info btn-lg" type="button"
-                            onClick={() => { HIModal("部屋作成にはログインが必要です") }}>
+                            onClick={() => { HIModal("ログインが必要") }}>
                             <i className="fa-solid fa-circle-info mx-1" style={{ pointerEvents: "none" }} />
                             部屋作成
                         </button> :
                         <button className="btn btn-outline-primary btn-lg" type="button"
-                            onClick={() => { setTmpRoom(""); $('#roomCreateModal').modal('show'); }}>
+                            onClick={() => {  $('#roomCreateModal').modal('show'); }}>
                             <i className="fa-solid fa-hammer mx-1" style={{ pointerEvents: "none" }} />
                             部屋作成
                         </button>}
