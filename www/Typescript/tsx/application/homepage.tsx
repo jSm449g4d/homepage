@@ -78,7 +78,7 @@ export const AppMain = () => {
                                         <ul style={{ listStyle: "none" }}>
                                             <li>現在開発中</li>
                                             <li>素材/食材を登録</li>
-                                            <li>レシピを登録</li>
+                                            <li>レシピ登録</li>
                                             <li>栄養素計算</li>
                                         </ul>
                                     </div>
